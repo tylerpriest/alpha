@@ -254,9 +254,6 @@
 
         // Add helper text
         addHelperText();
-
-        // Add Kindle helper
-        addKindleHelper();
     }
 
     function addToggleButtons() {
@@ -308,57 +305,6 @@
         if (urlRow && urlRow.nextSibling) {
             urlRow.parentNode.insertBefore(helper, urlRow.nextSibling);
         }
-    }
-
-    function addKindleHelper() {
-        const packBtn = document.getElementById('packEpubButton');
-        if (!packBtn || document.getElementById('kindleHelper')) return;
-
-        // Create Kindle helper section
-        const kindleDiv = document.createElement('div');
-        kindleDiv.id = 'kindleHelper';
-
-        const kindleLink = document.createElement('a');
-        kindleLink.href = '#';
-        kindleLink.id = 'kindleLink';
-        kindleLink.textContent = 'Send to Kindle';
-        kindleLink.onclick = function(e) {
-            e.preventDefault();
-            showKindleInstructions();
-        };
-
-        kindleDiv.appendChild(kindleLink);
-
-        // Insert after pack button's parent
-        packBtn.parentNode.appendChild(kindleDiv);
-    }
-
-    function showKindleInstructions() {
-        // Remove existing modal
-        const existing = document.getElementById('kindleModal');
-        if (existing) existing.remove();
-
-        const modal = document.createElement('div');
-        modal.id = 'kindleModal';
-        modal.innerHTML = `
-            <div class="kindle-modal-content">
-                <h3>Send to Kindle</h3>
-                <p><strong>Option 1: Files App (iOS)</strong></p>
-                <ol>
-                    <li>Download the EPUB first</li>
-                    <li>Open Files app</li>
-                    <li>Go to Downloads</li>
-                    <li>Tap the file → Share → Kindle</li>
-                </ol>
-                <p><strong>Option 2: Send to Kindle Website</strong></p>
-                <p>Upload your EPUB at Amazon's website:</p>
-                <a href="https://www.amazon.com/sendtokindle" target="_blank" class="kindle-upload-btn">
-                    Open Send to Kindle
-                </a>
-                <button onclick="this.closest('#kindleModal').remove()" class="kindle-close-btn">Close</button>
-            </div>
-        `;
-        document.body.appendChild(modal);
     }
 
     /* ============================================================
