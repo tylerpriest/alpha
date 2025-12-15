@@ -183,8 +183,10 @@ body.show-advanced #passwordRow {
   letter-spacing: 0;
 }
 
-/* URL row always visible */
-tr:has(#startingUrlInput) {
+/* URL row always visible - including after book loads */
+tr:has(#startingUrlInput),
+body.has-book tr:has(#startingUrlInput),
+body.has-chapters tr:has(#startingUrlInput) {
   display: block !important;
 }
 
@@ -193,7 +195,13 @@ tr:has(#startingUrlInput) td:first-child {
 }
 
 tr:has(#startingUrlInput) td:nth-child(2),
-tr:has(#startingUrlInput) td:nth-child(3) {
+tr:has(#startingUrlInput) td:nth-child(3),
+body.has-book tr:has(#startingUrlInput) td:nth-child(2),
+body.has-book tr:has(#startingUrlInput) td:nth-child(3) {
+  display: block !important;
+}
+
+#loadAndAnalyseButton {
   display: block !important;
 }
 
