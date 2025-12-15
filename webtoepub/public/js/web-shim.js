@@ -104,6 +104,9 @@
        ============================================================ */
 
     async function init() {
+        // Register service worker for PWA
+        registerServiceWorker();
+
         try {
             const response = await fetch('/_locales/en/messages.json');
             messages = await response.json();
@@ -116,6 +119,26 @@
         } else {
             onDOMReady();
         }
+    }
+
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((reg) => console.log('SW registered:', reg.scope))
+                .catch((err) => console.log('SW registration failed:', err));
+        }
+    }
+
+    // Extract URL from shared text (handles "Check this out: https://..." etc)
+    function extractUrlFromText(text) {
+        if (!text) return null;
+        // If text is already a URL, return it
+        if (text.startsWith('http://') || text.startsWith('https://')) {
+            return text.split(/\s/)[0]; // Get just the URL part
+        }
+        // Try to find URL in text
+        const urlMatch = text.match(/https?:\/\/[^\s]+/);
+        return urlMatch ? urlMatch[0] : null;
     }
 
     function onDOMReady() {
@@ -189,13 +212,27 @@
         if (urlInput) {
             urlInput.placeholder = 'Paste story URL here...';
 
-            // Check for URL in query params first
+            // Check for URL in query params (from share target or direct link)
             const urlParams = new URLSearchParams(window.location.search);
-            const urlParam = urlParams.get('url');
-            if (urlParam) {
-                urlInput.value = urlParam;
+            let sharedUrl = urlParams.get('url');
+
+            // Share target might pass URL in 'text' param instead
+            if (!sharedUrl) {
+                const textParam = urlParams.get('text');
+                if (textParam) {
+                    sharedUrl = extractUrlFromText(textParam);
+                }
+            }
+
+            if (sharedUrl) {
+                urlInput.value = sharedUrl;
                 // Clean up URL bar
                 window.history.replaceState({}, '', window.location.pathname);
+                // Auto-load when URL comes from share target
+                setTimeout(() => {
+                    const loadBtn = document.getElementById('loadAndAnalyseButton');
+                    if (loadBtn) loadBtn.click();
+                }, 500);
             } else {
                 // Restore last URL from localStorage
                 const lastUrl = localStorage.getItem('webtoepub_lastUrl');

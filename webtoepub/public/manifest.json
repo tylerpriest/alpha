@@ -1,35 +1,27 @@
 {
-  "manifest_version": 3,
   "name": "WebToEpub",
-  "version": "1.0.10.2",
-  "default_locale": "en",
-  "icons": {
-    "128": "book128.png"
-  },
-  "permissions": [
-    "cookies",
-    "downloads",
-    "webRequest",
-    "declarativeNetRequest",
-    "scripting",
-    "storage",
-    "unlimitedStorage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "action": {
-    "browser_style": false,
-    "default_title": "",
-    "default_icon": "book128.png",
-    "default_popup": "popup.html"
-  },
-  "incognito": "split",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "WebToEpub@Baka-tsuki.org",
-      "strict_min_version": "115.0"
+  "short_name": "WebToEpub",
+  "description": "Convert web novels to EPUB format",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f0f0f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/book128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  },
-  "minimum_chrome_version": "120"
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "url": "url",
+      "title": "title",
+      "text": "text"
+    }
+  }
 }
