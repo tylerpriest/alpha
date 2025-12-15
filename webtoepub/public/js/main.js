@@ -269,6 +269,13 @@ var main = (function() {
         return !util.isNullOrEmpty(search);
     }
 
+    function isRunningAsWebApp() {
+        // Detect if running as a web app instead of browser extension
+        return typeof chrome === 'undefined' ||
+               typeof chrome.tabs === 'undefined' ||
+               typeof chrome.tabs.query !== 'function';
+    }
+
     async function populateControlsWithDom(url, dom) {
         initialWebPage = dom;
         setUiFieldToValue("startingUrlInput", url);
@@ -615,14 +622,20 @@ var main = (function() {
     // actions to do when window opened
     window.onload = () => {
         userPreferences = UserPreferences.readFromLocalStorage();
-        if (isRunningInTabMode()) { 
+        if (isRunningInTabMode() || isRunningAsWebApp()) {
             ErrorLog.SuppressErrorLog =  false;
             localizeHtmlPage();
             getAdvancedOptionsSection().hidden = !userPreferences.advancedOptionsVisibleByDefault.value;
             getAdditionalMetadataSection().hidden = !userPreferences.ShowMoreMetadataOptions.value;
             addEventHandlers();
-            populateControls();
-            if (util.isFirefox()) {
+            if (!isRunningAsWebApp()) {
+                populateControls();
+            } else {
+                // Web app mode - just load preferences and setup UI
+                loadUserPreferences();
+                parserFactory.populateManualParserSelectionTag(getManuallySelectParserTag());
+            }
+            if (!isRunningAsWebApp() && util.isFirefox()) {
                 Firefox.startWebRequestListeners();
             }
         } else {

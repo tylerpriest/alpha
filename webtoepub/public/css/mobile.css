@@ -1,23 +1,46 @@
-/* Mobile-friendly overrides */
+/* Mobile-friendly styles for WebToEpub Web App */
 
-/* Base mobile styles */
+/* Base styles for all screens */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.5;
+}
+
+/* Mobile styles */
 @media screen and (max-width: 768px) {
   body {
     margin: 0;
-    padding: 8px;
+    padding: 0;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    background: #1a1a2e;
+    color: #eee;
   }
 
   .container {
     display: block;
     width: 100%;
-    padding: 8px;
+    max-width: 100%;
+    padding: 16px;
     box-sizing: border-box;
     border: none;
+    background: #1a1a2e;
+    border-radius: 0;
   }
 
-  /* Make all inputs full width */
+  /* Form labels */
+  #inputTable td:first-child,
+  #rangeSelectTable td:first-child,
+  label {
+    color: #a0a0c0;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  /* All inputs styling */
   input[type=text],
   input[type=url],
   textarea,
@@ -26,7 +49,22 @@
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box;
-    font-size: 16px; /* Prevents iOS zoom */
+    font-size: 16px;
+    padding: 14px 16px;
+    border: 2px solid #2d2d44;
+    border-radius: 12px;
+    background: #16162a;
+    color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type=text]:focus,
+  input[type=url]:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
   }
 
   #inputSection input {
@@ -43,46 +81,107 @@
   }
 
   #inputTable tr {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
   }
 
   #inputTable td:first-child {
     width: 100% !important;
-    font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    display: block;
   }
 
-  /* Load & Analyse button full width */
+  /* Primary action button */
   #loadAndAnalyseButton {
     width: 100%;
-    margin-top: 8px;
-    padding: 12px;
+    margin-top: 12px;
+    padding: 16px 24px;
     font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  }
+
+  #loadAndAnalyseButton:active {
+    transform: scale(0.98);
+  }
+
+  #loadAndAnalyseButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   /* Progress section */
   .progressSection {
     flex-direction: column;
     align-items: stretch;
-    padding: 12px;
+    padding: 20px;
     height: auto;
     width: 100%;
     box-sizing: border-box;
     max-width: none;
+    background: #16162a;
+    border: 2px solid #2d2d44;
+    border-radius: 16px;
+    margin: 16px 0;
   }
 
-  #packEpubButton,
+  #packEpubButton {
+    width: 100%;
+    margin: 8px 0;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+  }
+
   #LibAddToLibrary,
   #LibPauseToLibrary {
     width: 100%;
-    margin: 4px 0;
-    padding: 12px;
-    font-size: 16px;
+    margin: 8px 0;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    background: #2d2d44;
+    color: #a0a0c0;
+    border: 2px solid #3d3d5c;
+    border-radius: 12px;
   }
 
   progress {
     width: 100%;
-    margin: 8px 0;
+    height: 12px;
+    margin: 16px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #2d2d44;
+    border: none;
+  }
+
+  progress::-webkit-progress-bar {
+    background: #2d2d44;
+    border-radius: 6px;
+    height: 12px;
+  }
+
+  progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 6px;
+    height: 12px;
+  }
+
+  progress::-moz-progress-bar {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 6px;
   }
 
   #progressString {
@@ -90,24 +189,65 @@
     left: auto;
     text-align: center;
     width: 100%;
-    margin: 4px 0;
+    margin: 8px 0;
+    color: #a0a0c0;
+    font-size: 14px;
+    font-weight: 500;
   }
 
-  /* Hidden button section */
+  /* Secondary buttons section */
   .HiddenButtonSection {
     flex-direction: column;
-    gap: 8px;
-    padding: 8px 0;
+    gap: 10px;
+    padding: 12px 0;
   }
 
   .HiddenButtonSection button {
     width: 100%;
-    padding: 10px;
+    padding: 14px 20px;
+    background: #2d2d44;
+    color: #a0a0c0;
+    border: 2px solid #3d3d5c;
+    border-radius: 12px;
+    font-weight: 500;
   }
 
-  /* Chapter list controls */
+  /* Generic button styling */
+  button {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-family: inherit;
+    font-weight: 500;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #2d2d44;
+    color: #e0e0e0;
+    border: 2px solid #3d3d5c;
+    box-shadow: none;
+  }
+
+  button:hover {
+    background: #3d3d5c;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .expandedButton {
+    padding: 14px 20px;
+  }
+
+  /* Chapter selection controls */
   #chapterSelectControlsDiv {
-    overflow-x: auto;
+    overflow-x: visible;
+    padding: 12px 0;
   }
 
   #rangeSelectTable,
@@ -119,26 +259,26 @@
   }
 
   #rangeSelectTable tr {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
   }
 
   #rangeSelectTable select {
     width: 100% !important;
-    margin-top: 4px;
+    margin-top: 8px;
   }
 
-  /* Chapter action buttons */
+  /* Chapter action buttons grid */
   #chapterSelectControlsDiv > div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
   }
 
   #chapterSelectControlsDiv > div button {
-    flex: 1 1 45%;
-    min-width: 120px;
-    padding: 10px 8px;
-    font-size: 14px;
+    padding: 12px 8px;
+    font-size: 13px;
+    min-width: unset;
   }
 
   /* Chapter list table */
@@ -148,11 +288,29 @@
   }
 
   .scrollingtable {
-    max-height: 400px;
+    max-height: 50vh;
+    border-radius: 12px;
+    border: 2px solid #2d2d44;
+    background: #16162a;
   }
 
   #chapterUrlsTable {
     font-size: 14px;
+  }
+
+  #chapterUrlsTable th {
+    background: #2d2d44;
+    padding: 12px;
+    color: #a0a0c0;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  #chapterUrlsTable td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #2d2d44;
   }
 
   #chapterUrlsTable input[type=text] {
@@ -160,17 +318,30 @@
     max-width: 100%;
   }
 
+  #chapterUrlsTable input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    accent-color: #6366f1;
+  }
+
   /* Cover image */
   #coverUrlSection img {
     position: static;
     display: block;
-    margin: 8px auto;
-    max-width: 100px;
+    margin: 16px auto;
+    max-width: 120px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
 
   /* Advanced options */
   #advancedOptionsSection {
-    overflow-x: auto;
+    overflow-x: visible;
+    background: #16162a;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    border: 2px solid #2d2d44;
   }
 
   #advancedOptionsTable,
@@ -182,59 +353,120 @@
   }
 
   #advancedOptionsTable tr {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2d2d44;
+  }
+
+  #advancedOptionsTable input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    accent-color: #6366f1;
+    margin-right: 8px;
   }
 
   /* Sidebar */
+  .sidebar {
+    background: #1a1a2e;
+    border-left: 2px solid #2d2d44;
+  }
+
   .sidebar.sidebarOpen {
     width: 90%;
     min-width: unset;
   }
 
+  .sidebar .closebtn {
+    background: #2d2d44;
+    color: #fff;
+    border-color: #3d3d5c;
+  }
+
   /* Error section */
   #errorSection {
     min-width: unset;
+    background: #2d1a1a;
+    border: 2px solid #5c2d2d;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
   }
 
   #errorSectionTable button {
-    margin: 4px;
-    padding: 10px;
+    margin: 6px;
+    padding: 12px 16px;
+  }
+
+  #errorMessageText {
+    color: #ff6b6b;
   }
 
   /* Warning text */
   .warning {
-    font-size: 1.2em;
+    font-size: 1.1em;
     word-wrap: break-word;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    padding: 12px;
+    border-radius: 8px;
   }
 
-  /* All buttons larger touch targets */
-  button {
-    min-height: 44px;
-    padding: 8px 12px;
+  /* Checkboxes with labels */
+  #removeAuthorNotesRow td,
+  #removeChapterNumberRow td,
+  #removeOriginalRow td {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .expandedButton {
-    padding: 10px 16px;
+  /* Hide elements not needed on mobile */
+  #outputSection th[hidden] {
+    display: none !important;
+  }
+
+  /* Chapter count display */
+  #spanChapterCount,
+  #spanParserName,
+  #spanDelayMs {
+    color: #a0a0c0;
+    font-size: 13px;
+  }
+
+  /* Finding chapters message */
+  #findingChapterUrlsMessageRow {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 8px;
+    margin: 12px 0;
   }
 }
 
 /* Extra small screens */
 @media screen and (max-width: 400px) {
   body {
-    padding: 4px;
+    padding: 0;
   }
 
   .container {
-    padding: 4px;
+    padding: 12px;
   }
 
-  #chapterSelectControlsDiv > div button {
-    flex: 1 1 100%;
+  #chapterSelectControlsDiv > div {
+    grid-template-columns: 1fr;
   }
 
   button {
     font-size: 14px;
+  }
+
+  input[type=text],
+  input[type=url],
+  textarea,
+  select {
+    padding: 12px 14px;
   }
 }
