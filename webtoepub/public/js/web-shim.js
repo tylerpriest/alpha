@@ -143,9 +143,12 @@
         const packBtn = document.getElementById('packEpubButton');
         if (packBtn) packBtn.textContent = 'Download EPUB';
 
-        // Simplify labels
-        const startingUrlLabel = document.querySelector('#startingUrlRow td:first-child');
-        if (startingUrlLabel) startingUrlLabel.textContent = 'Book URL';
+        // Simplify labels - use :has() to find the row containing the input
+        const startingUrlRow = document.querySelector('tr:has(#startingUrlInput)');
+        if (startingUrlRow) {
+            const label = startingUrlRow.querySelector('td:first-child');
+            if (label) label.textContent = 'Book URL';
+        }
 
         // Add placeholder to URL input
         const urlInput = document.getElementById('startingUrlInput');
