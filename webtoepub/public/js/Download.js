@@ -1,10 +1,24 @@
 "use strict";
 
+/* ============================================================
+   WEB-MOD: Web app detection for download handling
+   ============================================================ */
+const isWebAppDownload = (typeof chrome !== 'undefined' && chrome.__webShim === true) ||
+                         typeof chrome === 'undefined' ||
+                         typeof chrome.downloads === 'undefined';
+/* WEB-MOD END */
+
 class Download {
     constructor() {
     }
 
     static init() {
+        // WEB-MOD: Use simple anchor downloads for web app
+        if (isWebAppDownload) {
+            Download.saveOn = Download.saveOnWebApp;
+            return;
+        }
+        // WEB-MOD END
         Download.saveOn = util.isFirefox() ? Download.saveOnFirefox : Download.saveOnChrome;
         if (util.isFirefox()) {
             Download.saveOn = Download.saveOnFirefox;
@@ -14,6 +28,23 @@ class Download {
             chrome.downloads.onChanged.addListener(Download.onChanged);
         }
     }
+
+    /* WEB-MOD: Simple anchor-based download for web app */
+    static saveOnWebApp(options, cleanup) {
+        const link = document.createElement("a");
+        link.style.display = "none";
+        link.href = options.url;
+        link.download = options.filename;
+        document.body.appendChild(link);
+        try {
+            link.click();
+        } finally {
+            document.body.removeChild(link);
+            setTimeout(cleanup, 1000);
+        }
+        return Promise.resolve();
+    }
+    /* WEB-MOD END */
 
     static isFileNameIllegalOnWindows(fileName) {
         for (let c of Download.illegalWindowsFileNameChars) {
