@@ -145,6 +145,8 @@
         translateDOM();
         setupUI();
         observeStateChanges();
+        // Show body after translations complete
+        document.body.classList.add('ready');
     }
 
     /* ============================================================

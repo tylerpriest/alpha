@@ -36,6 +36,11 @@
   box-sizing: border-box;
 }
 
+/* Hide body until JS loads and translates */
+body:not(.ready) {
+  visibility: hidden;
+}
+
 body {
   margin: 0;
   padding: 0;
