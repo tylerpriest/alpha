@@ -12,21 +12,20 @@ This project wraps the original WebToEpub browser extension to run as a standalo
 webtoepub/
 ├── app/                    # Next.js app (web wrapper)
 │   ├── api/proxy/route.js  # CORS proxy for external requests
-│   ├── layout.js           # Root layout
-│   └── page.js             # Redirects to popup.html
+│   └── layout.js           # Root layout
 ├── public/                 # Static files (original extension code)
-│   ├── css/
-│   │   ├── mobile.css      # WEB-ONLY: Mobile styling + element hiding
-│   │   └── *.css           # Original extension CSS
+│   ├── css/mobile.css      # WEB-ONLY: Mobile styling + state-based UI
 │   ├── js/
-│   │   ├── web-shim.js     # WEB-ONLY: Chrome API shims
+│   │   ├── web-shim.js     # WEB-ONLY: Chrome API shims, PWA, state management
 │   │   ├── HttpClient.js   # MODIFIED: Proxy support (search for WEB-MOD)
-│   │   ├── main.js         # MODIFIED: Web app detection (search for WEB-MOD)
+│   │   ├── Download.js     # MODIFIED: Anchor-based downloads (search for WEB-MOD)
 │   │   └── *.js            # Original extension JS
-│   ├── popup.html          # Main UI (modified to include web-shim.js)
-│   └── _locales/           # i18n messages
-├── package.json            # Dependencies (Next.js, React)
-└── vercel.json             # Vercel deployment config
+│   ├── popup.html          # Main UI (modified for web)
+│   ├── manifest.json       # WEB-ONLY: PWA manifest with share target
+│   ├── sw.js               # WEB-ONLY: Service worker for PWA
+│   └── _locales/en/        # i18n messages (English only)
+├── package.json            # Dependencies (Next.js)
+└── vercel.json             # Vercel deployment config (rewrites / to popup.html)
 ```
 
 ### Modified Files
@@ -34,44 +33,50 @@ webtoepub/
 Files with `WEB-MOD` comments can be updated from upstream by preserving the marked sections:
 
 1. **HttpClient.js** - Proxy support for CORS
-   - Top: `isWebApp` detection and `proxyUrl()` function
-   - `wrapFetchImpl()`: Routes through proxy, handles redirect URLs
-   - `setDeclarativeNetRequestRules()`: Skipped in web mode
+   - `isWebApp` detection and `proxyUrl()` function
+   - Routes requests through `/api/proxy` to bypass CORS
 
-2. **main.js** - Web app initialization
+2. **Download.js** - Web-compatible downloads
+   - `isWebAppDownload` detection
+   - `saveOnWebApp()`: Anchor-based downloads instead of chrome.downloads
+
+3. **main.js** - Web app initialization
    - `isRunningAsWebApp()`: Detects web mode
-   - `window.onload`: Handles web app startup
+   - Handles web app startup
 
-3. **popup.html** - Entry point
-   - Added viewport meta tag
-   - Added mobile.css link
-   - Added web-shim.js as first script
+4. **Util.js** - Safari compatibility
+   - Guards against missing `chrome.runtime.getManifest`
+
+5. **popup.html** - Entry point
+   - PWA meta tags, manifest link
+   - mobile.css stylesheet
+   - web-shim.js as first script
 
 ### Web-Only Files (Not in Original Extension)
 
 These files are completely new and don't need merging:
 
-- `app/` - Next.js wrapper
-- `public/js/web-shim.js` - Chrome API shims
-- `public/css/mobile.css` - Mobile styling
+- `app/api/proxy/route.js` - CORS proxy API
+- `public/js/web-shim.js` - Chrome API shims, i18n, state management
+- `public/css/mobile.css` - Mobile styling, state-based visibility
+- `public/manifest.json` - PWA manifest with share target
+- `public/sw.js` - Service worker for PWA installation
 - `package.json`, `vercel.json` - Build config
 
 ## Updating from Upstream
 
 1. Clone the latest WebToEpub from https://github.com/dteviot/WebToEpub
-2. Copy files from `plugin/` to `public/`, preserving:
-   - `web-shim.js` (keep as-is)
-   - `mobile.css` (keep as-is)
-   - `popup.html` modifications (viewport, CSS link, web-shim script)
-3. Re-apply `WEB-MOD` sections to:
-   - `HttpClient.js`
-   - `main.js`
+2. Copy files from `plugin/` to `public/`, preserving web-only files
+3. Re-apply `WEB-MOD` sections (search for the marker) to:
+   - `HttpClient.js`, `Download.js`, `main.js`, `Util.js`
+4. Re-apply `popup.html` modifications (PWA meta tags, mobile.css, web-shim.js)
 
 ## How It Works
 
-1. **CORS Proxy**: `/api/proxy` fetches external URLs server-side to bypass CORS
-2. **Chrome API Shims**: `web-shim.js` provides fake chrome.i18n, chrome.runtime, chrome.tabs, chrome.storage
-3. **Mobile UI**: `mobile.css` hides non-essential options, adds Metadata/Advanced toggles
+1. **CORS Proxy**: `/api/proxy` fetches external URLs server-side
+2. **Chrome API Shims**: `web-shim.js` provides chrome.i18n, runtime, tabs, storage
+3. **State-Based UI**: Body classes (`has-book`, `has-chapters`) control visibility
+4. **PWA**: Installable with share target for mobile "Share to" workflow
 
 ## Deployment
 
