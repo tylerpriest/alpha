@@ -151,42 +151,40 @@
         const urlInput = document.getElementById('startingUrlInput');
         if (urlInput) urlInput.placeholder = 'Paste story URL here...';
 
-        // Add "More Options" toggle after the input section
+        // Add toggle buttons container after input section
         const inputSection = document.getElementById('inputSection');
-        if (inputSection && !document.getElementById('moreOptionsToggle')) {
-            const toggle = document.createElement('button');
-            toggle.id = 'moreOptionsToggle';
-            toggle.type = 'button';
-            toggle.textContent = 'More Options';
-            toggle.onclick = function() {
+        if (inputSection && !document.getElementById('optionsToggles')) {
+            const container = document.createElement('div');
+            container.id = 'optionsToggles';
+            container.style.cssText = 'display: flex; gap: 8px; margin: 16px 0;';
+
+            // "More Options" toggle - metadata fields
+            const toggle1 = document.createElement('button');
+            toggle1.id = 'moreOptionsToggle';
+            toggle1.type = 'button';
+            toggle1.textContent = 'Metadata';
+            toggle1.onclick = function() {
                 document.body.classList.toggle('show-options');
                 this.textContent = document.body.classList.contains('show-options')
-                    ? 'Hide Options'
-                    : 'More Options';
+                    ? 'Hide Metadata'
+                    : 'Metadata';
             };
-            inputSection.parentNode.insertBefore(toggle, inputSection.nextSibling);
-        }
 
-        // Simplify chapter count display
-        const chapterCountLabel = document.querySelector('td:has(#spanChapterCount)');
-        if (chapterCountLabel) {
-            const countSpan = document.getElementById('spanChapterCount');
-            if (countSpan) {
-                // Move count outside table structure for cleaner display
-                const outputSection = document.getElementById('outputSection');
-                if (outputSection) {
-                    const countDiv = document.createElement('div');
-                    countDiv.id = 'chapterCountDisplay';
-                    countDiv.style.cssText = 'color: #a1a1aa; font-size: 13px; margin-bottom: 12px;';
+            // "Advanced" toggle - extra processing options
+            const toggle2 = document.createElement('button');
+            toggle2.id = 'advancedToggle';
+            toggle2.type = 'button';
+            toggle2.textContent = 'Advanced';
+            toggle2.onclick = function() {
+                document.body.classList.toggle('show-options-2');
+                this.textContent = document.body.classList.contains('show-options-2')
+                    ? 'Hide Advanced'
+                    : 'Advanced';
+            };
 
-                    // Update count display when it changes
-                    const observer = new MutationObserver(() => {
-                        const count = countSpan.textContent;
-                        countDiv.textContent = count ? `${count} chapters` : '';
-                    });
-                    observer.observe(countSpan, { childList: true, characterData: true, subtree: true });
-                }
-            }
+            container.appendChild(toggle1);
+            container.appendChild(toggle2);
+            inputSection.parentNode.insertBefore(container, inputSection.nextSibling);
         }
     }
 

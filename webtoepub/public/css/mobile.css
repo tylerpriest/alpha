@@ -46,24 +46,27 @@ body {
      HIDE NON-ESSENTIAL ELEMENTS BY DEFAULT
      ======================================== */
 
-  /* Hide these input rows - show via More Options */
+  /* Level 1: Hide these - show via "More Options" */
   #authorRow,
   #languageRow,
   #fileNameRow,
   #seriesRow,
   #volumeRow,
-  #removeAuthorNotesRow,
-  #removeChapterNumberRow,
-  #removeOriginalRow,
-  #selectTranslationGoogleRow,
-  #removeTranslatedRow,
-  #passwordRow,
   #coverUrlRow,
   #clearCoverImageUrlButtonRow {
     display: none !important;
   }
 
-  /* Hide Library button and Add to Library */
+  /* Level 2: Hide these - show via "More Options 2" */
+  #removeChapterNumberRow,
+  #removeOriginalRow,
+  #selectTranslationGoogleRow,
+  #removeTranslatedRow,
+  #passwordRow {
+    display: none !important;
+  }
+
+  /* Hide Library features (extension-specific) */
   #hiddenBibButton,
   #LibAddToLibrary,
   #LibPauseToLibrary,
@@ -71,13 +74,12 @@ body {
     display: none !important;
   }
 
-  /* Hide Advanced Options button - we'll use our own toggle */
+  /* Hide Advanced Options button - we use our own toggle */
   #advancedOptionsButton {
     display: none !important;
   }
 
-  /* Hide complex chapter range controls */
-  #rangeSelectTable,
+  /* Hide less common chapter controls */
   #showChapterUrlsRow,
   #viewFiltersButton,
   #viewReadingListButton {
@@ -90,18 +92,80 @@ body {
     display: none !important;
   }
 
+  /* ========================================
+     SHOW THESE BY DEFAULT
+     ======================================== */
+
+  /* Remove Author Notes - useful, show by default */
+  #removeAuthorNotesRow {
+    display: block !important;
+  }
+
+  #removeAuthorNotesRow td {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+  }
+
+  /* Chapter range selectors - show by default */
+  #rangeSelectTable {
+    display: table !important;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  #rangeSelectTable,
+  #rangeSelectTable tbody,
+  #rangeSelectTable tr,
+  #rangeSelectTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #rangeSelectTable tr {
+    margin-bottom: 12px;
+  }
+
+  #rangeSelectTable td:first-child {
+    color: var(--muted-foreground);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  #rangeSelectTable select {
+    width: 100% !important;
+  }
+
+  /* ========================================
+     MORE OPTIONS TOGGLES
+     ======================================== */
+
   /* Show these when .show-options class is on body */
   body.show-options #authorRow,
   body.show-options #languageRow,
   body.show-options #fileNameRow,
-  body.show-options #coverUrlRow,
-  body.show-options #removeAuthorNotesRow,
-  body.show-options #removeChapterNumberRow {
+  body.show-options #coverUrlRow {
     display: block !important;
   }
 
-  body.show-options #rangeSelectTable {
-    display: table !important;
+  /* Show these when .show-options-2 class is on body */
+  body.show-options-2 #removeChapterNumberRow,
+  body.show-options-2 #removeOriginalRow,
+  body.show-options-2 #selectTranslationGoogleRow,
+  body.show-options-2 #passwordRow {
+    display: block !important;
+  }
+
+  body.show-options-2 #removeChapterNumberRow td,
+  body.show-options-2 #removeOriginalRow td {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
   }
 
   /* ========================================
@@ -369,23 +433,29 @@ body {
   }
 
   /* ========================================
-     MORE OPTIONS TOGGLE
+     OPTIONS TOGGLE BUTTONS
      ======================================== */
 
-  #moreOptionsToggle {
-    display: block;
-    width: 100%;
-    margin: 24px 0 16px;
-    padding: 12px;
+  #optionsToggles {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  #optionsToggles button {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 13px;
     background: transparent;
     border: 1px dashed var(--border);
     color: var(--muted-foreground);
-    font-size: 13px;
-    text-align: center;
+    min-height: 40px;
   }
 
-  body.show-options #moreOptionsToggle {
+  body.show-options #moreOptionsToggle,
+  body.show-options-2 #advancedToggle {
     border-style: solid;
+    background: var(--secondary);
     color: var(--foreground);
   }
 
