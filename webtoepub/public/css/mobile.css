@@ -191,24 +191,14 @@ tr:has(#startingUrlInput) td:nth-child(3) {
   margin-top: 16px;
 }
 
-/* Title as hero text */
+/* Title - same as other inputs now */
 #titleInput {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  width: 100% !important;
-  color: var(--foreground);
-}
-
-#titleInput:focus {
-  outline: none;
 }
 
 tr:has(#titleInput) td:first-child {
-  display: none;
+  display: block;
 }
 
 /* ========================================
