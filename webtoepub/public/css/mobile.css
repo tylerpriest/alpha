@@ -84,7 +84,14 @@ body {
   #editChaptersUrlsButton,
   #copyUrlsToClipboardButton,
   #showChapterUrlsCheckbox,
-  td:has(#showChapterUrlsCheckbox) {
+  td:has(#showChapterUrlsCheckbox),
+  tr:has(#showChapterUrlsCheckbox) {
+    display: none !important;
+  }
+
+  /* Hide progress bar when empty (value=0) */
+  progress[value="0"],
+  progress[value=" 0"] {
     display: none !important;
   }
 
@@ -101,7 +108,9 @@ body {
 
   /* Remove Author Notes - useful, force show */
   #removeAuthorNotesRow {
-    display: table-row !important;
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
   }
 
   /* Chapter range selectors - show by default */
@@ -127,9 +136,14 @@ body {
 
   body.show-options-2 #removeChapterNumberRow,
   body.show-options-2 #removeOriginalRow,
-  body.show-options-2 #selectTranslationAiRow,
+  body.show-options-2 #selectTranslationAiRow {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+  }
+
   body.show-options-2 #passwordRow {
-    display: table-row !important;
+    display: block !important;
   }
 
   /* ========================================
@@ -179,11 +193,45 @@ body {
     border-radius: var(--radius);
     background: var(--secondary);
     color: var(--foreground);
+    transition: border-color 0.15s ease;
   }
 
   input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--ring);
+  }
+
+  input::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.7;
+  }
+
+  /* Cover image styling */
+  #sampleCoverImg {
+    max-width: 80px;
+    max-height: 120px;
+    border-radius: 4px;
+    object-fit: cover;
+    margin-top: 8px;
+  }
+
+  #coverUrlSection td {
+    display: block !important;
+  }
+
+  body.show-options #coverUrlSection {
+    display: block !important;
+  }
+
+  body.show-options #coverUrlSection td[colspan] {
+    display: flex !important;
+    gap: 8px;
+    align-items: center;
+  }
+
+  body.show-options #coverUrlSection #coverImageUrlInput {
+    flex: 1;
+    width: auto !important;
   }
 
   /* Title input - styled as heading */
@@ -202,35 +250,56 @@ body {
     display: none;
   }
 
-  /* Checkbox rows */
+  /* Checkbox rows - flex layout for proper alignment */
   #removeAuthorNotesRow td,
   #removeChapterNumberRow td,
-  #removeOriginalRow td {
-    display: inline-block !important;
-    width: auto !important;
+  #removeOriginalRow td,
+  #selectTranslationAiRow td {
+    display: contents !important;
   }
 
   #removeAuthorNotesRow,
   #removeChapterNumberRow,
-  #removeOriginalRow {
+  #removeOriginalRow,
+  #selectTranslationAiRow {
     padding: 8px 0;
   }
 
-  /* Checkbox styling - ensure visibility on dark backgrounds */
+  /* Custom checkbox styling for dark theme */
   input[type=checkbox] {
-    width: 20px;
-    height: 20px;
-    accent-color: #fafafa;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
     cursor: pointer;
-    /* Ensure checkbox is visible and clickable */
-    appearance: auto;
-    -webkit-appearance: checkbox;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 2px solid #71717a;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.15s ease;
   }
 
-  #removeAuthorNotesRow input[type=checkbox],
-  #removeChapterNumberRow input[type=checkbox],
-  #removeOriginalRow input[type=checkbox] {
-    margin-right: 10px;
+  input[type=checkbox]:checked {
+    background: #fafafa;
+    border-color: #fafafa;
+  }
+
+  input[type=checkbox]:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid #18181b;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  input[type=checkbox]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(250, 250, 250, 0.3);
   }
 
   /* ========================================
@@ -248,6 +317,13 @@ body {
     background: var(--secondary);
     color: var(--secondary-foreground);
     border: 1px solid var(--border);
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   #loadAndAnalyseButton {
@@ -261,6 +337,10 @@ body {
     border: none;
   }
 
+  #loadAndAnalyseButton:active {
+    background: #e4e4e7;
+  }
+
   #packEpubButton {
     width: 100%;
     padding: 16px 24px;
@@ -272,12 +352,17 @@ body {
     margin: 0;
   }
 
-  /* Progress section */
+  #packEpubButton:active {
+    background: #e4e4e7;
+  }
+
+  /* Progress section - clean layout */
   .progressSection {
     display: flex;
     flex-direction: column;
+    gap: 12px;
     padding: 0;
-    margin: 24px 0 16px;
+    margin: 20px 0;
     background: transparent;
     border: none;
     height: auto;
@@ -287,19 +372,27 @@ body {
 
   progress {
     width: 100%;
-    height: 4px;
-    margin: 16px 0 8px;
-    border-radius: 2px;
+    height: 6px;
+    margin: 0;
+    border-radius: 3px;
     background: var(--secondary);
     border: none;
+    overflow: hidden;
   }
 
   progress::-webkit-progress-bar {
     background: var(--secondary);
+    border-radius: 3px;
   }
 
   progress::-webkit-progress-value {
     background: var(--foreground);
+    border-radius: 3px;
+  }
+
+  progress::-moz-progress-bar {
+    background: var(--foreground);
+    border-radius: 3px;
   }
 
   #progressString {
@@ -307,6 +400,12 @@ body {
     color: var(--muted-foreground);
     font-size: 13px;
     position: static;
+    min-height: 1em;
+  }
+
+  /* Hide empty progress string */
+  #progressString:empty {
+    display: none;
   }
 
   /* ========================================
@@ -401,23 +500,31 @@ body {
   }
 
   .scrollingtable {
-    max-height: 45vh;
+    max-height: 50vh;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--card);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   #chapterUrlsTable {
     font-size: 14px;
+    width: 100%;
+    border-collapse: collapse;
   }
 
   #chapterUrlsTable th {
     background: var(--secondary);
-    padding: 12px;
+    padding: 12px 16px;
     color: var(--muted-foreground);
     font-weight: 500;
     font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   /* Hide URL column */
@@ -427,11 +534,23 @@ body {
   }
 
   #chapterUrlsTable td {
-    padding: 12px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--border);
+    vertical-align: middle;
   }
 
-  /* Chapter checkboxes inherit from global input[type=checkbox] styling */
+  #chapterUrlsTable tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Make chapter rows tappable */
+  #chapterUrlsTable tbody tr {
+    transition: background 0.15s ease;
+  }
+
+  #chapterUrlsTable tbody tr:active {
+    background: var(--secondary);
+  }
 
   /* ========================================
      ERROR & STATUS
