@@ -31,8 +31,11 @@ const util = (function() {
 
     function extensionVersion() {
         let runtime = isFirefox() ? browser.runtime : chrome.runtime;
-        // when running unit tests, runtime is not available
-        return (typeof (runtime) === "undefined") ? "unknown" : runtime.getManifest().version;
+        // WEB-MOD: Also check if getManifest is available (not available in web mode on some browsers)
+        if (typeof runtime === "undefined" || typeof runtime.getManifest !== "function") {
+            return "unknown";
+        }
+        return runtime.getManifest().version;
     }
 
     function createEmptyXhtmlDoc() {
