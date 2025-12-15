@@ -271,6 +271,10 @@ var main = (function() {
 
     function isRunningAsWebApp() {
         // Detect if running as a web app instead of browser extension
+        // Check for our web shim marker first
+        if (typeof chrome !== 'undefined' && chrome.__webShim === true) {
+            return true;
+        }
         return typeof chrome === 'undefined' ||
                typeof chrome.tabs === 'undefined' ||
                typeof chrome.tabs.query !== 'function';

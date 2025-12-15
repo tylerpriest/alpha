@@ -15,8 +15,9 @@
     // Messages storage
     let messages = {};
 
-    // Create chrome namespace
+    // Create chrome namespace and mark as web shim
     window.chrome = window.chrome || {};
+    window.chrome.__webShim = true;
 
     // i18n API shim
     window.chrome.i18n = {

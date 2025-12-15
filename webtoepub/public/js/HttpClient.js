@@ -4,7 +4,10 @@
 "use strict";
 
 // Detect if running as web app (not browser extension)
-const isWebApp = typeof chrome === 'undefined' || typeof chrome.runtime === 'undefined' || typeof chrome.runtime.getURL === 'undefined';
+const isWebApp = (typeof chrome !== 'undefined' && chrome.__webShim === true) ||
+                 typeof chrome === 'undefined' ||
+                 typeof chrome.runtime === 'undefined' ||
+                 typeof chrome.runtime.getURL === 'undefined';
 
 function proxyUrl(url) {
     if (isWebApp && !url.startsWith(window.location.origin)) {
