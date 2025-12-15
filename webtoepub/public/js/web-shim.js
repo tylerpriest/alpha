@@ -8,7 +8,7 @@
   It provides:
   1. Chrome API shims (i18n, runtime, tabs, storage)
   2. i18n message translation for __MSG_*__ placeholders
-  3. UI simplification for mobile-friendly experience
+  3. State-based UI management (has-book, has-chapters classes)
 
   This file should load BEFORE any other extension scripts.
 */
@@ -22,17 +22,16 @@
 
     if (!isWebApp) return;
 
-    let messages = {}; // Loaded from /_locales/en/messages.json
+    let messages = {};
 
     /* ============================================================
        CHROME API SHIMS
        ============================================================ */
 
-    // Create chrome namespace and mark as web shim (for detection)
     window.chrome = window.chrome || {};
     window.chrome.__webShim = true;
 
-    // chrome.i18n - Internationalization API
+    // chrome.i18n
     window.chrome.i18n = {
         getMessage: function(key, substitutions) {
             const entry = messages[key] || messages['__MSG_' + key + '__'];
@@ -57,7 +56,7 @@
         getUILanguage: () => 'en'
     };
 
-    // chrome.runtime - Extension runtime API
+    // chrome.runtime
     window.chrome.runtime = {
         getURL: (path) => '/' + path.replace(/^\//, ''),
         getManifest: () => ({ version: '1.0.0-web', name: 'WebToEpub Web' }),
@@ -69,7 +68,7 @@
         }
     };
 
-    // chrome.tabs - Tab management API
+    // chrome.tabs
     window.chrome.tabs = {
         create: (options) => {
             if (options.url) window.open(options.url, '_blank');
@@ -77,7 +76,7 @@
         query: (query, callback) => callback([])
     };
 
-    // chrome.storage - Storage API (uses localStorage)
+    // chrome.storage
     window.chrome.storage = {
         local: {
             get: (keys, callback) => {
@@ -101,8 +100,9 @@
     };
 
     /* ============================================================
-       INITIALIZATION & i18n TRANSLATION
+       INITIALIZATION
        ============================================================ */
+
     async function init() {
         try {
             const response = await fetch('/_locales/en/messages.json');
@@ -120,8 +120,13 @@
 
     function onDOMReady() {
         translateDOM();
-        simplifyUI();
+        setupUI();
+        observeStateChanges();
     }
+
+    /* ============================================================
+       i18n TRANSLATION
+       ============================================================ */
 
     function translateDOM() {
         const walker = document.createTreeWalker(
@@ -153,72 +158,147 @@
     }
 
     /* ============================================================
-       UI SIMPLIFICATION
-       Renames buttons, adds mobile-friendly toggle buttons
+       UI SETUP
        ============================================================ */
 
-    function simplifyUI() {
-        // Rename buttons for clarity
+    function setupUI() {
+        // Rename buttons
         const loadBtn = document.getElementById('loadAndAnalyseButton');
         if (loadBtn) loadBtn.textContent = 'Load';
 
         const packBtn = document.getElementById('packEpubButton');
         if (packBtn) packBtn.textContent = 'Download EPUB';
 
-        // Simplify labels - use :has() to find the row containing the input
+        // Simplify URL label
         const startingUrlRow = document.querySelector('tr:has(#startingUrlInput)');
         if (startingUrlRow) {
             const label = startingUrlRow.querySelector('td:first-child');
             if (label) label.textContent = 'Book URL';
         }
 
-        // Add placeholder to URL input
+        // Add placeholder
         const urlInput = document.getElementById('startingUrlInput');
         if (urlInput) urlInput.placeholder = 'Paste story URL here...';
 
-        // Add toggle buttons container after input section
-        const inputSection = document.getElementById('inputSection');
-        if (inputSection && !document.getElementById('optionsToggles')) {
-            const container = document.createElement('div');
-            container.id = 'optionsToggles';
-            container.style.cssText = 'display: flex; gap: 8px; margin: 16px 0;';
+        // Add toggle buttons
+        addToggleButtons();
 
-            // "More Options" toggle - metadata fields
-            const toggle1 = document.createElement('button');
-            toggle1.id = 'moreOptionsToggle';
-            toggle1.type = 'button';
-            toggle1.textContent = 'Metadata';
-            toggle1.onclick = function() {
-                document.body.classList.toggle('show-options');
-                this.textContent = document.body.classList.contains('show-options')
-                    ? 'Hide Metadata'
-                    : 'Metadata';
-            };
+        // Add helper text
+        addHelperText();
+    }
 
-            // "Advanced" toggle - extra processing options
-            const toggle2 = document.createElement('button');
-            toggle2.id = 'advancedToggle';
-            toggle2.type = 'button';
-            toggle2.textContent = 'Advanced';
-            toggle2.onclick = function() {
-                document.body.classList.toggle('show-options-2');
-                this.textContent = document.body.classList.contains('show-options-2')
-                    ? 'Hide Advanced'
-                    : 'Advanced';
-            };
+    function addToggleButtons() {
+        const progressSection = document.querySelector('.progressSection');
+        if (!progressSection || document.getElementById('optionsToggles')) return;
 
-            container.appendChild(toggle1);
-            container.appendChild(toggle2);
-            inputSection.parentNode.insertBefore(container, inputSection.nextSibling);
+        const container = document.createElement('div');
+        container.id = 'optionsToggles';
+
+        // Metadata toggle
+        const metaBtn = document.createElement('button');
+        metaBtn.id = 'metadataToggle';
+        metaBtn.type = 'button';
+        metaBtn.textContent = 'Metadata';
+        metaBtn.onclick = function() {
+            document.body.classList.toggle('show-metadata');
+            this.textContent = document.body.classList.contains('show-metadata')
+                ? 'Hide Metadata' : 'Metadata';
+        };
+
+        // Advanced toggle
+        const advBtn = document.createElement('button');
+        advBtn.id = 'advancedToggle';
+        advBtn.type = 'button';
+        advBtn.textContent = 'Advanced';
+        advBtn.onclick = function() {
+            document.body.classList.toggle('show-advanced');
+            this.textContent = document.body.classList.contains('show-advanced')
+                ? 'Hide Advanced' : 'Advanced';
+        };
+
+        container.appendChild(metaBtn);
+        container.appendChild(advBtn);
+
+        // Insert after progress section
+        progressSection.parentNode.insertBefore(container, progressSection.nextSibling);
+    }
+
+    function addHelperText() {
+        const loadBtn = document.getElementById('loadAndAnalyseButton');
+        if (!loadBtn || document.getElementById('webHelperText')) return;
+
+        const helper = document.createElement('p');
+        helper.id = 'webHelperText';
+        helper.innerHTML = 'Supports Royal Road, Archive of Our Own, Wattpad,<br>and 200+ other sites';
+
+        // Insert after the URL row's container
+        const urlRow = loadBtn.closest('tr');
+        if (urlRow && urlRow.nextSibling) {
+            urlRow.parentNode.insertBefore(helper, urlRow.nextSibling);
         }
     }
 
-    // Re-run after main.js initializes
+    /* ============================================================
+       STATE OBSERVATION
+       Watches for book/chapter data and adds appropriate classes
+       ============================================================ */
+
+    function observeStateChanges() {
+        // Watch title input for book data
+        const titleInput = document.getElementById('titleInput');
+        if (titleInput) {
+            // Check initial state
+            checkBookState(titleInput);
+
+            // Watch for changes
+            const titleObserver = new MutationObserver(() => checkBookState(titleInput));
+            titleObserver.observe(titleInput, { attributes: true, attributeFilter: ['value'] });
+
+            // Also listen for input events
+            titleInput.addEventListener('input', () => checkBookState(titleInput));
+            titleInput.addEventListener('change', () => checkBookState(titleInput));
+
+            // Periodic check as fallback (value can be set programmatically)
+            setInterval(() => checkBookState(titleInput), 500);
+        }
+
+        // Watch chapter table for chapters
+        const chapterTable = document.getElementById('chapterUrlsTable');
+        if (chapterTable) {
+            const chapterObserver = new MutationObserver(checkChapterState);
+            chapterObserver.observe(chapterTable, { childList: true, subtree: true });
+
+            // Initial check
+            checkChapterState();
+        }
+    }
+
+    function checkBookState(titleInput) {
+        const hasBook = titleInput && titleInput.value && titleInput.value.trim() !== '';
+        document.body.classList.toggle('has-book', hasBook);
+    }
+
+    function checkChapterState() {
+        const chapterRows = document.querySelectorAll('#chapterUrlsTable tbody tr');
+        const hasChapters = chapterRows.length > 0;
+        document.body.classList.toggle('has-chapters', hasChapters);
+    }
+
+    /* ============================================================
+       POST-LOAD HOOK
+       Re-run after main.js initializes
+       ============================================================ */
+
     window.addEventListener('load', function() {
         setTimeout(() => {
             translateDOM();
-            simplifyUI();
-        }, 150);
+            setupUI();
+
+            // Force state check
+            const titleInput = document.getElementById('titleInput');
+            if (titleInput) checkBookState(titleInput);
+            checkChapterState();
+        }, 200);
     });
 
     init();

@@ -1,17 +1,27 @@
-/* Mobile-friendly styles - shadcn/ui zinc dark theme */
-/* Simplified UX: URL → Load → Select → Download */
+/*
+  WebToEpub Web - Mobile Styles
+  =============================
+
+  State-based UI:
+  - Default: Only URL input + Load button visible
+  - body.has-book: Book title, options, download button visible
+  - body.has-chapters: Chapter list and controls visible
+  - body.show-metadata: Metadata fields visible
+  - body.show-advanced: Advanced options visible
+*/
 
 :root {
   --background: #09090b;
   --foreground: #fafafa;
-  --card: #09090b;
+  --card: #0a0a0c;
   --primary: #fafafa;
   --primary-foreground: #18181b;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
+  --muted: #18181b;
   --muted-foreground: #a1a1aa;
   --border: #27272a;
-  --ring: #d4d4d8;
+  --ring: #52525b;
   --radius: 0.5rem;
   --destructive: #7f1d1d;
 }
@@ -34,37 +44,19 @@ body {
   .container {
     display: block;
     width: 100%;
-    padding: 20px 16px;
+    padding: 24px 16px;
+    padding-bottom: 100px;
     box-sizing: border-box;
     border: none;
     background: var(--background);
   }
 
   /* ========================================
-     HIDE ELEMENTS BY DEFAULT
-     Use :has() to target rows by their inputs
+     HIDE EVERYTHING BY DEFAULT
+     Only show when appropriate state class exists
      ======================================== */
 
-  /* Hide metadata rows - show via "Metadata" toggle */
-  tr:has(#authorInput),
-  tr:has(#languageInput),
-  tr:has(#fileNameInput),
-  #coverUrlSection,
-  #seriesRow,
-  #volumeRow {
-    display: none !important;
-  }
-
-  /* Hide advanced options - show via "Advanced" toggle */
-  #removeChapterNumberRow,
-  #removeOriginalRow,
-  #selectTranslationAiRow,
-  #removeTranslatedRow,
-  #passwordRow {
-    display: none !important;
-  }
-
-  /* Always hide these (extension-specific) */
+  /* Always hide extension-specific elements */
   #hiddenBibButton,
   #LibAddToLibrary,
   #LibPauseToLibrary,
@@ -75,82 +67,117 @@ body {
   #imageSection,
   .HiddenButtonSection,
   #advancedOptionsSection,
-  #readingListSection {
-    display: none !important;
-  }
-
-  /* Hide less-used chapter controls */
+  #readingListSection,
+  #defaultParserSection,
+  #seriesRow,
+  #volumeRow,
+  #translatorRow,
+  #fileAuthorAsRow,
   #reverseChapterUrlsOrderButton,
   #editChaptersUrlsButton,
   #copyUrlsToClipboardButton,
-  #showChapterUrlsCheckbox,
-  td:has(#showChapterUrlsCheckbox),
   tr:has(#showChapterUrlsCheckbox) {
     display: none !important;
   }
 
-  /* Hide progress bar when empty (value=0) */
+  /* Hide book-related stuff until book loaded */
+  tr:has(#titleInput),
+  tr:has(#authorInput),
+  tr:has(#languageInput),
+  tr:has(#fileNameInput),
+  #coverUrlSection,
+  #removeAuthorNotesRow,
+  #removeChapterNumberRow,
+  #removeOriginalRow,
+  #selectTranslationAiRow,
+  #removeTranslatedRow,
+  #passwordRow,
+  .progressSection,
+  #optionsToggles {
+    display: none !important;
+  }
+
+  /* Hide chapter stuff until chapters loaded */
+  #outputSection {
+    display: none !important;
+  }
+
+  /* Hide progress bar when at 0 */
   progress[value="0"],
   progress[value=" 0"] {
     display: none !important;
   }
 
   /* ========================================
-     SHOW BY DEFAULT: Core elements
+     STATE: has-book (book metadata loaded)
      ======================================== */
 
-  /* URL input row - always show */
-  tr:has(#startingUrlInput),
-  tr:has(#loadAndAnalyseButton),
-  tr:has(#titleInput) {
-    display: table-row !important;
+  body.has-book tr:has(#titleInput) {
+    display: block !important;
   }
 
-  /* Remove Author Notes - useful, force show */
-  #removeAuthorNotesRow {
+  body.has-book #removeAuthorNotesRow {
     display: flex !important;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 12px 0;
   }
 
-  /* Chapter range selectors - show by default */
-  #rangeStartChapterRow,
-  #rangeEndChapterRow {
-    display: table-row !important;
+  body.has-book .progressSection {
+    display: flex !important;
+  }
+
+  body.has-book #optionsToggles {
+    display: flex !important;
   }
 
   /* ========================================
-     TOGGLE: Metadata (show-options class)
+     STATE: has-chapters (chapter list loaded)
      ======================================== */
 
-  body.show-options tr:has(#authorInput),
-  body.show-options tr:has(#languageInput),
-  body.show-options tr:has(#fileNameInput),
-  body.show-options #coverUrlSection {
-    display: table-row !important;
-  }
-
-  /* ========================================
-     TOGGLE: Advanced (show-options-2 class)
-     ======================================== */
-
-  body.show-options-2 #removeChapterNumberRow,
-  body.show-options-2 #removeOriginalRow,
-  body.show-options-2 #selectTranslationAiRow {
-    display: flex !important;
-    align-items: center;
-    gap: 10px;
-  }
-
-  body.show-options-2 #passwordRow {
+  body.has-chapters #outputSection {
     display: block !important;
   }
 
   /* ========================================
-     STYLING
+     STATE: show-metadata (metadata toggle on)
      ======================================== */
 
-  /* Input table - stack vertically */
+  body.show-metadata tr:has(#authorInput),
+  body.show-metadata tr:has(#languageInput),
+  body.show-metadata tr:has(#fileNameInput) {
+    display: block !important;
+  }
+
+  body.show-metadata #coverUrlSection {
+    display: block !important;
+  }
+
+  /* ========================================
+     STATE: show-advanced (advanced toggle on)
+     ======================================== */
+
+  body.show-advanced #removeChapterNumberRow,
+  body.show-advanced #removeOriginalRow,
+  body.show-advanced #selectTranslationAiRow {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+
+  body.show-advanced #passwordRow {
+    display: block !important;
+  }
+
+  /* ========================================
+     INPUT SECTION LAYOUT
+     ======================================== */
+
+  #inputSection {
+    margin-bottom: 0;
+  }
+
   #inputTable,
   #inputTable tbody {
     display: block;
@@ -171,14 +198,26 @@ body {
   /* Labels */
   #inputTable td:first-child {
     color: var(--muted-foreground);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
-  /* Inputs */
+  /* URL row - special layout */
+  tr:has(#startingUrlInput) {
+    display: block !important;
+  }
+
+  tr:has(#startingUrlInput) td:nth-child(3) {
+    margin-top: 12px;
+  }
+
+  /* ========================================
+     FORM INPUTS
+     ======================================== */
+
   input[type=text],
   input[type=url],
   textarea,
@@ -196,93 +235,55 @@ body {
     transition: border-color 0.15s ease;
   }
 
-  input:focus, select:focus, textarea:focus {
+  input:focus,
+  select:focus,
+  textarea:focus {
     outline: none;
     border-color: var(--ring);
   }
 
   input::placeholder {
     color: var(--muted-foreground);
-    opacity: 0.7;
+    opacity: 0.6;
   }
 
-  /* Cover image styling */
-  #sampleCoverImg {
-    max-width: 80px;
-    max-height: 120px;
-    border-radius: 4px;
-    object-fit: cover;
-    margin-top: 8px;
-  }
-
-  #coverUrlSection td {
-    display: block !important;
-  }
-
-  body.show-options #coverUrlSection {
-    display: block !important;
-  }
-
-  body.show-options #coverUrlSection td[colspan] {
-    display: flex !important;
-    gap: 8px;
-    align-items: center;
-  }
-
-  body.show-options #coverUrlSection #coverImageUrlInput {
-    flex: 1;
-    width: auto !important;
-  }
-
-  /* Title input - styled as heading */
+  /* Title - styled as heading */
   #titleInput {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
-    padding: 12px 0;
+    padding: 8px 0;
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--border);
     border-radius: 0;
   }
 
-  /* Hide title label */
   tr:has(#titleInput) td:first-child {
     display: none;
   }
 
-  /* Checkbox rows - flex layout for proper alignment */
-  #removeAuthorNotesRow td,
-  #removeChapterNumberRow td,
-  #removeOriginalRow td,
-  #selectTranslationAiRow td {
-    display: contents !important;
-  }
+  /* ========================================
+     CHECKBOXES
+     ======================================== */
 
-  #removeAuthorNotesRow,
-  #removeChapterNumberRow,
-  #removeOriginalRow,
-  #selectTranslationAiRow {
-    padding: 8px 0;
-  }
-
-  /* Custom checkbox styling for dark theme */
   input[type=checkbox] {
     width: 22px;
     height: 22px;
     min-width: 22px;
+    flex-shrink: 0;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
     background: transparent;
-    border: 2px solid #71717a;
+    border: 2px solid var(--muted-foreground);
     border-radius: 4px;
     position: relative;
     transition: all 0.15s ease;
   }
 
   input[type=checkbox]:checked {
-    background: #fafafa;
-    border-color: #fafafa;
+    background: var(--foreground);
+    border-color: var(--foreground);
   }
 
   input[type=checkbox]:checked::after {
@@ -292,14 +293,17 @@ body {
     top: 2px;
     width: 5px;
     height: 10px;
-    border: solid #18181b;
-    border-width: 0 2px 2px 0;
+    border: solid var(--background);
+    border-width: 0 2.5px 2.5px 0;
     transform: rotate(45deg);
   }
 
-  input[type=checkbox]:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(250, 250, 250, 0.3);
+  /* Checkbox rows - flex layout */
+  #removeAuthorNotesRow td,
+  #removeChapterNumberRow td,
+  #removeOriginalRow td,
+  #selectTranslationAiRow td {
+    display: contents !important;
   }
 
   /* ========================================
@@ -326,11 +330,12 @@ body {
     opacity: 0.9;
   }
 
+  /* Load button - primary */
   #loadAndAnalyseButton {
     width: 100%;
-    margin-top: 8px;
-    padding: 14px 24px;
-    font-size: 15px;
+    margin-top: 0;
+    padding: 16px 24px;
+    font-size: 16px;
     font-weight: 600;
     background: var(--primary);
     color: var(--primary-foreground);
@@ -341,28 +346,30 @@ body {
     background: #e4e4e7;
   }
 
+  /* Download button - primary, prominent */
   #packEpubButton {
     width: 100%;
-    padding: 16px 24px;
-    font-size: 16px;
+    padding: 18px 24px;
+    font-size: 17px;
     font-weight: 600;
     background: var(--primary);
     color: var(--primary-foreground);
     border: none;
-    margin: 0;
   }
 
   #packEpubButton:active {
     background: #e4e4e7;
   }
 
-  /* Progress section - clean layout */
+  /* ========================================
+     PROGRESS SECTION
+     ======================================== */
+
   .progressSection {
-    display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     padding: 0;
-    margin: 20px 0;
+    margin: 24px 0;
     background: transparent;
     border: none;
     height: auto;
@@ -400,22 +407,19 @@ body {
     color: var(--muted-foreground);
     font-size: 13px;
     position: static;
-    min-height: 1em;
   }
 
-  /* Hide empty progress string */
   #progressString:empty {
     display: none;
   }
 
   /* ========================================
-     OPTIONS TOGGLES
+     OPTIONS TOGGLE BUTTONS
      ======================================== */
 
   #optionsToggles {
-    display: flex;
     gap: 8px;
-    margin: 16px 0;
+    margin: 20px 0;
   }
 
   #optionsToggles button {
@@ -428,8 +432,8 @@ body {
     min-height: 40px;
   }
 
-  body.show-options #moreOptionsToggle,
-  body.show-options-2 #advancedToggle {
+  body.show-metadata #metadataToggle,
+  body.show-advanced #advancedToggle {
     border-style: solid;
     background: var(--secondary);
     color: var(--foreground);
@@ -440,22 +444,24 @@ body {
      ======================================== */
 
   #outputSection {
-    margin-top: 24px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
   }
 
   #chapterSelectControlsDiv {
     padding: 0;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
-  /* Range select table */
+  /* Range dropdowns */
   #rangeSelectTable {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   #rangeSelectTable tr {
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   #rangeSelectTable td {
@@ -464,17 +470,18 @@ body {
 
   #rangeSelectTable td:first-child {
     color: var(--muted-foreground);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
   }
 
   #rangeSelectTable select {
     width: 100% !important;
   }
 
-  /* Chapter action buttons */
+  /* Select All / Unselect All buttons */
   #chapterSelectControlsDiv > div {
     display: flex;
     gap: 8px;
@@ -486,14 +493,17 @@ body {
     font-size: 13px;
   }
 
-  /* Chapter count */
+  /* Chapter count row */
   #rangeChapterCountRow {
     color: var(--muted-foreground);
     font-size: 13px;
-    margin-bottom: 12px;
+    margin: 16px 0;
   }
 
-  /* Chapter list */
+  /* ========================================
+     CHAPTER LIST TABLE
+     ======================================== */
+
   section.minWidth {
     min-width: unset;
     width: 100%;
@@ -543,7 +553,6 @@ body {
     border-bottom: none;
   }
 
-  /* Make chapter rows tappable */
   #chapterUrlsTable tbody tr {
     transition: background 0.15s ease;
   }
@@ -553,7 +562,34 @@ body {
   }
 
   /* ========================================
-     ERROR & STATUS
+     COVER IMAGE
+     ======================================== */
+
+  #sampleCoverImg {
+    max-width: 80px;
+    max-height: 120px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-top: 8px;
+  }
+
+  #coverUrlSection td {
+    display: block !important;
+  }
+
+  #coverUrlSection td[colspan] {
+    display: flex !important;
+    gap: 8px;
+    align-items: center;
+  }
+
+  #coverUrlSection #coverImageUrlInput {
+    flex: 1;
+    width: auto !important;
+  }
+
+  /* ========================================
+     ERROR & STATUS MESSAGES
      ======================================== */
 
   #errorSection {
@@ -569,6 +605,13 @@ body {
     color: #fafafa;
   }
 
+  #errorMessageText pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    margin: 0;
+  }
+
   .warning {
     color: #fbbf24;
     padding: 12px;
@@ -577,24 +620,32 @@ body {
 
   #findingChapterUrlsMessageRow {
     text-align: center;
-    padding: 20px;
+    padding: 24px;
     color: var(--muted-foreground);
   }
 
-  /* Sidebar */
-  .sidebar {
-    background: var(--background);
-    border-left: 1px solid var(--border);
+  /* ========================================
+     HELPER TEXT (added via JS)
+     ======================================== */
+
+  #webHelperText {
+    text-align: center;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    margin-top: 24px;
+    padding: 0 16px;
+    line-height: 1.6;
   }
 
-  .sidebar.sidebarOpen {
-    width: 90%;
-    min-width: unset;
+  body.has-book #webHelperText {
+    display: none;
   }
 }
 
+/* Small phones */
 @media screen and (max-width: 400px) {
   .container {
-    padding: 16px 12px;
+    padding: 20px 12px;
+    padding-bottom: 80px;
   }
 }
