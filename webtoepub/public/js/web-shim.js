@@ -1,18 +1,16 @@
 /*
   Web-compatible shim for Chrome extension APIs
-  Must be loaded FIRST before any other scripts
+  Also simplifies UI for web/mobile use
 */
 "use strict";
 
 (function() {
-    // Check if running as web app (not extension)
     const isWebApp = typeof chrome === 'undefined' ||
                      typeof chrome.runtime === 'undefined' ||
                      typeof chrome.runtime.getURL === 'undefined';
 
     if (!isWebApp) return;
 
-    // Messages storage
     let messages = {};
 
     // Create chrome namespace and mark as web shim
@@ -24,9 +22,7 @@
         getMessage: function(key, substitutions) {
             const entry = messages[key] || messages['__MSG_' + key + '__'];
             if (!entry) return key;
-
             let msg = entry.message || key;
-
             if (substitutions) {
                 const subs = Array.isArray(substitutions) ? substitutions : [substitutions];
                 subs.forEach((sub, i) => {
@@ -61,16 +57,12 @@
     // tabs API shim
     window.chrome.tabs = {
         create: (options) => {
-            if (options.url) {
-                window.open(options.url, '_blank');
-            }
+            if (options.url) window.open(options.url, '_blank');
         },
-        query: (query, callback) => {
-            callback([]);
-        }
+        query: (query, callback) => callback([])
     };
 
-    // storage API shim (uses localStorage)
+    // storage API shim
     window.chrome.storage = {
         local: {
             get: (keys, callback) => {
@@ -93,7 +85,7 @@
         }
     };
 
-    // Load messages and translate DOM
+    // Load messages
     async function init() {
         try {
             const response = await fetch('/_locales/en/messages.json');
@@ -102,35 +94,32 @@
             console.error('Failed to load i18n messages:', e);
         }
 
-        // Translate when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', translateDOM);
+            document.addEventListener('DOMContentLoaded', onDOMReady);
         } else {
-            translateDOM();
+            onDOMReady();
         }
     }
 
-    function translateDOM() {
-        // Replace __MSG_*__ in text content
-        const walker = document.createTreeWalker(
-            document.body,
-            NodeFilter.SHOW_TEXT,
-            null,
-            false
-        );
+    function onDOMReady() {
+        translateDOM();
+        simplifyUI();
+    }
 
+    function translateDOM() {
+        const walker = document.createTreeWalker(
+            document.body, NodeFilter.SHOW_TEXT, null, false
+        );
         const textNodes = [];
         while (walker.nextNode()) {
             if (walker.currentNode.textContent.includes('__MSG_')) {
                 textNodes.push(walker.currentNode);
             }
         }
-
         textNodes.forEach(node => {
             node.textContent = translateString(node.textContent);
         });
 
-        // Translate button text content
         document.querySelectorAll('button, option, td, th, .i18n, label, p').forEach(el => {
             if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
                 el.textContent = translateString(el.textContent);
@@ -146,24 +135,68 @@
         });
     }
 
-    // Override window.onload to handle web mode
-    const originalOnload = window.onload;
-    window.addEventListener('load', function() {
-        // Force web mode initialization
-        if (isWebApp) {
-            // Set a fake query param to make isRunningInTabMode return true-ish behavior
-            // but we'll handle it differently
-            initWebMode();
-        }
-    });
+    function simplifyUI() {
+        // Rename buttons for clarity
+        const loadBtn = document.getElementById('loadAndAnalyseButton');
+        if (loadBtn) loadBtn.textContent = 'Load';
 
-    function initWebMode() {
-        // This runs after main.js sets up window.onload
-        // We need to re-trigger initialization in a web-friendly way
+        const packBtn = document.getElementById('packEpubButton');
+        if (packBtn) packBtn.textContent = 'Download EPUB';
+
+        // Simplify labels
+        const startingUrlLabel = document.querySelector('#startingUrlRow td:first-child');
+        if (startingUrlLabel) startingUrlLabel.textContent = 'Book URL';
+
+        // Add placeholder to URL input
+        const urlInput = document.getElementById('startingUrlInput');
+        if (urlInput) urlInput.placeholder = 'Paste story URL here...';
+
+        // Add "More Options" toggle after the input section
+        const inputSection = document.getElementById('inputSection');
+        if (inputSection && !document.getElementById('moreOptionsToggle')) {
+            const toggle = document.createElement('button');
+            toggle.id = 'moreOptionsToggle';
+            toggle.type = 'button';
+            toggle.textContent = 'More Options';
+            toggle.onclick = function() {
+                document.body.classList.toggle('show-options');
+                this.textContent = document.body.classList.contains('show-options')
+                    ? 'Hide Options'
+                    : 'More Options';
+            };
+            inputSection.parentNode.insertBefore(toggle, inputSection.nextSibling);
+        }
+
+        // Simplify chapter count display
+        const chapterCountLabel = document.querySelector('td:has(#spanChapterCount)');
+        if (chapterCountLabel) {
+            const countSpan = document.getElementById('spanChapterCount');
+            if (countSpan) {
+                // Move count outside table structure for cleaner display
+                const outputSection = document.getElementById('outputSection');
+                if (outputSection) {
+                    const countDiv = document.createElement('div');
+                    countDiv.id = 'chapterCountDisplay';
+                    countDiv.style.cssText = 'color: #a1a1aa; font-size: 13px; margin-bottom: 12px;';
+
+                    // Update count display when it changes
+                    const observer = new MutationObserver(() => {
+                        const count = countSpan.textContent;
+                        countDiv.textContent = count ? `${count} chapters` : '';
+                    });
+                    observer.observe(countSpan, { childList: true, characterData: true, subtree: true });
+                }
+            }
+        }
+    }
+
+    // Re-run after main.js initializes
+    window.addEventListener('load', function() {
         setTimeout(() => {
             translateDOM();
-        }, 100);
-    }
+            simplifyUI();
+        }, 150);
+    });
 
     init();
 })();

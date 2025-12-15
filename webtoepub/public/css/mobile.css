@@ -1,36 +1,28 @@
 /* Mobile-friendly styles - shadcn/ui zinc dark theme */
+/* Simplified UX: URL → Load → Select → Download */
 
-/* shadcn color variables */
 :root {
   --background: #09090b;
   --foreground: #fafafa;
   --card: #09090b;
   --card-foreground: #fafafa;
-  --popover: #09090b;
-  --popover-foreground: #fafafa;
   --primary: #fafafa;
   --primary-foreground: #18181b;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
   --muted: #27272a;
   --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
-  --destructive: #7f1d1d;
-  --destructive-foreground: #fafafa;
   --border: #27272a;
-  --input: #27272a;
   --ring: #d4d4d8;
   --radius: 0.5rem;
+  --destructive: #7f1d1d;
 }
 
-/* Base styles */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
 }
 
-/* Mobile styles */
 @media screen and (max-width: 768px) {
   body {
     margin: 0;
@@ -44,24 +36,90 @@ body {
   .container {
     display: block;
     width: 100%;
-    max-width: 100%;
-    padding: 16px;
+    padding: 20px 16px;
     box-sizing: border-box;
     border: none;
     background: var(--background);
   }
 
+  /* ========================================
+     HIDE NON-ESSENTIAL ELEMENTS BY DEFAULT
+     ======================================== */
+
+  /* Hide these input rows - show via More Options */
+  #authorRow,
+  #languageRow,
+  #fileNameRow,
+  #seriesRow,
+  #volumeRow,
+  #removeAuthorNotesRow,
+  #removeChapterNumberRow,
+  #removeOriginalRow,
+  #selectTranslationGoogleRow,
+  #removeTranslatedRow,
+  #passwordRow,
+  #coverUrlRow,
+  #clearCoverImageUrlButtonRow {
+    display: none !important;
+  }
+
+  /* Hide Library button and Add to Library */
+  #hiddenBibButton,
+  #LibAddToLibrary,
+  #LibPauseToLibrary,
+  #hiddenBibSection {
+    display: none !important;
+  }
+
+  /* Hide Advanced Options button - we'll use our own toggle */
+  #advancedOptionsButton {
+    display: none !important;
+  }
+
+  /* Hide complex chapter range controls */
+  #rangeSelectTable,
+  #showChapterUrlsRow,
+  #viewFiltersButton,
+  #viewReadingListButton {
+    display: none !important;
+  }
+
+  /* Hide cover image section initially */
+  #coverUrlSection,
+  #imageSection {
+    display: none !important;
+  }
+
+  /* Show these when .show-options class is on body */
+  body.show-options #authorRow,
+  body.show-options #languageRow,
+  body.show-options #fileNameRow,
+  body.show-options #coverUrlRow,
+  body.show-options #removeAuthorNotesRow,
+  body.show-options #removeChapterNumberRow {
+    display: block !important;
+  }
+
+  body.show-options #rangeSelectTable {
+    display: table !important;
+  }
+
+  /* ========================================
+     VISIBLE ELEMENTS STYLING
+     ======================================== */
+
   /* Form labels */
   #inputTable td:first-child,
-  #rangeSelectTable td:first-child,
   label {
     color: var(--muted-foreground);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 6px;
   }
 
-  /* All inputs */
+  /* Inputs */
   input[type=text],
   input[type=url],
   textarea,
@@ -71,25 +129,17 @@ body {
     width: 100% !important;
     box-sizing: border-box;
     font-size: 16px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--background);
+    background: var(--secondary);
     color: var(--foreground);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s;
   }
 
-  input[type=text]:focus,
-  input[type=url]:focus,
-  textarea:focus,
-  select:focus {
+  input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--ring);
-    box-shadow: 0 0 0 2px rgba(212, 212, 216, 0.2);
-  }
-
-  #inputSection input {
-    width: 100% !important;
   }
 
   /* Stack table rows */
@@ -102,155 +152,127 @@ body {
   }
 
   #inputTable tr {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   #inputTable td:first-child {
-    width: 100% !important;
     margin-bottom: 8px;
   }
 
-  /* Primary button - white on dark */
+  /* Hide the title row label but keep the input */
+  #titleRow td:first-child {
+    display: none;
+  }
+
+  /* Style title input as a heading */
+  #titleInput {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  #titleInput:focus {
+    border-color: var(--foreground);
+  }
+
+  /* ========================================
+     BUTTONS
+     ======================================== */
+
+  /* Load button - primary */
   #loadAndAnalyseButton {
     width: 100%;
-    margin-top: 12px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 500;
+    margin-top: 8px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
     background: var(--primary);
     color: var(--primary-foreground);
     border: none;
     border-radius: var(--radius);
     cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  #loadAndAnalyseButton:hover {
-    opacity: 0.9;
-  }
-
-  #loadAndAnalyseButton:active {
-    opacity: 0.8;
   }
 
   #loadAndAnalyseButton:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
   }
 
-  /* Progress section */
+  /* Progress/Download section */
   .progressSection {
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    padding: 16px;
+    padding: 0;
+    margin: 24px 0 16px;
+    background: transparent;
+    border: none;
     height: auto;
     width: 100%;
-    box-sizing: border-box;
     max-width: none;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin: 16px 0;
   }
 
-  /* Pack EPUB - primary action */
+  /* Download button - main CTA */
   #packEpubButton {
     width: 100%;
-    margin: 8px 0;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
     background: var(--primary);
     color: var(--primary-foreground);
     border: none;
     border-radius: var(--radius);
+    margin: 0;
   }
 
-  #LibAddToLibrary,
-  #LibPauseToLibrary {
-    width: 100%;
-    margin: 8px 0;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    background: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-
+  /* Progress bar */
   progress {
     width: 100%;
-    height: 8px;
-    margin: 12px 0;
-    border-radius: 4px;
-    overflow: hidden;
+    height: 4px;
+    margin: 16px 0 8px;
+    border-radius: 2px;
     background: var(--secondary);
     border: none;
   }
 
   progress::-webkit-progress-bar {
     background: var(--secondary);
-    border-radius: 4px;
+    border-radius: 2px;
   }
 
   progress::-webkit-progress-value {
     background: var(--foreground);
-    border-radius: 4px;
-  }
-
-  progress::-moz-progress-bar {
-    background: var(--foreground);
-    border-radius: 4px;
+    border-radius: 2px;
   }
 
   #progressString {
-    position: relative;
-    left: auto;
     text-align: center;
-    width: 100%;
-    margin: 8px 0;
     color: var(--muted-foreground);
-    font-size: 14px;
-  }
-
-  /* Secondary buttons */
-  .HiddenButtonSection {
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 0;
-  }
-
-  .HiddenButtonSection button {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    font-size: 13px;
+    margin: 4px 0;
+    position: static;
+    left: auto;
   }
 
   /* Generic button */
   button {
     min-height: 44px;
-    padding: 10px 16px;
+    padding: 12px 16px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 500;
     border-radius: var(--radius);
     cursor: pointer;
-    transition: opacity 0.15s, background 0.15s;
     background: var(--secondary);
     color: var(--secondary-foreground);
     border: 1px solid var(--border);
+    transition: background 0.15s;
   }
 
   button:hover {
     background: #3f3f46;
-  }
-
-  button:active {
-    opacity: 0.9;
   }
 
   button:disabled {
@@ -258,48 +280,54 @@ body {
     cursor: not-allowed;
   }
 
-  /* Chapter controls */
+  /* ========================================
+     CHAPTER LIST
+     ======================================== */
+
+  #outputSection {
+    margin-top: 24px;
+  }
+
+  /* Chapter action buttons - simplified */
   #chapterSelectControlsDiv {
-    padding: 12px 0;
-  }
-
-  #rangeSelectTable,
-  #rangeSelectTable tbody,
-  #rangeSelectTable tr,
-  #rangeSelectTable td {
-    display: block;
-    width: 100%;
-  }
-
-  #rangeSelectTable tr {
+    padding: 0;
     margin-bottom: 12px;
   }
 
-  #rangeSelectTable select {
-    width: 100% !important;
-    margin-top: 8px;
-  }
-
   #chapterSelectControlsDiv > div {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 8px;
-    margin: 12px 0;
   }
 
   #chapterSelectControlsDiv > div button {
-    padding: 10px 8px;
+    flex: 1;
+    padding: 10px 12px;
     font-size: 13px;
   }
 
-  /* Chapter list */
+  /* Hide less common buttons */
+  #reverseChapterUrlsOrderButton,
+  #editChaptersUrlsButton,
+  #copyUrlsToClipboardButton {
+    display: none !important;
+  }
+
+  /* Chapter count */
+  #spanChapterCount {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  /* Chapter list table */
   section.minWidth {
     min-width: unset;
     width: 100%;
   }
 
   .scrollingtable {
-    max-height: 50vh;
+    max-height: 45vh;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--card);
@@ -311,34 +339,71 @@ body {
 
   #chapterUrlsTable th {
     background: var(--secondary);
-    padding: 10px 12px;
+    padding: 12px;
     color: var(--muted-foreground);
     font-weight: 500;
-    font-size: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Hide URL column header */
+  #chapterUrlsTable th:last-child {
+    display: none;
   }
 
   #chapterUrlsTable td {
-    padding: 10px 12px;
+    padding: 12px;
     border-bottom: 1px solid var(--border);
   }
 
+  /* Hide URL column */
+  #chapterUrlsTable td:last-child {
+    display: none;
+  }
+
   #chapterUrlsTable input[type=checkbox] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     accent-color: var(--foreground);
   }
 
-  /* Cover image */
-  #coverUrlSection img {
-    position: static;
+  /* ========================================
+     MORE OPTIONS TOGGLE
+     ======================================== */
+
+  #moreOptionsToggle {
     display: block;
-    margin: 12px auto;
-    max-width: 100px;
-    border-radius: var(--radius);
+    width: 100%;
+    margin: 24px 0 16px;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted-foreground);
+    font-size: 13px;
+    text-align: center;
   }
 
-  /* Advanced options */
+  body.show-options #moreOptionsToggle {
+    border-style: solid;
+    color: var(--foreground);
+  }
+
+  /* ========================================
+     HIDDEN SECTIONS
+     ======================================== */
+
+  .HiddenButtonSection {
+    display: none !important;
+  }
+
   #advancedOptionsSection {
+    display: none !important;
+  }
+
+  body.show-options #advancedOptionsSection[style*="hidden: false"],
+  body.show-options #advancedOptionsSection:not([hidden]) {
+    display: block !important;
     background: var(--card);
     border-radius: var(--radius);
     padding: 16px;
@@ -360,30 +425,10 @@ body {
     border-bottom: 1px solid var(--border);
   }
 
-  #advancedOptionsTable input[type=checkbox] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--foreground);
-    margin-right: 8px;
-  }
+  /* ========================================
+     ERROR & STATUS
+     ======================================== */
 
-  /* Sidebar */
-  .sidebar {
-    background: var(--popover);
-    border-left: 1px solid var(--border);
-  }
-
-  .sidebar.sidebarOpen {
-    width: 90%;
-    min-width: unset;
-  }
-
-  .sidebar .closebtn {
-    background: var(--secondary);
-    color: var(--foreground);
-  }
-
-  /* Error section */
   #errorSection {
     min-width: unset;
     background: var(--destructive);
@@ -394,54 +439,49 @@ body {
   }
 
   #errorMessageText {
-    color: var(--destructive-foreground);
+    color: #fafafa;
+    font-size: 14px;
   }
 
-  /* Warning */
+  #errorSectionTable button {
+    margin: 8px 4px 0 0;
+  }
+
   .warning {
     font-size: 14px;
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.1);
     padding: 12px;
     border-radius: var(--radius);
-    border: 1px solid rgba(251, 191, 36, 0.2);
-  }
-
-  /* Checkbox rows */
-  #removeAuthorNotesRow td,
-  #removeChapterNumberRow td,
-  #removeOriginalRow td {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  /* Muted text */
-  #spanChapterCount,
-  #spanParserName,
-  #spanDelayMs {
-    color: var(--muted-foreground);
-    font-size: 13px;
   }
 
   #findingChapterUrlsMessageRow {
     text-align: center;
-    padding: 16px;
+    padding: 20px;
+    color: var(--muted-foreground);
     font-size: 14px;
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-    border-radius: var(--radius);
-    margin: 12px 0;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--background);
+    border-left: 1px solid var(--border);
+  }
+
+  .sidebar.sidebarOpen {
+    width: 90%;
+    min-width: unset;
+  }
+
+  /* Reading list section - hide */
+  #readingListSection {
+    display: none !important;
   }
 }
 
 /* Small screens */
 @media screen and (max-width: 400px) {
   .container {
-    padding: 12px;
-  }
-
-  #chapterSelectControlsDiv > div {
-    grid-template-columns: 1fr;
+    padding: 16px 12px;
   }
 }
