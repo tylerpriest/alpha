@@ -1,0 +1,240 @@
+/* Mobile-friendly overrides */
+
+/* Base mobile styles */
+@media screen and (max-width: 768px) {
+  body {
+    margin: 0;
+    padding: 8px;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .container {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: none;
+  }
+
+  /* Make all inputs full width */
+  input[type=text],
+  input[type=url],
+  textarea,
+  select {
+    min-width: unset !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  #inputSection input {
+    width: 100% !important;
+  }
+
+  /* Stack table rows vertically */
+  #inputTable,
+  #inputTable tbody,
+  #inputTable tr,
+  #inputTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #inputTable tr {
+    margin-bottom: 12px;
+  }
+
+  #inputTable td:first-child {
+    width: 100% !important;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  /* Load & Analyse button full width */
+  #loadAndAnalyseButton {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  /* Progress section */
+  .progressSection {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    height: auto;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: none;
+  }
+
+  #packEpubButton,
+  #LibAddToLibrary,
+  #LibPauseToLibrary {
+    width: 100%;
+    margin: 4px 0;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  progress {
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  #progressString {
+    position: relative;
+    left: auto;
+    text-align: center;
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  /* Hidden button section */
+  .HiddenButtonSection {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .HiddenButtonSection button {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Chapter list controls */
+  #chapterSelectControlsDiv {
+    overflow-x: auto;
+  }
+
+  #rangeSelectTable,
+  #rangeSelectTable tbody,
+  #rangeSelectTable tr,
+  #rangeSelectTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #rangeSelectTable tr {
+    margin-bottom: 8px;
+  }
+
+  #rangeSelectTable select {
+    width: 100% !important;
+    margin-top: 4px;
+  }
+
+  /* Chapter action buttons */
+  #chapterSelectControlsDiv > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  #chapterSelectControlsDiv > div button {
+    flex: 1 1 45%;
+    min-width: 120px;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+  /* Chapter list table */
+  section.minWidth {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .scrollingtable {
+    max-height: 400px;
+  }
+
+  #chapterUrlsTable {
+    font-size: 14px;
+  }
+
+  #chapterUrlsTable input[type=text] {
+    left: 0;
+    max-width: 100%;
+  }
+
+  /* Cover image */
+  #coverUrlSection img {
+    position: static;
+    display: block;
+    margin: 8px auto;
+    max-width: 100px;
+  }
+
+  /* Advanced options */
+  #advancedOptionsSection {
+    overflow-x: auto;
+  }
+
+  #advancedOptionsTable,
+  #advancedOptionsTable tbody,
+  #advancedOptionsTable tr,
+  #advancedOptionsTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #advancedOptionsTable tr {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Sidebar */
+  .sidebar.sidebarOpen {
+    width: 90%;
+    min-width: unset;
+  }
+
+  /* Error section */
+  #errorSection {
+    min-width: unset;
+  }
+
+  #errorSectionTable button {
+    margin: 4px;
+    padding: 10px;
+  }
+
+  /* Warning text */
+  .warning {
+    font-size: 1.2em;
+    word-wrap: break-word;
+  }
+
+  /* All buttons larger touch targets */
+  button {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .expandedButton {
+    padding: 10px 16px;
+  }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 400px) {
+  body {
+    padding: 4px;
+  }
+
+  .container {
+    padding: 4px;
+  }
+
+  #chapterSelectControlsDiv > div button {
+    flex: 1 1 100%;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
