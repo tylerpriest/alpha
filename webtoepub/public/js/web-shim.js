@@ -49,6 +49,7 @@
     // runtime API shim
     window.chrome.runtime = {
         getURL: (path) => '/' + path.replace(/^\//, ''),
+        getManifest: () => ({ version: '1.0.0-web', name: 'WebToEpub Web' }),
         lastError: null,
         onMessage: {
             hasListener: () => false,
