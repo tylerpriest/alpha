@@ -3,7 +3,11 @@
 */
 "use strict";
 
-// Detect if running as web app (not browser extension)
+/* ============================================================
+   WEB-MOD: Web app proxy support
+   These modifications allow the extension to run as a web app
+   by routing external requests through a CORS proxy.
+   ============================================================ */
 const isWebApp = (typeof chrome !== 'undefined' && chrome.__webShim === true) ||
                  typeof chrome === 'undefined' ||
                  typeof chrome.runtime === 'undefined' ||
@@ -15,6 +19,7 @@ function proxyUrl(url) {
     }
     return url;
 }
+/* WEB-MOD END */
 
 class FetchErrorHandler {
     constructor() {
@@ -211,6 +216,7 @@ class HttpClient {
             let skipurlerror = new Error("!Blocked! URL skipped because the user blocked the site");
             return wrapOptions.errorHandler.onFetchError(url, skipurlerror);
         }
+        // WEB-MOD: Skip partition cookies in web mode (not available)
         if (!isWebApp) {
             await HttpClient.setPartitionCookies(url);
         }
@@ -222,9 +228,10 @@ class HttpClient {
         }
         try
         {
+            // WEB-MOD: Route through proxy for CORS
             let fetchUrl = proxyUrl(url);
             let response = await fetch(fetchUrl, wrapOptions.fetchOptions);
-            // For proxied requests, get the final URL from header
+            // WEB-MOD: Get final URL from proxy header (for redirects)
             if (isWebApp && response.headers.has('X-Final-URL')) {
                 response = new Proxy(response, {
                     get(target, prop) {
@@ -233,6 +240,7 @@ class HttpClient {
                     }
                 });
             }
+            // WEB-MOD END
             let ret = await HttpClient.checkResponseAndGetData(url, wrapOptions, response);
             if (wrapOptions.parser?.isCustomError(ret)) {
                 let CustomErrorResponse = wrapOptions.parser.setCustomErrorResponse(url, wrapOptions, ret);
@@ -257,7 +265,8 @@ class HttpClient {
     }
 
     static async setDeclarativeNetRequestRules(RulesArray) {
-        if (isWebApp) return; // Not available in web mode
+        // WEB-MOD: Skip in web mode (chrome.declarativeNetRequest not available)
+        if (isWebApp) return;
         let url = chrome.runtime.getURL("").split("/").filter(a => a != "");
         let id = url[url.length - 1];
         for (let i = 0; i < RulesArray.length; i++) {

@@ -269,8 +269,8 @@ var main = (function() {
         return !util.isNullOrEmpty(search);
     }
 
+    /* WEB-MOD: Detect if running as web app instead of browser extension */
     function isRunningAsWebApp() {
-        // Detect if running as a web app instead of browser extension
         // Check for our web shim marker first
         if (typeof chrome !== 'undefined' && chrome.__webShim === true) {
             return true;
@@ -279,6 +279,7 @@ var main = (function() {
                typeof chrome.tabs === 'undefined' ||
                typeof chrome.tabs.query !== 'function';
     }
+    /* WEB-MOD END */
 
     async function populateControlsWithDom(url, dom) {
         initialWebPage = dom;
@@ -626,12 +627,14 @@ var main = (function() {
     // actions to do when window opened
     window.onload = () => {
         userPreferences = UserPreferences.readFromLocalStorage();
+        // WEB-MOD: Also run in web app mode (no query params, but also not extension)
         if (isRunningInTabMode() || isRunningAsWebApp()) {
             ErrorLog.SuppressErrorLog =  false;
             localizeHtmlPage();
             getAdvancedOptionsSection().hidden = !userPreferences.advancedOptionsVisibleByDefault.value;
             getAdditionalMetadataSection().hidden = !userPreferences.ShowMoreMetadataOptions.value;
             addEventHandlers();
+            // WEB-MOD: Skip content script injection in web mode
             if (!isRunningAsWebApp()) {
                 populateControls();
             } else {
@@ -639,9 +642,11 @@ var main = (function() {
                 loadUserPreferences();
                 parserFactory.populateManualParserSelectionTag(getManuallySelectParserTag());
             }
+            // WEB-MOD: Skip Firefox-specific code in web mode
             if (!isRunningAsWebApp() && util.isFirefox()) {
                 Firefox.startWebRequestListeners();
             }
+            // WEB-MOD END
         } else {
             openTabWindow();
         }

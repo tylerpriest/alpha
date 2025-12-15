@@ -1,23 +1,38 @@
 /*
-  Web-compatible shim for Chrome extension APIs
-  Also simplifies UI for web/mobile use
+  WebToEpub Web Shim
+  ==================
+
+  This file provides Chrome extension API compatibility for running
+  WebToEpub as a standalone web app (instead of a browser extension).
+
+  It provides:
+  1. Chrome API shims (i18n, runtime, tabs, storage)
+  2. i18n message translation for __MSG_*__ placeholders
+  3. UI simplification for mobile-friendly experience
+
+  This file should load BEFORE any other extension scripts.
 */
 "use strict";
 
 (function() {
+    // Only run if Chrome extension APIs are not available
     const isWebApp = typeof chrome === 'undefined' ||
                      typeof chrome.runtime === 'undefined' ||
                      typeof chrome.runtime.getURL === 'undefined';
 
     if (!isWebApp) return;
 
-    let messages = {};
+    let messages = {}; // Loaded from /_locales/en/messages.json
 
-    // Create chrome namespace and mark as web shim
+    /* ============================================================
+       CHROME API SHIMS
+       ============================================================ */
+
+    // Create chrome namespace and mark as web shim (for detection)
     window.chrome = window.chrome || {};
     window.chrome.__webShim = true;
 
-    // i18n API shim
+    // chrome.i18n - Internationalization API
     window.chrome.i18n = {
         getMessage: function(key, substitutions) {
             const entry = messages[key] || messages['__MSG_' + key + '__'];
@@ -42,7 +57,7 @@
         getUILanguage: () => 'en'
     };
 
-    // runtime API shim
+    // chrome.runtime - Extension runtime API
     window.chrome.runtime = {
         getURL: (path) => '/' + path.replace(/^\//, ''),
         getManifest: () => ({ version: '1.0.0-web', name: 'WebToEpub Web' }),
@@ -54,7 +69,7 @@
         }
     };
 
-    // tabs API shim
+    // chrome.tabs - Tab management API
     window.chrome.tabs = {
         create: (options) => {
             if (options.url) window.open(options.url, '_blank');
@@ -62,7 +77,7 @@
         query: (query, callback) => callback([])
     };
 
-    // storage API shim
+    // chrome.storage - Storage API (uses localStorage)
     window.chrome.storage = {
         local: {
             get: (keys, callback) => {
@@ -85,7 +100,9 @@
         }
     };
 
-    // Load messages
+    /* ============================================================
+       INITIALIZATION & i18n TRANSLATION
+       ============================================================ */
     async function init() {
         try {
             const response = await fetch('/_locales/en/messages.json');
@@ -134,6 +151,11 @@
             return entry ? entry.message : match;
         });
     }
+
+    /* ============================================================
+       UI SIMPLIFICATION
+       Renames buttons, adds mobile-friendly toggle buttons
+       ============================================================ */
 
     function simplifyUI() {
         // Rename buttons for clarity

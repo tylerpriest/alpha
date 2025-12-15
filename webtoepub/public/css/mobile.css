@@ -216,13 +216,21 @@ body {
     padding: 8px 0;
   }
 
+  /* Checkbox styling - ensure visibility on dark backgrounds */
+  input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    accent-color: #fafafa;
+    cursor: pointer;
+    /* Ensure checkbox is visible and clickable */
+    appearance: auto;
+    -webkit-appearance: checkbox;
+  }
+
   #removeAuthorNotesRow input[type=checkbox],
   #removeChapterNumberRow input[type=checkbox],
   #removeOriginalRow input[type=checkbox] {
-    width: 20px;
-    height: 20px;
     margin-right: 10px;
-    accent-color: var(--foreground);
   }
 
   /* ========================================
@@ -423,11 +431,7 @@ body {
     border-bottom: 1px solid var(--border);
   }
 
-  #chapterUrlsTable input[type=checkbox] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--foreground);
-  }
+  /* Chapter checkboxes inherit from global input[type=checkbox] styling */
 
   /* ========================================
      ERROR & STATUS
