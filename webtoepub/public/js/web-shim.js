@@ -164,7 +164,15 @@
     function setupUI() {
         // Rename buttons
         const loadBtn = document.getElementById('loadAndAnalyseButton');
-        if (loadBtn) loadBtn.textContent = 'Load';
+        if (loadBtn) {
+            loadBtn.textContent = 'Load';
+            // Add loading state
+            const origClick = loadBtn.onclick;
+            loadBtn.addEventListener('click', function() {
+                this.textContent = 'Loading...';
+                this.disabled = true;
+            });
+        }
 
         const packBtn = document.getElementById('packEpubButton');
         if (packBtn) packBtn.textContent = 'Download EPUB';
@@ -176,9 +184,33 @@
             if (label) label.textContent = 'Book URL';
         }
 
-        // Add placeholder
+        // Setup URL input
         const urlInput = document.getElementById('startingUrlInput');
-        if (urlInput) urlInput.placeholder = 'Paste story URL here...';
+        if (urlInput) {
+            urlInput.placeholder = 'Paste story URL here...';
+
+            // Check for URL in query params first
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlParam = urlParams.get('url');
+            if (urlParam) {
+                urlInput.value = urlParam;
+                // Clean up URL bar
+                window.history.replaceState({}, '', window.location.pathname);
+            } else {
+                // Restore last URL from localStorage
+                const lastUrl = localStorage.getItem('webtoepub_lastUrl');
+                if (lastUrl && !urlInput.value) {
+                    urlInput.value = lastUrl;
+                }
+            }
+
+            // Save URL on change
+            urlInput.addEventListener('change', function() {
+                if (this.value) {
+                    localStorage.setItem('webtoepub_lastUrl', this.value);
+                }
+            });
+        }
 
         // Add toggle buttons
         addToggleButtons();
@@ -271,11 +303,35 @@
             // Initial check
             checkChapterState();
         }
+
+        // Watch error section to reset Load button on errors
+        const errorSection = document.getElementById('errorSection');
+        if (errorSection) {
+            const errorObserver = new MutationObserver(() => {
+                if (!errorSection.hidden) {
+                    const loadBtn = document.getElementById('loadAndAnalyseButton');
+                    if (loadBtn) {
+                        loadBtn.textContent = 'Load';
+                        loadBtn.disabled = false;
+                    }
+                }
+            });
+            errorObserver.observe(errorSection, { attributes: true, attributeFilter: ['hidden'] });
+        }
     }
 
     function checkBookState(titleInput) {
         const hasBook = titleInput && titleInput.value && titleInput.value.trim() !== '';
         document.body.classList.toggle('has-book', hasBook);
+
+        // Reset Load button when book loads
+        if (hasBook) {
+            const loadBtn = document.getElementById('loadAndAnalyseButton');
+            if (loadBtn && loadBtn.disabled) {
+                loadBtn.textContent = 'Load';
+                loadBtn.disabled = false;
+            }
+        }
     }
 
     function checkChapterState() {
