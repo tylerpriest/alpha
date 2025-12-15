@@ -59,8 +59,20 @@ body {
 #readingListSection, #defaultParserSection, #seriesRow, #volumeRow,
 #translatorRow, #fileAuthorAsRow, #reverseChapterUrlsOrderButton,
 #editChaptersUrlsButton, #copyUrlsToClipboardButton,
-tr:has(#showChapterUrlsCheckbox), #manuallySelectParserTag,
-#AdditionalMetadatatable, #sbOptions {
+#manuallySelectParserTag, #AdditionalMetadatatable, #sbOptions {
+  display: none !important;
+}
+
+/* Hide "Show URLs" checkbox and label (in same row as First Chapter dropdown) */
+#showChapterUrlsCheckbox,
+#rangeStartChapterRow td:nth-child(3),
+#rangeStartChapterRow td:nth-child(4) {
+  display: none !important;
+}
+
+/* Hide View Filters button */
+#rangeEndChapterRow td:nth-child(3),
+#rangeEndChapterRow td:nth-child(4) {
   display: none !important;
 }
 
@@ -453,10 +465,14 @@ body.show-advanced #advancedToggle {
   font-size: 14px;
 }
 
+/* Hide chapter count row's technical info (parser name, delay ms) */
 #rangeChapterCountRow {
-  font-size: 14px;
-  color: var(--muted-foreground);
-  margin: 16px 0;
+  display: none !important;
+}
+
+/* Hide searching message by default */
+#findingChapterUrlsMessageRow {
+  display: none !important;
 }
 
 /* ========================================
@@ -468,42 +484,59 @@ section.minWidth {
   width: 100%;
 }
 
-.scrollingtable {
+/* Chapter table scrollable container */
+#chapterUrlsTable {
+  display: block;
+  width: 100%;
   max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  font-size: 15px;
+  border-collapse: collapse;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--card);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-#chapterUrlsTable {
-  width: 100%;
-  font-size: 15px;
-  border-collapse: collapse;
+#chapterUrlsTable tbody {
+  display: block;
+}
+
+#chapterUrlsTable tr {
+  display: flex;
+  align-items: center;
 }
 
 #chapterUrlsTable th {
   display: none;
 }
 
+/* Hide URL column */
 #chapterUrlsTable th:last-child,
 #chapterUrlsTable td:last-child {
-  display: none;
+  display: none !important;
 }
 
-#chapterUrlsTable td {
+/* Checkbox cell */
+#chapterUrlsTable td:first-child {
   padding: 16px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+  flex-shrink: 0;
 }
 
-#chapterUrlsTable tr:last-child td {
-  border-bottom: none;
+/* Title cell */
+#chapterUrlsTable td:nth-child(2) {
+  flex: 1;
+  padding: 16px 16px 16px 0;
+  word-break: break-word;
 }
 
 #chapterUrlsTable tbody tr {
+  border-bottom: 1px solid var(--border);
   transition: background 0.15s;
+}
+
+#chapterUrlsTable tbody tr:last-child {
+  border-bottom: none;
 }
 
 #chapterUrlsTable tbody tr:active {
