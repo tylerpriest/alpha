@@ -98,10 +98,16 @@ progress[value="0"], progress[value=" 0"] {
    STATES
    ======================================== */
 
-body.has-book tr:has(#titleInput),
-body.has-book .progressSection,
-body.has-book #optionsToggles {
+body.has-book tr:has(#titleInput) {
   display: block !important;
+}
+
+body.has-book .progressSection {
+  display: flex !important;
+}
+
+body.has-book #optionsToggles {
+  display: flex !important;
 }
 
 body.has-book #removeAuthorNotesRow {
@@ -597,12 +603,6 @@ section.minWidth {
   word-break: break-word;
   font-family: inherit;
   margin: 0;
-}
-
-#findingChapterUrlsMessageRow {
-  text-align: center;
-  padding: 32px;
-  color: var(--muted-foreground);
 }
 
 /* ========================================
