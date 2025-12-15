@@ -187,6 +187,11 @@ tr:has(#startingUrlInput) td:first-child {
   display: none;
 }
 
+tr:has(#startingUrlInput) td:nth-child(2),
+tr:has(#startingUrlInput) td:nth-child(3) {
+  display: block !important;
+}
+
 tr:has(#startingUrlInput) td:nth-child(3) {
   margin-top: 16px;
 }
