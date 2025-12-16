@@ -763,29 +763,43 @@ body.has-book #webHelperText {
 
 .resume-text {
   font-size: 15px;
-  font-weight: 500;
   color: var(--foreground);
   margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.resume-text strong {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .resume-buttons {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .resume-buttons button {
-  flex: 1;
-  padding: 12px;
-  font-size: 14px;
+  flex: 1 1 calc(50% - 4px);
+  min-width: 120px;
+  padding: 10px 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 
-#resumeYes {
+#resumeContinue {
   background: var(--primary);
   color: var(--primary-foreground);
 }
 
-#resumeNo {
+#resumeFirst {
+  background: #2563eb;
+  color: white;
+}
+
+#resumeAll {
+  flex: 1 1 100%;
   background: var(--secondary);
   color: var(--foreground);
 }

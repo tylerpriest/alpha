@@ -475,13 +475,18 @@
         // Don't show if already shown
         if (document.getElementById('resumePrompt')) return;
 
+        const firstPart = chapter - 1;
         const prompt = document.createElement('div');
         prompt.id = 'resumePrompt';
         prompt.innerHTML = `
-            <div class="resume-text">Resume from chapter ${chapter}?</div>
+            <div class="resume-text">
+                <strong>Previous session detected</strong><br>
+                Last downloaded: chapter ${chapter} of ${total}
+            </div>
             <div class="resume-buttons">
-                <button type="button" id="resumeYes">Resume (${chapter}-${total})</button>
-                <button type="button" id="resumeNo">Start Over</button>
+                <button type="button" id="resumeContinue">Continue (${chapter}-${total})</button>
+                <button type="button" id="resumeFirst">First Part (1-${firstPart})</button>
+                <button type="button" id="resumeAll">Start Over (1-${total})</button>
             </div>
         `;
 
@@ -491,8 +496,10 @@
             outputSection.insertBefore(prompt, outputSection.firstChild);
         }
 
-        document.getElementById('resumeYes').onclick = () => {
-            // Set start chapter
+        const rangeEnd = document.getElementById('selectRangeEndChapter');
+
+        document.getElementById('resumeContinue').onclick = () => {
+            // Set start chapter to resume point
             if (rangeStart && chapter <= rangeStart.options.length) {
                 rangeStart.selectedIndex = chapter - 1;
                 if (typeof ChapterUrlsUI !== 'undefined') {
@@ -503,7 +510,22 @@
             localStorage.removeItem('webtoepub_resume');
         };
 
-        document.getElementById('resumeNo').onclick = () => {
+        document.getElementById('resumeFirst').onclick = () => {
+            // Set range to 1 through (chapter-1) for the first part
+            if (rangeStart) {
+                rangeStart.selectedIndex = 0; // Chapter 1
+            }
+            if (rangeEnd && firstPart <= rangeEnd.options.length) {
+                rangeEnd.selectedIndex = firstPart - 1; // Chapter before resume point
+            }
+            if (typeof ChapterUrlsUI !== 'undefined') {
+                ChapterUrlsUI.onRangeChanged();
+            }
+            prompt.remove();
+            // Keep resume data so they can still do the second part after
+        };
+
+        document.getElementById('resumeAll').onclick = () => {
             prompt.remove();
             localStorage.removeItem('webtoepub_resume');
         };
