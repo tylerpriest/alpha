@@ -646,3 +646,69 @@ body.has-book #webHelperText {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ========================================
+   SETTINGS PANEL
+   ======================================== */
+
+#webSettingsPanel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px 0;
+}
+
+#webSettingsPanel[hidden] {
+  display: none;
+}
+
+.settings-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.setting-item:active {
+  background: var(--secondary);
+}
+
+.setting-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.setting-desc {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}

@@ -254,6 +254,9 @@
 
         // Add helper text
         addHelperText();
+
+        // Add settings panel
+        addSettingsPanel();
     }
 
     function addToggleButtons() {
@@ -285,11 +288,81 @@
                 ? 'Hide Advanced' : 'Advanced';
         };
 
+        // Settings toggle
+        const settingsBtn = document.createElement('button');
+        settingsBtn.id = 'settingsToggle';
+        settingsBtn.type = 'button';
+        settingsBtn.textContent = 'Settings';
+        settingsBtn.onclick = function() {
+            const panel = document.getElementById('webSettingsPanel');
+            if (panel) {
+                panel.hidden = !panel.hidden;
+                this.textContent = panel.hidden ? 'Settings' : 'Hide Settings';
+            }
+        };
+
         container.appendChild(metaBtn);
         container.appendChild(advBtn);
+        container.appendChild(settingsBtn);
 
         // Insert after progress section
         progressSection.parentNode.insertBefore(container, progressSection.nextSibling);
+    }
+
+    function addSettingsPanel() {
+        if (document.getElementById('webSettingsPanel')) return;
+
+        const panel = document.createElement('div');
+        panel.id = 'webSettingsPanel';
+        panel.hidden = true;
+
+        const settings = [
+            { id: 'skipImagesCheckbox', label: 'Skip Images', desc: 'Faster downloads, smaller files' },
+            { id: 'compressImagesCheckbox', label: 'Compress Images', desc: 'Reduce image file sizes' },
+            { id: 'skipChaptersThatFailFetchCheckbox', label: 'Skip Failed Chapters', desc: 'Auto-skip instead of prompting' },
+            { id: 'createEpub3Checkbox', label: 'Create EPUB 3', desc: 'Modern format (better compatibility)' },
+            { id: 'addInformationPageToEpubCheckbox', label: 'Add Info Page', desc: 'Include source info in EPUB' },
+            { id: 'removeNextAndPreviousChapterHyperlinksInput', label: 'Remove Nav Links', desc: 'Remove prev/next chapter links' },
+        ];
+
+        panel.innerHTML = `
+            <div class="settings-header">Settings</div>
+            <div class="settings-list">
+                ${settings.map(s => {
+                    const checkbox = document.getElementById(s.id);
+                    const checked = checkbox ? checkbox.checked : false;
+                    return `
+                        <label class="setting-item">
+                            <input type="checkbox" data-target="${s.id}" ${checked ? 'checked' : ''}>
+                            <div class="setting-info">
+                                <span class="setting-label">${s.label}</span>
+                                <span class="setting-desc">${s.desc}</span>
+                            </div>
+                        </label>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        // Wire up checkboxes to sync with original hidden checkboxes
+        panel.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const targetId = this.dataset.target;
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.checked = this.checked;
+                    target.dispatchEvent(new Event('change'));
+                    // Trigger onclick if it exists (for UserPreferences)
+                    if (target.onclick) target.onclick();
+                }
+            });
+        });
+
+        // Insert after optionsToggles (will be created later, so insert after progressSection)
+        const progressSection = document.querySelector('.progressSection');
+        if (progressSection) {
+            progressSection.parentNode.insertBefore(panel, progressSection.nextSibling);
+        }
     }
 
     function addHelperText() {
