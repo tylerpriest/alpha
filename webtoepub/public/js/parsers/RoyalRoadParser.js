@@ -73,8 +73,8 @@ class RoyalRoadParser extends Parser {
 
     // WEB-MOD: Find and select the starting chapter in the dropdown
     setStartingChapter() {
-        let rangeStart = document.getElementById("rangeStartChapter");
-        let rangeEnd = document.getElementById("rangeEndChapter");
+        let rangeStart = document.getElementById("selectRangeStartChapter");
+        let rangeEnd = document.getElementById("selectRangeEndChapter");
         if (!rangeStart || !rangeEnd || !this.startingChapterUrl) return;
 
         // Extract chapter ID from URL (the number after /chapter/)
@@ -124,8 +124,8 @@ class RoyalRoadParser extends Parser {
 
     // WEB-MOD: Select next N chapters from current start position
     selectNextChapters(count) {
-        let rangeStart = document.getElementById("rangeStartChapter");
-        let rangeEnd = document.getElementById("rangeEndChapter");
+        let rangeStart = document.getElementById("selectRangeStartChapter");
+        let rangeEnd = document.getElementById("selectRangeEndChapter");
         if (!rangeStart || !rangeEnd) return;
 
         let startIdx = rangeStart.selectedIndex;
