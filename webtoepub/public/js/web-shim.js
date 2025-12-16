@@ -377,6 +377,15 @@
         const chapterRows = document.querySelectorAll('#chapterUrlsTable tbody tr');
         const hasChapters = chapterRows.length > 0;
         document.body.classList.toggle('has-chapters', hasChapters);
+
+        // Reset Load button when chapters load (loading is complete)
+        if (hasChapters) {
+            const loadBtn = document.getElementById('loadAndAnalyseButton');
+            if (loadBtn && loadBtn.disabled) {
+                loadBtn.textContent = 'Load';
+                loadBtn.disabled = false;
+            }
+        }
     }
 
     /* ============================================================
