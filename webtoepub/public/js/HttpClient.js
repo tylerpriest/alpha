@@ -286,17 +286,10 @@ class HttpClient {
     }
 
     static async setPartitionCookies(url) {
-        // get partitionKey in the form of https://<site name>.<tld>
         let parsedUrl = new URL(url);
-        //keep old code for reference in case it changes again
-        //let topLevelSite = parsedUrl.protocol + "//" + parsedUrl.hostname;
 
         try {
-            //  get all cookie from the site which use the partitionKey (e.g. cloudflare)
-            //keep old code for reference in case it changes again
-            //let cookies = await chrome.cookies.getAll({partitionKey: {topLevelSite: topLevelSite}});
-            
-            //set domain to the highest level from the website as all subdomains are included #1447 #1445
+            // Set domain to the highest level from the website as all subdomains are included
             let urlparts = parsedUrl.hostname.split(".");
             let cookies = "";
             if (!util.isFirefox()) {
@@ -314,9 +307,8 @@ class HttpClient {
                 value: element.value
             }));
         } catch {
-            // Probably running browser that doesn't support partitionKey, e.g. Kiwi
-            console.log("failed to set cookie");
-        } 
+            // Probably running browser that doesn't support partitionKey
+        }
     }
 }
 
