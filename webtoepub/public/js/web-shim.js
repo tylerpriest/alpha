@@ -257,9 +257,6 @@
 
         // Add settings panel
         addSettingsPanel();
-
-        // Setup resume tracking
-        setupResumeTracking();
     }
 
     function addToggleButtons() {
@@ -411,124 +408,6 @@
                 });
             });
         }
-    }
-
-    function setupResumeTracking() {
-        // Track download progress
-        const progressEl = document.getElementById('fetchProgress');
-        const progressStr = document.getElementById('progressString');
-
-        if (progressStr) {
-            const observer = new MutationObserver(() => {
-                const text = progressStr.textContent;
-                // Parse "Fetching 45 of 435" format
-                const match = text.match(/(\d+)\s+of\s+(\d+)/i);
-                if (match) {
-                    const current = parseInt(match[1]);
-                    const total = parseInt(match[2]);
-                    const url = document.getElementById('startingUrlInput')?.value;
-                    if (url && current > 0) {
-                        localStorage.setItem('webtoepub_resume', JSON.stringify({
-                            url: url,
-                            chapter: current,
-                            total: total,
-                            timestamp: Date.now()
-                        }));
-                    }
-                }
-            });
-            observer.observe(progressStr, { childList: true, characterData: true, subtree: true });
-        }
-
-        // Check for resume on chapter load
-        const checkResume = () => {
-            const rangeStart = document.getElementById('selectRangeStartChapter');
-            if (!rangeStart || rangeStart.options.length < 2) return;
-
-            const url = document.getElementById('startingUrlInput')?.value;
-            const saved = localStorage.getItem('webtoepub_resume');
-            if (!saved || !url) return;
-
-            try {
-                const data = JSON.parse(saved);
-                // Check if same URL and recent (within 24 hours)
-                const isRecent = (Date.now() - data.timestamp) < 24 * 60 * 60 * 1000;
-                const isSameBook = url.includes(data.url.split('/fiction/')[1]?.split('/')[0] || '___none___');
-
-                if (isRecent && isSameBook && data.chapter > 1) {
-                    showResumePrompt(data.chapter, data.total, rangeStart);
-                }
-            } catch (e) {}
-        };
-
-        // Watch for chapters loading
-        const chapterTable = document.getElementById('chapterUrlsTable');
-        if (chapterTable) {
-            const tableObserver = new MutationObserver(() => {
-                setTimeout(checkResume, 200);
-            });
-            tableObserver.observe(chapterTable, { childList: true, subtree: true });
-        }
-    }
-
-    function showResumePrompt(chapter, total, rangeStart) {
-        // Don't show if already shown
-        if (document.getElementById('resumePrompt')) return;
-
-        const firstPart = chapter - 1;
-        const prompt = document.createElement('div');
-        prompt.id = 'resumePrompt';
-        prompt.innerHTML = `
-            <div class="resume-text">
-                <strong>Previous session detected</strong><br>
-                Last downloaded: chapter ${chapter} of ${total}
-            </div>
-            <div class="resume-buttons">
-                <button type="button" id="resumeContinue">Continue (${chapter}-${total})</button>
-                <button type="button" id="resumeFirst">First Part (1-${firstPart})</button>
-                <button type="button" id="resumeAll">Start Over (1-${total})</button>
-            </div>
-        `;
-
-        // Insert before chapter table
-        const outputSection = document.getElementById('outputSection');
-        if (outputSection) {
-            outputSection.insertBefore(prompt, outputSection.firstChild);
-        }
-
-        const rangeEnd = document.getElementById('selectRangeEndChapter');
-
-        document.getElementById('resumeContinue').onclick = () => {
-            // Set start chapter to resume point
-            if (rangeStart && chapter <= rangeStart.options.length) {
-                rangeStart.selectedIndex = chapter - 1;
-                if (typeof ChapterUrlsUI !== 'undefined') {
-                    ChapterUrlsUI.onRangeChanged();
-                }
-            }
-            prompt.remove();
-            localStorage.removeItem('webtoepub_resume');
-        };
-
-        document.getElementById('resumeFirst').onclick = () => {
-            // Set range to 1 through (chapter-1) for the first part
-            if (rangeStart) {
-                rangeStart.selectedIndex = 0; // Chapter 1
-            }
-            if (rangeEnd && firstPart <= rangeEnd.options.length) {
-                rangeEnd.selectedIndex = firstPart - 1; // Chapter before resume point
-            }
-            if (typeof ChapterUrlsUI !== 'undefined') {
-                ChapterUrlsUI.onRangeChanged();
-            }
-            prompt.remove();
-            // Keep resume data so they can still do the second part after
-        };
-
-        document.getElementById('resumeAll').onclick = () => {
-            prompt.remove();
-            localStorage.removeItem('webtoepub_resume');
-        };
     }
 
     function addHelperText() {
