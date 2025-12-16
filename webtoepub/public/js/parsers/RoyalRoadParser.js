@@ -93,8 +93,7 @@ class RoyalRoadParser extends Parser {
 
             if (url.includes(`/chapter/${chapterId}`)) {
                 rangeStart.selectedIndex = i;
-                // Call handler directly since it uses .onchange property
-                if (rangeStart.onchange) rangeStart.onchange();
+                ChapterUrlsUI.onRangeChanged();
                 return;
             }
         }
@@ -133,8 +132,7 @@ class RoyalRoadParser extends Parser {
         let endIdx = Math.min(startIdx + count - 1, rangeEnd.options.length - 1);
 
         rangeEnd.selectedIndex = endIdx;
-        // Call handler directly since it uses .onchange property, not addEventListener
-        if (rangeEnd.onchange) rangeEnd.onchange();
+        ChapterUrlsUI.onRangeChanged();
     }
 
     preprocessRawDom(webPageDom) { 
