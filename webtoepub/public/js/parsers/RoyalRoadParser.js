@@ -64,11 +64,13 @@ class RoyalRoadParser extends Parser {
     async onLoadFirstPage(url, firstPageDom) {
         await super.onLoadFirstPage(url, firstPageDom);
 
-        // Now chapters are loaded, add buttons and set starting chapter
-        this.addQuickSelectButtons();
-        if (this.startingChapterUrl) {
-            this.setStartingChapter();
-        }
+        // Use setTimeout to ensure DOM is fully updated before manipulating it
+        setTimeout(() => {
+            this.addQuickSelectButtons();
+            if (this.startingChapterUrl) {
+                this.setStartingChapter();
+            }
+        }, 100);
     }
 
     // WEB-MOD: Find and select the starting chapter in the dropdown
@@ -81,9 +83,15 @@ class RoyalRoadParser extends Parser {
         let chapterIdMatch = this.startingChapterUrl.match(/\/chapter\/(\d+)/);
         if (!chapterIdMatch) return;
         let chapterId = chapterIdMatch[1];
+        let searchPattern = `/chapter/${chapterId}`;
 
         // Find the chapter in the table by matching chapter ID in URL
-        let rows = [...document.querySelectorAll("#chapterUrlsTable tr")].filter(r => !r.querySelector("th"));
+        // Filter to only rows with td elements (skip header row with th)
+        let table = document.getElementById("chapterUrlsTable");
+        if (!table) return;
+
+        let rows = [...table.querySelectorAll("tr")].filter(r => r.querySelector("td"));
+
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
             // The URL is in the last cell (hidden)
@@ -91,7 +99,7 @@ class RoyalRoadParser extends Parser {
             let urlCell = cells[cells.length - 1];
             let url = urlCell?.textContent || "";
 
-            if (url.includes(`/chapter/${chapterId}`)) {
+            if (url.includes(searchPattern)) {
                 rangeStart.selectedIndex = i;
                 ChapterUrlsUI.onRangeChanged();
                 return;
@@ -106,16 +114,22 @@ class RoyalRoadParser extends Parser {
 
         let btnContainer = document.createElement("div");
         btnContainer.id = "quickSelectBtns";
-        btnContainer.style.cssText = "margin-top: 8px; display: flex; gap: 8px;";
+        btnContainer.style.cssText = "margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;";
+
+        // Store reference for closure
+        let parser = this;
 
         [10, 20, 50, 100].forEach(count => {
             let btn = document.createElement("button");
+            btn.type = "button"; // Prevent form submission on iOS
             btn.textContent = `Next ${count}`;
-            btn.style.cssText = "padding: 4px 12px; font-size: 14px;";
-            btn.onclick = (e) => {
+            btn.style.cssText = "padding: 8px 16px; font-size: 14px; cursor: pointer; touch-action: manipulation;";
+
+            btn.addEventListener("click", function(e) {
                 e.preventDefault();
-                this.selectNextChapters(count);
-            };
+                parser.selectNextChapters(count);
+            });
+
             btnContainer.appendChild(btn);
         });
 
