@@ -28,11 +28,20 @@ class RoyalRoadParser extends Parser {
         return url;
     }
 
-    async getChapterUrls(dom) {
-        // WEB-MOD: Always fetch fiction page for TOC and metadata
+    // WEB-MOD: Pre-fetch fiction page before metadata extraction (runs before getEpubMetaInfo)
+    async loadEpubMetaInfo(dom) {
         let fictionUrl = this.getFictionUrl(dom.baseURI);
         let tocResponse = await HttpClient.wrapFetch(fictionUrl);
         this.fictionPageDom = tocResponse.responseXML;
+    }
+
+    async getChapterUrls(dom) {
+        // WEB-MOD: Use already-fetched fiction page DOM, or fetch if not available
+        if (!this.fictionPageDom) {
+            let fictionUrl = this.getFictionUrl(dom.baseURI);
+            let tocResponse = await HttpClient.wrapFetch(fictionUrl);
+            this.fictionPageDom = tocResponse.responseXML;
+        }
 
         let table = this.fictionPageDom.querySelector("table#chapters");
         return util.hyperlinksToChapterList(table);
@@ -74,14 +83,15 @@ class RoyalRoadParser extends Parser {
         let rows = [...document.querySelectorAll("#chapterUrlsTable tr")].filter(r => !r.querySelector("th"));
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
-            // The URL is in the last cell (hidden) or we can check the chapter object
+            // The URL is in the last cell (hidden)
             let cells = row.querySelectorAll("td");
             let urlCell = cells[cells.length - 1];
             let url = urlCell?.textContent || "";
 
             if (url.includes(`/chapter/${chapterId}`)) {
                 rangeStart.selectedIndex = i;
-                rangeStart.dispatchEvent(new Event('change'));
+                // Call handler directly since it uses .onchange property
+                if (rangeStart.onchange) rangeStart.onchange();
                 return;
             }
         }
@@ -120,7 +130,8 @@ class RoyalRoadParser extends Parser {
         let endIdx = Math.min(startIdx + count - 1, rangeEnd.options.length - 1);
 
         rangeEnd.selectedIndex = endIdx;
-        rangeEnd.dispatchEvent(new Event('change'));
+        // Call handler directly since it uses .onchange property, not addEventListener
+        if (rangeEnd.onchange) rangeEnd.onchange();
     }
 
     preprocessRawDom(webPageDom) { 
