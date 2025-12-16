@@ -9,10 +9,16 @@ parserFactory.register("royalroad.com", () => new RoyalRoadParser());
 class RoyalRoadParser extends Parser {
     constructor() {
         super();
+        // WEB-MOD: Track chapter URL and fiction page for proper metadata
         this.startingChapterUrl = null;
+        this.fictionPageDom = null;
     }
 
-    // WEB-MOD: Convert chapter URL to fiction URL, store chapter for later
+    // WEB-MOD: Check if URL is a chapter URL and extract fiction URL
+    isChapterUrl(url) {
+        return /\/fiction\/\d+\/[^/]+\/chapter\//.test(url);
+    }
+
     getFictionUrl(url) {
         const chapterMatch = url.match(/^(https?:\/\/www\.royalroad\.com\/fiction\/\d+\/[^/]+)\/chapter\//);
         if (chapterMatch) {
@@ -23,11 +29,12 @@ class RoyalRoadParser extends Parser {
     }
 
     async getChapterUrls(dom) {
-        // Page in browser has links reduced to "Number of links to show"
-        // WEB-MOD: Use fiction URL (converted from chapter URL if needed)
+        // WEB-MOD: Always fetch fiction page for TOC and metadata
         let fictionUrl = this.getFictionUrl(dom.baseURI);
-        let tocHtml = (await HttpClient.wrapFetch(fictionUrl)).responseXML;
-        let table = tocHtml.querySelector("table#chapters");
+        let tocResponse = await HttpClient.wrapFetch(fictionUrl);
+        this.fictionPageDom = tocResponse.responseXML;
+
+        let table = this.fictionPageDom.querySelector("table#chapters");
         return util.hyperlinksToChapterList(table);
     }
 
@@ -43,10 +50,12 @@ class RoyalRoadParser extends Parser {
     populateUIImpl() {
         document.getElementById("removeAuthorNotesRow").hidden = false;
 
+        // WEB-MOD: Always add quick select buttons for Royal Road
+        this.addQuickSelectButtons();
+
         // WEB-MOD: If started from chapter URL, set range to start from that chapter
         if (this.startingChapterUrl) {
             this.setStartingChapter();
-            this.addQuickSelectButtons();
         }
     }
 
@@ -181,22 +190,36 @@ class RoyalRoadParser extends Parser {
         RoyalRoadParser.removeOlderChapterNavJunk(content);
     }
 
+    // WEB-MOD: Use fiction page DOM for metadata when available (handles chapter URLs)
+    getMetadataDom(dom) {
+        return this.fictionPageDom || dom;
+    }
+
     extractTitleImpl(dom) {
-        return dom.querySelector("div.fic-header div.col h1");
+        let metaDom = this.getMetadataDom(dom);
+        return metaDom.querySelector("div.fic-header div.col h1");
     }
 
     extractAuthor(dom) {
-        let author = dom.querySelector("div.fic-header h4 span a");
+        let metaDom = this.getMetadataDom(dom);
+        let author = metaDom.querySelector("div.fic-header h4 span a");
         return author?.textContent?.trim() ?? super.extractAuthor(dom);
     }
 
     extractSubject(dom) {
-        let tags = ([...dom.querySelectorAll("div.fiction-info span.tags .label")]);
+        let metaDom = this.getMetadataDom(dom);
+        let tags = ([...metaDom.querySelectorAll("div.fiction-info span.tags .label")]);
         return tags.map(e => e.textContent.trim()).join(", ");
     }
 
     extractDescription(dom) {
-        return dom.querySelector("div.fiction-info div.description").textContent.trim();
+        let metaDom = this.getMetadataDom(dom);
+        return metaDom.querySelector("div.fiction-info div.description")?.textContent?.trim() ?? "";
+    }
+
+    findCoverImageUrl(dom) {
+        let metaDom = this.getMetadataDom(dom);
+        return metaDom.querySelector("img.thumbnail")?.src ?? null;
     }
 
     findChapterTitle(dom) {
@@ -213,10 +236,6 @@ class RoyalRoadParser extends Parser {
         }
     }
 
-    findCoverImageUrl(dom) {
-        return dom.querySelector("img.thumbnail")?.src ?? null;
-    }
-
     removeImgTagsWithNoSrc(webPageDom) {
         [...webPageDom.querySelectorAll("img")]
             .filter(i => util.isNullOrEmpty(i.src))
@@ -224,6 +243,7 @@ class RoyalRoadParser extends Parser {
     }
 
     getInformationEpubItemChildNodes(dom) {
-        return [...dom.querySelectorAll("div.fic-title, div.fiction-info div.portlet.row")];
+        let metaDom = this.getMetadataDom(dom);
+        return [...metaDom.querySelectorAll("div.fic-title, div.fiction-info div.portlet.row")];
     }
 }
