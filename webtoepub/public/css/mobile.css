@@ -115,10 +115,6 @@ body.has-book #optionsToggles {
   display: flex !important;
 }
 
-body.has-book #removeAuthorNotesRow {
-  display: flex !important;
-}
-
 body.has-chapters #outputSection {
   display: block !important;
 }
@@ -651,7 +647,9 @@ body.has-book #webHelperText {
    SETTINGS PANEL
    ======================================== */
 
-#webSettingsPanel {
+.web-panel,
+#webSettingsPanel,
+#webMetadataPanel {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -659,7 +657,9 @@ body.has-book #webHelperText {
   margin: 16px 0;
 }
 
-#webSettingsPanel[hidden] {
+.web-panel[hidden],
+#webSettingsPanel[hidden],
+#webMetadataPanel[hidden] {
   display: none;
 }
 

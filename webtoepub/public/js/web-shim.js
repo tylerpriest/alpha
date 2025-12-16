@@ -269,7 +269,20 @@
         const container = document.createElement('div');
         container.id = 'optionsToggles';
 
-        // Settings toggle (now includes metadata + advanced + settings)
+        // Metadata toggle
+        const metaBtn = document.createElement('button');
+        metaBtn.id = 'metadataToggle';
+        metaBtn.type = 'button';
+        metaBtn.textContent = 'Metadata';
+        metaBtn.onclick = function() {
+            const panel = document.getElementById('webMetadataPanel');
+            if (panel) {
+                panel.hidden = !panel.hidden;
+                this.textContent = panel.hidden ? 'Metadata' : 'Hide Metadata';
+            }
+        };
+
+        // Settings toggle
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'settingsToggle';
         settingsBtn.type = 'button';
@@ -282,6 +295,7 @@
             }
         };
 
+        container.appendChild(metaBtn);
         container.appendChild(settingsBtn);
 
         // Insert after progress section
@@ -289,105 +303,114 @@
     }
 
     function addSettingsPanel() {
-        if (document.getElementById('webSettingsPanel')) return;
-
-        const panel = document.createElement('div');
-        panel.id = 'webSettingsPanel';
-        panel.hidden = true;
-
-        panel.innerHTML = `
-            <div class="settings-section">
-                <div class="settings-header">Metadata</div>
-                <div class="settings-list" id="metadataFields"></div>
-            </div>
-            <div class="settings-section">
-                <div class="settings-header">Options</div>
-                <div class="settings-list" id="optionFields"></div>
-            </div>
-        `;
-
-        // Insert after optionsToggles
         const progressSection = document.querySelector('.progressSection');
-        if (progressSection) {
-            progressSection.parentNode.insertBefore(panel, progressSection.nextSibling);
+        if (!progressSection) return;
+
+        // Create Metadata Panel
+        if (!document.getElementById('webMetadataPanel')) {
+            const metaPanel = document.createElement('div');
+            metaPanel.id = 'webMetadataPanel';
+            metaPanel.className = 'web-panel';
+            metaPanel.hidden = true;
+            metaPanel.innerHTML = `<div class="settings-list" id="metadataFields"></div>`;
+            progressSection.parentNode.insertBefore(metaPanel, progressSection.nextSibling);
+        }
+
+        // Create Settings Panel
+        if (!document.getElementById('webSettingsPanel')) {
+            const settingsPanel = document.createElement('div');
+            settingsPanel.id = 'webSettingsPanel';
+            settingsPanel.className = 'web-panel';
+            settingsPanel.hidden = true;
+            settingsPanel.innerHTML = `<div class="settings-list" id="optionFields"></div>`;
+            progressSection.parentNode.insertBefore(settingsPanel, progressSection.nextSibling);
         }
 
         // Populate after a short delay to let other elements load
-        setTimeout(() => populateSettingsPanel(panel), 100);
+        setTimeout(populatePanels, 100);
     }
 
-    function populateSettingsPanel(panel) {
+    function populatePanels() {
         // Metadata fields
-        const metadataContainer = panel.querySelector('#metadataFields');
-        const metadataFields = [
-            { id: 'authorInput', label: 'Author', type: 'text' },
-            { id: 'languageInput', label: 'Language', type: 'text' },
-            { id: 'fileNameInput', label: 'Filename', type: 'text' },
-            { id: 'coverImageUrlInput', label: 'Cover URL', type: 'text' },
-        ];
+        const metadataContainer = document.getElementById('metadataFields');
+        if (metadataContainer && metadataContainer.children.length === 0) {
+            const metadataFields = [
+                { id: 'authorInput', label: 'Author', type: 'text' },
+                { id: 'languageInput', label: 'Language', type: 'text' },
+                { id: 'fileNameInput', label: 'Filename', type: 'text' },
+                { id: 'coverImageUrlInput', label: 'Cover URL', type: 'text' },
+            ];
 
-        metadataFields.forEach(field => {
-            const input = document.getElementById(field.id);
-            if (!input) return;
+            metadataFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (!input) return;
 
-            const item = document.createElement('div');
-            item.className = 'setting-field';
-            item.innerHTML = `
-                <label class="setting-label">${field.label}</label>
-                <input type="${field.type}" class="setting-input" data-target="${field.id}" value="${input.value || ''}">
-            `;
-            metadataContainer.appendChild(item);
+                const item = document.createElement('div');
+                item.className = 'setting-field';
+                item.innerHTML = `
+                    <label class="setting-label">${field.label}</label>
+                    <input type="${field.type}" class="setting-input" data-target="${field.id}" value="${input.value || ''}">
+                `;
+                metadataContainer.appendChild(item);
 
-            // Sync changes back to original input
-            const newInput = item.querySelector('input');
-            newInput.addEventListener('input', function() {
-                input.value = this.value;
-                input.dispatchEvent(new Event('change'));
+                // Sync changes back to original input
+                const newInput = item.querySelector('input');
+                newInput.addEventListener('input', function() {
+                    input.value = this.value;
+                    input.dispatchEvent(new Event('change'));
+                });
+
+                // Watch original input for changes (poll since MutationObserver doesn't catch .value changes)
+                setInterval(() => { newInput.value = input.value; }, 500);
             });
+        }
 
-            // Watch original input for changes
-            const updateFromOriginal = () => { newInput.value = input.value; };
-            input.addEventListener('change', updateFromOriginal);
-            new MutationObserver(updateFromOriginal).observe(input, { attributes: true, attributeFilter: ['value'] });
-        });
+        // Option checkboxes (Settings panel)
+        const optionsContainer = document.getElementById('optionFields');
+        if (optionsContainer && optionsContainer.children.length === 0) {
+            const options = [
+                { id: 'removeAuthorNotesCheckbox', label: 'Remove Author Notes', desc: 'Strip author notes from chapters', defaultOn: true },
+                { id: 'skipImagesCheckbox', label: 'Skip Images', desc: 'Faster downloads, smaller files' },
+                { id: 'compressImagesCheckbox', label: 'Compress Images', desc: 'Reduce image file sizes' },
+                { id: 'skipChaptersThatFailFetchCheckbox', label: 'Skip Failed Chapters', desc: 'Auto-skip instead of prompting' },
+                { id: 'createEpub3Checkbox', label: 'Create EPUB 3', desc: 'Modern format (better compatibility)' },
+                { id: 'addInformationPageToEpubCheckbox', label: 'Add Info Page', desc: 'Include source info in EPUB' },
+                { id: 'removeNextAndPreviousChapterHyperlinksInput', label: 'Remove Nav Links', desc: 'Remove prev/next chapter links' },
+            ];
 
-        // Option checkboxes
-        const optionsContainer = panel.querySelector('#optionFields');
-        const options = [
-            { id: 'removeAuthorNotesCheckbox', label: 'Remove Author Notes', desc: 'Strip author notes from chapters' },
-            { id: 'skipImagesCheckbox', label: 'Skip Images', desc: 'Faster downloads, smaller files' },
-            { id: 'compressImagesCheckbox', label: 'Compress Images', desc: 'Reduce image file sizes' },
-            { id: 'skipChaptersThatFailFetchCheckbox', label: 'Skip Failed Chapters', desc: 'Auto-skip instead of prompting' },
-            { id: 'createEpub3Checkbox', label: 'Create EPUB 3', desc: 'Modern format (better compatibility)' },
-            { id: 'addInformationPageToEpubCheckbox', label: 'Add Info Page', desc: 'Include source info in EPUB' },
-            { id: 'removeNextAndPreviousChapterHyperlinksInput', label: 'Remove Nav Links', desc: 'Remove prev/next chapter links' },
-        ];
+            options.forEach(opt => {
+                const checkbox = document.getElementById(opt.id);
+                let checked = checkbox ? checkbox.checked : false;
 
-        options.forEach(opt => {
-            const checkbox = document.getElementById(opt.id);
-            const checked = checkbox ? checkbox.checked : false;
-
-            const item = document.createElement('label');
-            item.className = 'setting-item';
-            item.innerHTML = `
-                <input type="checkbox" data-target="${opt.id}" ${checked ? 'checked' : ''}>
-                <div class="setting-info">
-                    <span class="setting-label">${opt.label}</span>
-                    <span class="setting-desc">${opt.desc}</span>
-                </div>
-            `;
-            optionsContainer.appendChild(item);
-
-            // Wire up checkbox
-            const newCheckbox = item.querySelector('input');
-            newCheckbox.addEventListener('change', function() {
-                if (checkbox) {
-                    checkbox.checked = this.checked;
-                    checkbox.dispatchEvent(new Event('change'));
-                    if (checkbox.onclick) checkbox.onclick();
+                // Apply default if specified and not already set
+                if (opt.defaultOn && checkbox && !localStorage.getItem('webtoepub_' + opt.id)) {
+                    checkbox.checked = true;
+                    checked = true;
+                    localStorage.setItem('webtoepub_' + opt.id, 'set');
                 }
+
+                const item = document.createElement('label');
+                item.className = 'setting-item';
+                item.innerHTML = `
+                    <input type="checkbox" data-target="${opt.id}" ${checked ? 'checked' : ''}>
+                    <div class="setting-info">
+                        <span class="setting-label">${opt.label}</span>
+                        <span class="setting-desc">${opt.desc}</span>
+                    </div>
+                `;
+                optionsContainer.appendChild(item);
+
+                // Wire up checkbox
+                const newCheckbox = item.querySelector('input');
+                newCheckbox.addEventListener('change', function() {
+                    if (checkbox) {
+                        checkbox.checked = this.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                        if (checkbox.onclick) checkbox.onclick();
+                    }
+                });
             });
-        });
+        }
     }
 
     function setupResumeTracking() {
