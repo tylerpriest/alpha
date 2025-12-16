@@ -58,11 +58,14 @@ class RoyalRoadParser extends Parser {
 
     populateUIImpl() {
         document.getElementById("removeAuthorNotesRow").hidden = false;
+    }
 
-        // WEB-MOD: Always add quick select buttons for Royal Road
+    // WEB-MOD: Override to add chapter selection after chapters are loaded
+    async onLoadFirstPage(url, firstPageDom) {
+        await super.onLoadFirstPage(url, firstPageDom);
+
+        // Now chapters are loaded, add buttons and set starting chapter
         this.addQuickSelectButtons();
-
-        // WEB-MOD: If started from chapter URL, set range to start from that chapter
         if (this.startingChapterUrl) {
             this.setStartingChapter();
         }
