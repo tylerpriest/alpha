@@ -365,12 +365,21 @@ class Parser {
     }
 
     makeSaveAsFileNameWithoutExtension(title, useFullTitle) {
-        // WEB-MOD: Increased default from 20 to 80 for better filenames
+        // WEB-MOD: Extract main title before subtitle markers (: - or parentheses)
+        let mainTitle = title;
+        if (title && !useFullTitle) {
+            // Split on common subtitle separators and take the first part
+            mainTitle = title.split(/[:\(\[\|–—]/)[0].trim();
+            // Also handle " - " as a separator (but not single hyphens in words)
+            if (mainTitle.includes(' - ')) {
+                mainTitle = mainTitle.split(' - ')[0].trim();
+            }
+        }
         let maxFileNameLength = useFullTitle ? 512 : 80;
-        let fileName = (title == null)  ? "web" : util.safeForFileName(title, maxFileNameLength);
+        let fileName = (mainTitle == null) ? "web" : util.safeForFileName(mainTitle, maxFileNameLength);
         if (util.isStringWhiteSpace(fileName)) {
             // title is probably not English, so just use it as is
-            fileName = title;
+            fileName = mainTitle;
         }
         return fileName;
     }
