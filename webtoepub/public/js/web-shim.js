@@ -257,6 +257,9 @@
 
         // Add settings panel
         addSettingsPanel();
+
+        // Setup resume tracking
+        setupResumeTracking();
     }
 
     function addToggleButtons() {
@@ -266,29 +269,7 @@
         const container = document.createElement('div');
         container.id = 'optionsToggles';
 
-        // Metadata toggle
-        const metaBtn = document.createElement('button');
-        metaBtn.id = 'metadataToggle';
-        metaBtn.type = 'button';
-        metaBtn.textContent = 'Metadata';
-        metaBtn.onclick = function() {
-            document.body.classList.toggle('show-metadata');
-            this.textContent = document.body.classList.contains('show-metadata')
-                ? 'Hide Metadata' : 'Metadata';
-        };
-
-        // Advanced toggle
-        const advBtn = document.createElement('button');
-        advBtn.id = 'advancedToggle';
-        advBtn.type = 'button';
-        advBtn.textContent = 'Advanced';
-        advBtn.onclick = function() {
-            document.body.classList.toggle('show-advanced');
-            this.textContent = document.body.classList.contains('show-advanced')
-                ? 'Hide Advanced' : 'Advanced';
-        };
-
-        // Settings toggle
+        // Settings toggle (now includes metadata + advanced + settings)
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'settingsToggle';
         settingsBtn.type = 'button';
@@ -301,8 +282,6 @@
             }
         };
 
-        container.appendChild(metaBtn);
-        container.appendChild(advBtn);
         container.appendChild(settingsBtn);
 
         // Insert after progress section
@@ -316,7 +295,66 @@
         panel.id = 'webSettingsPanel';
         panel.hidden = true;
 
-        const settings = [
+        panel.innerHTML = `
+            <div class="settings-section">
+                <div class="settings-header">Metadata</div>
+                <div class="settings-list" id="metadataFields"></div>
+            </div>
+            <div class="settings-section">
+                <div class="settings-header">Options</div>
+                <div class="settings-list" id="optionFields"></div>
+            </div>
+        `;
+
+        // Insert after optionsToggles
+        const progressSection = document.querySelector('.progressSection');
+        if (progressSection) {
+            progressSection.parentNode.insertBefore(panel, progressSection.nextSibling);
+        }
+
+        // Populate after a short delay to let other elements load
+        setTimeout(() => populateSettingsPanel(panel), 100);
+    }
+
+    function populateSettingsPanel(panel) {
+        // Metadata fields
+        const metadataContainer = panel.querySelector('#metadataFields');
+        const metadataFields = [
+            { id: 'authorInput', label: 'Author', type: 'text' },
+            { id: 'languageInput', label: 'Language', type: 'text' },
+            { id: 'fileNameInput', label: 'Filename', type: 'text' },
+            { id: 'coverImageUrlInput', label: 'Cover URL', type: 'text' },
+        ];
+
+        metadataFields.forEach(field => {
+            const input = document.getElementById(field.id);
+            if (!input) return;
+
+            const item = document.createElement('div');
+            item.className = 'setting-field';
+            item.innerHTML = `
+                <label class="setting-label">${field.label}</label>
+                <input type="${field.type}" class="setting-input" data-target="${field.id}" value="${input.value || ''}">
+            `;
+            metadataContainer.appendChild(item);
+
+            // Sync changes back to original input
+            const newInput = item.querySelector('input');
+            newInput.addEventListener('input', function() {
+                input.value = this.value;
+                input.dispatchEvent(new Event('change'));
+            });
+
+            // Watch original input for changes
+            const updateFromOriginal = () => { newInput.value = input.value; };
+            input.addEventListener('change', updateFromOriginal);
+            new MutationObserver(updateFromOriginal).observe(input, { attributes: true, attributeFilter: ['value'] });
+        });
+
+        // Option checkboxes
+        const optionsContainer = panel.querySelector('#optionFields');
+        const options = [
+            { id: 'removeAuthorNotesCheckbox', label: 'Remove Author Notes', desc: 'Strip author notes from chapters' },
             { id: 'skipImagesCheckbox', label: 'Skip Images', desc: 'Faster downloads, smaller files' },
             { id: 'compressImagesCheckbox', label: 'Compress Images', desc: 'Reduce image file sizes' },
             { id: 'skipChaptersThatFailFetchCheckbox', label: 'Skip Failed Chapters', desc: 'Auto-skip instead of prompting' },
@@ -325,44 +363,127 @@
             { id: 'removeNextAndPreviousChapterHyperlinksInput', label: 'Remove Nav Links', desc: 'Remove prev/next chapter links' },
         ];
 
-        panel.innerHTML = `
-            <div class="settings-header">Settings</div>
-            <div class="settings-list">
-                ${settings.map(s => {
-                    const checkbox = document.getElementById(s.id);
-                    const checked = checkbox ? checkbox.checked : false;
-                    return `
-                        <label class="setting-item">
-                            <input type="checkbox" data-target="${s.id}" ${checked ? 'checked' : ''}>
-                            <div class="setting-info">
-                                <span class="setting-label">${s.label}</span>
-                                <span class="setting-desc">${s.desc}</span>
-                            </div>
-                        </label>
-                    `;
-                }).join('')}
-            </div>
-        `;
+        options.forEach(opt => {
+            const checkbox = document.getElementById(opt.id);
+            const checked = checkbox ? checkbox.checked : false;
 
-        // Wire up checkboxes to sync with original hidden checkboxes
-        panel.querySelectorAll('input[type="checkbox"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const targetId = this.dataset.target;
-                const target = document.getElementById(targetId);
-                if (target) {
-                    target.checked = this.checked;
-                    target.dispatchEvent(new Event('change'));
-                    // Trigger onclick if it exists (for UserPreferences)
-                    if (target.onclick) target.onclick();
+            const item = document.createElement('label');
+            item.className = 'setting-item';
+            item.innerHTML = `
+                <input type="checkbox" data-target="${opt.id}" ${checked ? 'checked' : ''}>
+                <div class="setting-info">
+                    <span class="setting-label">${opt.label}</span>
+                    <span class="setting-desc">${opt.desc}</span>
+                </div>
+            `;
+            optionsContainer.appendChild(item);
+
+            // Wire up checkbox
+            const newCheckbox = item.querySelector('input');
+            newCheckbox.addEventListener('change', function() {
+                if (checkbox) {
+                    checkbox.checked = this.checked;
+                    checkbox.dispatchEvent(new Event('change'));
+                    if (checkbox.onclick) checkbox.onclick();
                 }
             });
         });
+    }
 
-        // Insert after optionsToggles (will be created later, so insert after progressSection)
-        const progressSection = document.querySelector('.progressSection');
-        if (progressSection) {
-            progressSection.parentNode.insertBefore(panel, progressSection.nextSibling);
+    function setupResumeTracking() {
+        // Track download progress
+        const progressEl = document.getElementById('fetchProgress');
+        const progressStr = document.getElementById('progressString');
+
+        if (progressStr) {
+            const observer = new MutationObserver(() => {
+                const text = progressStr.textContent;
+                // Parse "Fetching 45 of 435" format
+                const match = text.match(/(\d+)\s+of\s+(\d+)/i);
+                if (match) {
+                    const current = parseInt(match[1]);
+                    const total = parseInt(match[2]);
+                    const url = document.getElementById('startingUrlInput')?.value;
+                    if (url && current > 0) {
+                        localStorage.setItem('webtoepub_resume', JSON.stringify({
+                            url: url,
+                            chapter: current,
+                            total: total,
+                            timestamp: Date.now()
+                        }));
+                    }
+                }
+            });
+            observer.observe(progressStr, { childList: true, characterData: true, subtree: true });
         }
+
+        // Check for resume on chapter load
+        const checkResume = () => {
+            const rangeStart = document.getElementById('selectRangeStartChapter');
+            if (!rangeStart || rangeStart.options.length < 2) return;
+
+            const url = document.getElementById('startingUrlInput')?.value;
+            const saved = localStorage.getItem('webtoepub_resume');
+            if (!saved || !url) return;
+
+            try {
+                const data = JSON.parse(saved);
+                // Check if same URL and recent (within 24 hours)
+                const isRecent = (Date.now() - data.timestamp) < 24 * 60 * 60 * 1000;
+                const isSameBook = url.includes(data.url.split('/fiction/')[1]?.split('/')[0] || '___none___');
+
+                if (isRecent && isSameBook && data.chapter > 1) {
+                    showResumePrompt(data.chapter, data.total, rangeStart);
+                }
+            } catch (e) {}
+        };
+
+        // Watch for chapters loading
+        const chapterTable = document.getElementById('chapterUrlsTable');
+        if (chapterTable) {
+            const tableObserver = new MutationObserver(() => {
+                setTimeout(checkResume, 200);
+            });
+            tableObserver.observe(chapterTable, { childList: true, subtree: true });
+        }
+    }
+
+    function showResumePrompt(chapter, total, rangeStart) {
+        // Don't show if already shown
+        if (document.getElementById('resumePrompt')) return;
+
+        const prompt = document.createElement('div');
+        prompt.id = 'resumePrompt';
+        prompt.innerHTML = `
+            <div class="resume-text">Resume from chapter ${chapter}?</div>
+            <div class="resume-buttons">
+                <button type="button" id="resumeYes">Resume (${chapter}-${total})</button>
+                <button type="button" id="resumeNo">Start Over</button>
+            </div>
+        `;
+
+        // Insert before chapter table
+        const outputSection = document.getElementById('outputSection');
+        if (outputSection) {
+            outputSection.insertBefore(prompt, outputSection.firstChild);
+        }
+
+        document.getElementById('resumeYes').onclick = () => {
+            // Set start chapter
+            if (rangeStart && chapter <= rangeStart.options.length) {
+                rangeStart.selectedIndex = chapter - 1;
+                if (typeof ChapterUrlsUI !== 'undefined') {
+                    ChapterUrlsUI.onRangeChanged();
+                }
+            }
+            prompt.remove();
+            localStorage.removeItem('webtoepub_resume');
+        };
+
+        document.getElementById('resumeNo').onclick = () => {
+            prompt.remove();
+            localStorage.removeItem('webtoepub_resume');
+        };
     }
 
     function addHelperText() {

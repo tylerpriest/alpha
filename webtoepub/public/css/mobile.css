@@ -712,3 +712,80 @@ body.has-book #webHelperText {
   font-size: 13px;
   color: var(--muted-foreground);
 }
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.setting-field {
+  margin-bottom: 16px;
+}
+
+.setting-field .setting-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 6px;
+}
+
+.setting-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+}
+
+.setting-input:focus {
+  outline: none;
+  border-color: var(--muted-foreground);
+}
+
+/* ========================================
+   RESUME PROMPT
+   ======================================== */
+
+#resumePrompt {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.resume-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 12px;
+}
+
+.resume-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.resume-buttons button {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#resumeYes {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+#resumeNo {
+  background: var(--secondary);
+  color: var(--foreground);
+}
