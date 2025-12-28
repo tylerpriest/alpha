@@ -197,6 +197,27 @@ Start with productized service, add software to increase margins.
 ### Key Insight
 > "The barrier to building something valuable with AI has never been lower. You don't need proprietary data, a massive dev team, or VC funding to get started."
 
+## AI Coding Revolution (2024-2025)
+
+| Tool | Revenue | Team Size | Milestone |
+|------|---------|-----------|-----------|
+| Cursor | $100M ARR | 12 people | Fastest $1M→$100M ever (12 mo) |
+| GitHub Copilot | $400M ARR | - | 20M users, 55% faster coding |
+| Bolt.new | $20M ARR | - | "Vibe coding" platform |
+
+### Vibe Coding: The New Paradigm
+- Coined by Andrej Karpathy (Feb 2025)
+- "Trust AI, don't read the code, follow the vibes"
+- Y Combinator W25: **25% of startups have 95% AI-generated codebases**
+- Prototype timeline: weeks → hours
+- Wall Street Journal (July 2025): Entering commercial use
+
+### MCP (Model Context Protocol) Opportunities
+- Open standard by Anthropic (Nov 2024)
+- Early adopters: Block, Apollo, Zed, Replit, Codeium
+- "New micro-SaaS economy built around AI tools"
+- Opportunity: MCP App Store, integration platforms, monitoring tools
+
 ---
 
 *Research completed December 2025*
