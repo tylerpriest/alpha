@@ -170,6 +170,33 @@ Start with productized service, add software to increase margins.
 | Chrome Extensions | $72.8K/month average | 83% |
 | Telegram Bots | $36K/month | 99.92% |
 
+## AI Agent Market (2025 - The Year of Agents)
+
+| Category | Market Size | Growth |
+|----------|-------------|--------|
+| Total AI Agents | $1.56B → $69B by 2032 | 46% CAGR |
+| Vertical AI Agents | Fastest growing | 62.7% CAGR |
+| Voice AI Agents | $0.07/minute | Massive automation potential |
+
+### Top Vertical AI Agent Opportunities
+
+| Vertical | Why It Works | Example |
+|----------|--------------|---------|
+| **Legal** | Harvey: $3B valuation | $300M raised Feb 2025 |
+| **Healthcare** | Non-diagnostic workflows | Patient intake, follow-ups |
+| **Financial Services** | Most crowded, proven demand | Research, insurance, wealth |
+| **Gov Contracting** | Sweetspot: AI for proposals | End-to-end procurement |
+| **Real Estate** | Scheduling, lead qual | High-value transactions |
+
+### Voice AI Platforms
+- Bland AI: Custom voice, no OpenAI dependency
+- Synthflow: 65% automation of routine calls
+- Retell AI: $0.07/minute, 1-second latency
+- Goodcall: 97% interaction rates with personalization
+
+### Key Insight
+> "The barrier to building something valuable with AI has never been lower. You don't need proprietary data, a massive dev team, or VC funding to get started."
+
 ---
 
 *Research completed December 2025*
