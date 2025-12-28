@@ -147,6 +147,31 @@ Start with productized service, add software to increase margins.
 
 ---
 
+---
+
+## Indie Hacker Success Stories (Real 2024 Numbers)
+
+| Maker | Product | Revenue |
+|-------|---------|---------|
+| JK Molina | Multiple projects | $1.23M/year, 96% margins |
+| SiteGPT | AI chatbot | $95K/month |
+| Formula Bot | Spreadsheet AI | $220K/month |
+| Josh Mohrer | Wave AI | $450K MRR, 22K subscribers |
+| Thomas Frank | Notion templates | $100K/month |
+| Easlo | Notion templates | $500K+ total |
+| 17-year-old | AI app | $1.1M/month |
+
+## Digital Product Opportunities
+
+| Platform | Top Earner Example | Margins |
+|----------|-------------------|---------|
+| Notion Templates | $100K/month (Thomas Frank) | ~100% (zero cost) |
+| Gumroad | $10K+/month possible | 86.8% after fees |
+| Chrome Extensions | $72.8K/month average | 83% |
+| Telegram Bots | $36K/month | 99.92% |
+
+---
+
 *Research completed December 2025*
 *100+ web searches conducted*
 *3 comprehensive documents created*
