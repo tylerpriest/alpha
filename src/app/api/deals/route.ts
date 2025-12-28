@@ -1,216 +1,221 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
-// GET - List deals
-export async function GET(req: NextRequest) {
+const createDealSchema = z.object({
+  companyName: z.string().min(1).max(200),
+  website: z.string().url().optional().nullable(),
+  description: z.string().max(5000).optional().nullable(),
+  sector: z.string().max(100).optional().nullable(),
+  currentStage: z
+    .enum([
+      'SOURCED',
+      'SCREENING',
+      'FIRST_MEETING',
+      'DD',
+      'IC',
+      'TERM_SHEET',
+      'CLOSED_WON',
+      'PASSED',
+    ])
+    .optional()
+    .default('SOURCED'),
+  askAmount: z.number().positive().optional().nullable(),
+  valuation: z.number().positive().optional().nullable(),
+  leadPartner: z.string().max(100).optional().nullable(),
+  source: z.string().max(200).optional().nullable(),
+});
+
+// GET /api/deals - List deals
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const supabase = await createServerSupabaseClient();
+    const { searchParams } = new URL(request.url);
+
+    // Check authentication
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const membership = await db.organizationMember.findFirst({
-      where: { userId: session.user.id },
-      include: { organization: true },
-    });
+    // Get user's organization
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .single();
 
-    if (!membership) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 });
+    if (!member) {
+      return NextResponse.json(
+        { error: 'No organization found' },
+        { status: 403 }
+      );
     }
 
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    // Build query
+    let query = supabase
+      .from('deals')
+      .select('*')
+      .eq('organization_id', member.organization_id)
+      .order('created_at', { ascending: false });
+
+    // Filter by stage if provided
     const stage = searchParams.get('stage');
-    const fundId = searchParams.get('fundId');
-    const leadPartnerId = searchParams.get('leadPartnerId');
-    const search = searchParams.get('search');
+    if (stage) {
+      query = query.eq('current_stage', stage);
+    }
 
-    const where = {
-      organizationId: membership.organizationId,
-      ...(stage && { stage }),
-      ...(fundId && { fundId }),
-      ...(leadPartnerId && { leadPartnerId }),
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { companyName: { contains: search, mode: 'insensitive' } },
-          { sector: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
-    };
+    // Filter by sector if provided
+    const sector = searchParams.get('sector');
+    if (sector) {
+      query = query.eq('sector', sector);
+    }
 
-    const [deals, total] = await Promise.all([
-      db.deal.findMany({
-        where: where as any,
-        include: {
-          leadPartner: {
-            select: { id: true, name: true, image: true },
-          },
-          fund: {
-            select: { id: true, name: true },
-          },
-          _count: {
-            select: { documents: true, comments: true, conversations: true },
-          },
-        },
-        orderBy: { updatedAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      db.deal.count({ where: where as any }),
-    ]);
+    // Pagination
+    const page = parseInt(searchParams.get('page') ?? '1');
+    const limit = parseInt(searchParams.get('limit') ?? '50');
+    const offset = (page - 1) * limit;
 
-    // Transform BigInt/Decimal to strings for JSON serialization
-    const serializedDeals = deals.map((deal) => ({
-      ...deal,
-      revenue: deal.revenue?.toString(),
-      burnRate: deal.burnRate?.toString(),
-      askAmount: deal.askAmount?.toString(),
-      preMoneyVal: deal.preMoneyVal?.toString(),
-      aiScore: deal.aiScore?.toString(),
-      teamScore: deal.teamScore?.toString(),
-      marketScore: deal.marketScore?.toString(),
-      productScore: deal.productScore?.toString(),
-    }));
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: deals, error, count } = await query;
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch deals' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      items: serializedDeals,
-      total,
-      page,
-      limit,
-      hasMore: page * limit < total,
+      deals,
+      pagination: {
+        page,
+        limit,
+        total: count ?? deals?.length ?? 0,
+      },
     });
   } catch (error) {
-    console.error('Error fetching deals:', error);
+    console.error('List deals error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch deals' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// POST - Create deal
-const dealSchema = z.object({
-  name: z.string().min(1),
-  companyName: z.string().min(1),
-  website: z.string().url().optional().or(z.literal('')),
-  description: z.string().optional(),
-  industry: z.string().optional(),
-  sector: z.string().optional(),
-  subSector: z.string().optional(),
-  location: z.string().optional(),
-  foundedYear: z.number().int().min(1900).max(2100).optional(),
-  employeeCount: z.number().int().min(0).optional(),
-  revenue: z.number().optional(),
-  askAmount: z.number().optional(),
-  preMoneyVal: z.number().optional(),
-  source: z.enum([
-    'INBOUND', 'OUTBOUND', 'REFERRAL', 'PORTFOLIO', 'CONFERENCE', 'COLD_OUTREACH', 'OTHER'
-  ]).default('INBOUND'),
-  fundId: z.string().optional(),
-  leadPartnerId: z.string().optional(),
-  investmentThesis: z.string().optional(),
-  contacts: z.array(z.object({
-    name: z.string(),
-    title: z.string().optional(),
-    email: z.string().email().optional(),
-    phone: z.string().optional(),
-    linkedin: z.string().optional(),
-    isPrimary: z.boolean().default(false),
-  })).optional(),
-});
-
-export async function POST(req: NextRequest) {
+// POST /api/deals - Create a deal
+export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const supabase = await createServerSupabaseClient();
+
+    // Check authentication
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const membership = await db.organizationMember.findFirst({
-      where: { userId: session.user.id },
-      include: { organization: true },
-    });
+    // Get user's organization and role
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id, role')
+      .eq('user_id', user.id)
+      .single();
 
-    if (!membership) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 });
+    if (!member) {
+      return NextResponse.json(
+        { error: 'No organization found' },
+        { status: 403 }
+      );
     }
 
-    const body = await req.json();
-    const validatedData = dealSchema.parse(body);
-
-    const deal = await db.deal.create({
-      data: {
-        name: validatedData.name,
-        companyName: validatedData.companyName,
-        website: validatedData.website || null,
-        description: validatedData.description,
-        industry: validatedData.industry,
-        sector: validatedData.sector,
-        subSector: validatedData.subSector,
-        location: validatedData.location,
-        foundedYear: validatedData.foundedYear,
-        employeeCount: validatedData.employeeCount,
-        revenue: validatedData.revenue,
-        askAmount: validatedData.askAmount,
-        preMoneyVal: validatedData.preMoneyVal,
-        source: validatedData.source,
-        stage: 'SOURCED',
-        organizationId: membership.organizationId,
-        fundId: validatedData.fundId || null,
-        leadPartnerId: validatedData.leadPartnerId || session.user.id,
-        investmentThesis: validatedData.investmentThesis,
-        contacts: validatedData.contacts ? {
-          create: validatedData.contacts,
-        } : undefined,
-      },
-      include: {
-        leadPartner: {
-          select: { id: true, name: true, image: true },
-        },
-        fund: {
-          select: { id: true, name: true },
-        },
-        contacts: true,
-      },
-    });
-
-    // Log activity
-    await db.activity.create({
-      data: {
-        type: 'DEAL_CREATED',
-        description: `Created deal: ${validatedData.name}`,
-        organizationId: membership.organizationId,
-        userId: session.user.id,
-        dealId: deal.id,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      deal: {
-        ...deal,
-        revenue: deal.revenue?.toString(),
-        askAmount: deal.askAmount?.toString(),
-        preMoneyVal: deal.preMoneyVal?.toString(),
-      },
-    });
-  } catch (error) {
-    console.error('Error creating deal:', error);
-
-    if (error instanceof z.ZodError) {
+    // Check role permissions
+    if (member.role === 'VIEWER') {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Viewers cannot create deals' },
+        { status: 403 }
+      );
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    const parsed = createDealSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
+    const {
+      companyName,
+      website,
+      description,
+      sector,
+      currentStage,
+      askAmount,
+      valuation,
+      leadPartner,
+      source,
+    } = parsed.data;
+
+    // Create deal
+    const { data: deal, error: createError } = await supabase
+      .from('deals')
+      .insert({
+        organization_id: member.organization_id,
+        company_name: companyName,
+        website,
+        description,
+        sector,
+        current_stage: currentStage,
+        ask_amount: askAmount,
+        valuation,
+        lead_partner: leadPartner,
+        source,
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Create deal error:', createError);
+      return NextResponse.json(
+        { error: 'Failed to create deal' },
+        { status: 500 }
+      );
+    }
+
+    // Create initial stage history
+    await supabase.from('deal_stage_history').insert({
+      deal_id: deal.id,
+      to_stage: currentStage,
+      changed_by: user.id,
+      notes: 'Deal created',
+    });
+
+    // Log activity
+    await supabase.from('activity_log').insert({
+      organization_id: member.organization_id,
+      user_id: user.id,
+      action: 'created',
+      entity_type: 'deal',
+      entity_id: deal.id,
+      metadata: { companyName },
+    });
+
+    return NextResponse.json({ deal }, { status: 201 });
+  } catch (error) {
+    console.error('Create deal error:', error);
     return NextResponse.json(
-      { error: 'Failed to create deal' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

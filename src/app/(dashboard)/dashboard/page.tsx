@@ -1,414 +1,303 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  FileText,
-  Briefcase,
-  Building2,
-  MessageSquare,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-  Plus,
-  Upload,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const stats = [
-  {
-    name: 'Documents',
-    value: '2,847',
-    change: '+12%',
-    trend: 'up',
-    icon: FileText,
-    href: '/knowledge',
-  },
-  {
-    name: 'Active Deals',
-    value: '23',
-    change: '+3',
-    trend: 'up',
-    icon: Briefcase,
-    href: '/deals',
-  },
-  {
-    name: 'Portfolio Companies',
-    value: '18',
-    change: '+2',
-    trend: 'up',
-    icon: Building2,
-    href: '/portfolio',
-  },
-  {
-    name: 'AI Queries Today',
-    value: '156',
-    change: '+45%',
-    trend: 'up',
-    icon: MessageSquare,
-    href: '/chat',
-  },
-];
-
-const recentDeals = [
-  {
-    id: '1',
-    name: 'TechStart Inc',
-    stage: 'Due Diligence',
-    stageColor: 'bg-orange-100 text-orange-700',
-    amount: '$5M',
-    sector: 'AI/ML',
-    updated: '2 hours ago',
-  },
-  {
-    id: '2',
-    name: 'GreenEnergy Co',
-    stage: 'Term Sheet',
-    stageColor: 'bg-amber-100 text-amber-700',
-    amount: '$12M',
-    sector: 'CleanTech',
-    updated: '5 hours ago',
-  },
-  {
-    id: '3',
-    name: 'HealthFlow',
-    stage: 'First Meeting',
-    stageColor: 'bg-indigo-100 text-indigo-700',
-    amount: '$3M',
-    sector: 'HealthTech',
-    updated: 'Yesterday',
-  },
-  {
-    id: '4',
-    name: 'DataSync Pro',
-    stage: 'Deep Dive',
-    stageColor: 'bg-purple-100 text-purple-700',
-    amount: '$8M',
-    sector: 'Enterprise SaaS',
-    updated: 'Yesterday',
-  },
-];
-
-const recentDocuments = [
-  {
-    id: '1',
-    name: 'Q4 2024 Market Analysis.pdf',
-    type: 'Research Report',
-    uploadedBy: 'Sarah Chen',
-    date: '2 hours ago',
-  },
-  {
-    id: '2',
-    name: 'TechStart - Financial Model.xlsx',
-    type: 'Financial Model',
-    uploadedBy: 'Michael Park',
-    date: '4 hours ago',
-  },
-  {
-    id: '3',
-    name: 'AI Sector Deep Dive.pdf',
-    type: 'Research Report',
-    uploadedBy: 'Emily Wang',
-    date: 'Yesterday',
-  },
-  {
-    id: '4',
-    name: 'Investment Committee Memo - GreenEnergy.docx',
-    type: 'Memo',
-    uploadedBy: 'James Liu',
-    date: 'Yesterday',
-  },
-];
-
-const recentActivity = [
-  {
-    id: '1',
-    user: { name: 'Sarah Chen', avatar: null },
-    action: 'queried AI about',
-    target: 'SaaS unit economics benchmarks',
-    time: '5 minutes ago',
-  },
-  {
-    id: '2',
-    user: { name: 'Michael Park', avatar: null },
-    action: 'uploaded',
-    target: 'TechStart Financial Model',
-    time: '2 hours ago',
-  },
-  {
-    id: '3',
-    user: { name: 'Emily Wang', avatar: null },
-    action: 'moved deal to',
-    target: 'Due Diligence',
-    time: '3 hours ago',
-  },
-  {
-    id: '4',
-    user: { name: 'James Liu', avatar: null },
-    action: 'added comment on',
-    target: 'GreenEnergy investment thesis',
-    time: '5 hours ago',
-  },
-];
-
-const suggestedQueries = [
-  'What are the key risks in our current pipeline?',
-  'Compare our portfolio to industry benchmarks',
-  'Summarize recent AI sector developments',
-  'Which deals have similar characteristics to our best exits?',
-];
+interface DashboardStats {
+  documents: {
+    total: number;
+    indexed: number;
+    limit: number;
+  };
+  deals: {
+    total: number;
+    active: number;
+    byStage: Record<string, number>;
+  };
+  conversations: {
+    total: number;
+  };
+  usage: {
+    queriesUsed: number;
+    queriesLimit: number;
+    plan: string;
+  };
+  recentActivity: {
+    id: string;
+    action: string;
+    entity_type: string;
+    created_at: string;
+  }[];
+}
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        if (!res.ok) {
+          throw new Error('Failed to fetch stats');
+        }
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-slate-600 mt-1">
+            Overview of your knowledge base
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Error: {error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
+  }
+
+  const queryUsagePercent = Math.round(
+    (stats.usage.queriesUsed / stats.usage.queriesLimit) * 100
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening at your firm.
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-slate-600 mt-1">
+            Overview of your knowledge base
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/knowledge/upload">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/deals/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Deal
-            </Link>
-          </Button>
+          <Link href="/dashboard/documents">
+            <Button>Upload Documents</Button>
+          </Link>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Link key={stat.name} href={stat.href}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className={`flex items-center gap-1 text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.trend === 'up' ? (
-                        <TrendingUp className="h-4 w-4" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4" />
-                      )}
-                      {stat.change}
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.name}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* AI Quick Query */}
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Sparkles className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <h3 className="font-semibold">Ask AlphaIntel</h3>
-                <p className="text-sm text-muted-foreground">
-                  Query your entire knowledge base using natural language
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {suggestedQueries.map((query) => (
-                  <Link key={query} href={`/chat?q=${encodeURIComponent(query)}`}>
-                    <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
-                      {query}
-                    </Badge>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <Button asChild>
-              <Link href="/chat">
-                Open Chat
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Deals */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Deals</CardTitle>
-              <CardDescription>Your active deal pipeline</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/deals">
-                View all
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentDeals.map((deal) => (
-                <Link
-                  key={deal.id}
-                  href={`/deals/${deal.id}`}
-                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 font-semibold text-primary">
-                      {deal.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-medium">{deal.name}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{deal.sector}</span>
-                        <span>•</span>
-                        <span>{deal.amount}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Badge className={deal.stageColor}>{deal.stage}</Badge>
-                    <span className="text-sm text-muted-foreground">{deal.updated}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Activity Feed */}
+      {/* Stats Cards - REAL DATA */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest team actions</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Documents
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={activity.user.avatar || ''} />
-                    <AvatarFallback className="text-xs">
-                      {activity.user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm">
-                      <span className="font-medium">{activity.user.name}</span>{' '}
-                      <span className="text-muted-foreground">{activity.action}</span>{' '}
-                      <span className="font-medium">{activity.target}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="text-2xl font-bold">{stats.documents.total}</div>
+            <p className="text-xs text-slate-500">
+              {stats.documents.indexed} indexed / {stats.documents.limit} limit
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Active Deals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.deals.active}</div>
+            <p className="text-xs text-slate-500">
+              {stats.deals.total} total deals
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Conversations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.conversations.total}</div>
+            <p className="text-xs text-slate-500">AI chat sessions</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+              AI Queries Used
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.usage.queriesUsed}
+              <span className="text-sm font-normal text-slate-500">
+                {' '}
+                / {stats.usage.queriesLimit}
+              </span>
+            </div>
+            <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  queryUsagePercent > 80 ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+                style={{ width: `${Math.min(queryUsagePercent, 100)}%` }}
+              />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Documents */}
+      {/* Deal Pipeline */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Recent Documents</CardTitle>
-            <CardDescription>Latest uploads to your knowledge base</CardDescription>
-          </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/knowledge">
-              View all
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
+        <CardHeader>
+          <CardTitle>Deal Pipeline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {recentDocuments.map((doc) => (
-              <Link
-                key={doc.id}
-                href={`/knowledge/${doc.id}`}
-                className="rounded-lg border p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="h-5 w-5 text-primary" />
+          {Object.keys(stats.deals.byStage).length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {Object.entries(stats.deals.byStage).map(([stage, count]) => (
+                <div
+                  key={stage}
+                  className="flex-shrink-0 bg-slate-50 rounded-lg p-4 min-w-[120px]"
+                >
+                  <div className="text-2xl font-bold">{count}</div>
+                  <div className="text-sm text-slate-600 capitalize">
+                    {stage.toLowerCase().replace(/_/g, ' ')}
+                  </div>
                 </div>
-                <p className="font-medium truncate">{doc.name}</p>
-                <p className="text-sm text-muted-foreground">{doc.type}</p>
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{doc.uploadedBy}</span>
-                  <span>•</span>
-                  <span>{doc.date}</span>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-500">
+              <p>No deals yet</p>
+              <Link href="/dashboard/deals">
+                <Button variant="outline" size="sm" className="mt-2">
+                  Add Your First Deal
+                </Button>
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-              <Upload className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="font-semibold">Upload Documents</p>
-              <p className="text-sm text-muted-foreground">Add to knowledge base</p>
-            </div>
-          </CardContent>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Link href="/dashboard/search">
+            <CardContent className="pt-6">
+              <div className="text-2xl mb-2">🔍</div>
+              <h3 className="font-semibold">Search Knowledge Base</h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Find information across all your documents using semantic search
+              </p>
+            </CardContent>
+          </Link>
         </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
-              <Briefcase className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="font-semibold">Log New Deal</p>
-              <p className="text-sm text-muted-foreground">Track a new opportunity</p>
-            </div>
-          </CardContent>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Link href="/dashboard/chat">
+            <CardContent className="pt-6">
+              <div className="text-2xl mb-2">💬</div>
+              <h3 className="font-semibold">Ask AI Questions</h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Chat with your knowledge base and get cited answers
+              </p>
+            </CardContent>
+          </Link>
         </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-              <MessageSquare className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="font-semibold">Ask AI</p>
-              <p className="text-sm text-muted-foreground">Query your knowledge</p>
-            </div>
-          </CardContent>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Link href="/dashboard/documents">
+            <CardContent className="pt-6">
+              <div className="text-2xl mb-2">📄</div>
+              <h3 className="font-semibold">Upload Documents</h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Add pitch decks, deal memos, and research to your knowledge base
+              </p>
+            </CardContent>
+          </Link>
         </Card>
       </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats.recentActivity.length > 0 ? (
+            <div className="space-y-3">
+              {stats.recentActivity.slice(0, 5).map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">
+                      {activity.action === 'uploaded'
+                        ? '📄'
+                        : activity.action === 'searched'
+                        ? '🔍'
+                        : activity.action === 'chatted'
+                        ? '💬'
+                        : '📝'}
+                    </span>
+                    <span className="text-sm capitalize">
+                      {activity.action} {activity.entity_type}
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {new Date(activity.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-500">
+              <p>No recent activity</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,350 +1,414 @@
 import Link from 'next/link';
-import {
-  Brain,
-  Shield,
-  Zap,
-  Database,
-  LineChart,
-  FileSearch,
-  Users,
-  Lock,
-  ArrowRight,
-  CheckCircle2,
-  Building2,
-  TrendingUp,
-  Briefcase,
-  Sparkles
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-
-const features = [
-  {
-    icon: Brain,
-    title: 'Institutional Memory',
-    description: 'AI that learns your investment thesis, past decisions, and why you passed on deals. Knowledge compounds, people leave - your wisdom stays.',
-  },
-  {
-    icon: Zap,
-    title: 'Due Diligence Acceleration',
-    description: 'Query years of research, competitor analysis, and market data instantly. What took weeks now takes hours.',
-  },
-  {
-    icon: LineChart,
-    title: 'Pattern Recognition',
-    description: 'AI identifies successful investment patterns across your portfolio history. Learn what actually works from your own data.',
-  },
-  {
-    icon: FileSearch,
-    title: 'Semantic Search',
-    description: 'Find information by meaning, not just keywords. Ask "companies with similar unit economics to our best exit" and get answers.',
-  },
-  {
-    icon: Shield,
-    title: 'Compliance-Ready',
-    description: 'Full audit trail of every query, access, and decision. Built for regulated financial services from day one.',
-  },
-  {
-    icon: Database,
-    title: 'Deal Intelligence',
-    description: 'AI-powered deal scoring, thesis matching, and portfolio pattern analysis. Surface the signals that matter.',
-  },
-];
-
-const useCases = [
-  {
-    icon: Building2,
-    title: 'Venture Capital',
-    items: [
-      'Instant access to decades of deal memos',
-      'Pattern match against successful exits',
-      'New analyst onboarding in days, not months',
-      'Never forget why you passed on a deal',
-    ],
-  },
-  {
-    icon: TrendingUp,
-    title: 'Private Equity',
-    items: [
-      'Portfolio company operational playbooks',
-      'Market intelligence synthesis',
-      'LP reporting automation',
-      'Value creation pattern analysis',
-    ],
-  },
-  {
-    icon: Briefcase,
-    title: 'Growth Equity',
-    items: [
-      'Sector thesis development',
-      'Competitive landscape mapping',
-      'Deal team knowledge sharing',
-      'Investment committee preparation',
-    ],
-  },
-];
-
-const metrics = [
-  { value: '90%', label: 'Faster due diligence' },
-  { value: '10x', label: 'Faster deal memo search' },
-  { value: '100%', label: 'Knowledge retained when people leave' },
-  { value: '0', label: 'Duplicated research' },
-];
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">A</span>
             </div>
-            <span className="text-xl font-bold">AlphaIntel</span>
-          </Link>
+            <span className="font-semibold text-xl">AlphaIntel</span>
+          </div>
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="#features"
+              className="text-sm text-slate-600 hover:text-slate-900"
+            >
               Features
             </Link>
-            <Link href="#use-cases" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Use Cases
-            </Link>
-            <Link href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="#pricing"
+              className="text-sm text-slate-600 hover:text-slate-900"
+            >
               Pricing
             </Link>
-          </nav>
-          <div className="flex items-center gap-4">
             <Link href="/login">
-              <Button variant="ghost" size="sm">Sign In</Button>
+              <Button variant="outline" size="sm">
+                Log in
+              </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/signup">
               <Button size="sm">Get Started</Button>
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="container py-24 md:py-32">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-6 inline-flex items-center rounded-full border px-4 py-1.5 text-sm">
-              <span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">New</span>
-              AI-powered knowledge base for investment professionals
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-24 text-center">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+            The Institutional Memory
+            <br />
+            <span className="text-blue-600">for Investment Firms</span>
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-slate-600">
+            Stop losing decades of investment wisdom when partners retire.
+            AlphaIntel preserves your firm&apos;s knowledge, makes it instantly
+            searchable, and helps new team members get up to speed in days, not
+            months.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-4">
+            <Link href="/signup">
+              <Button size="lg" className="px-8">
+                Start Free Trial
+              </Button>
+            </Link>
+            <Link href="#features">
+              <Button variant="outline" size="lg">
+                See How It Works
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div>
+            <div className="text-3xl font-bold text-blue-600">20-30 hrs</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Saved per deal on DD
             </div>
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Your firm's institutional memory,{' '}
-              <span className="gradient-text">powered by AI</span>
-            </h1>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              AlphaIntel transforms decades of deal memos, research, and tribal knowledge
-              into an AI assistant that understands your investment thesis. Knowledge compounds.
-              People leave. Your wisdom stays.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/register">
-                <Button size="xl" className="w-full sm:w-auto">
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-blue-600">50%</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Faster onboarding
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-blue-600">92%</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Answer accuracy
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-blue-600">100%</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Audit trail coverage
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="bg-slate-50 py-24">
+        <div className="container mx-auto px-4">
+          <h2 className="text-center text-3xl font-bold">
+            Built for How VCs and PE Firms Actually Work
+          </h2>
+          <p className="mt-4 text-center text-slate-600 max-w-2xl mx-auto">
+            We researched the top VC/PE tech stacks and built what&apos;s
+            missing: the internal knowledge layer.
+          </p>
+
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">🔍</span>
+                  Semantic Search
+                </CardTitle>
+                <CardDescription>
+                  Find by meaning, not just keywords
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  Search &quot;deals similar to Stripe&quot; or &quot;companies
+                  with 100%+ NRR&quot; and get relevant results from your deal
+                  memos, research, and documents.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">💬</span>
+                  AI Chat with Citations
+                </CardTitle>
+                <CardDescription>
+                  Ask questions, get sourced answers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  &quot;Why did we pass on Company X?&quot; Get answers with
+                  citations to specific documents and pages. No hallucinations.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">📊</span>
+                  Deal Flow Management
+                </CardTitle>
+                <CardDescription>
+                  Track pipeline with AI analysis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  Kanban boards, stage history, pass reason tracking. Plus
+                  AI-generated risk analysis and deal scoring based on your
+                  documents.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">📁</span>
+                  Document Intelligence
+                </CardTitle>
+                <CardDescription>PDF, DOCX, XLSX and more</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  Upload pitch decks, deal memos, term sheets, and research.
+                  Automatic text extraction and embedding for instant
+                  searchability.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">🔐</span>
+                  Enterprise Security
+                </CardTitle>
+                <CardDescription>
+                  Compliance-ready audit trails
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  Multi-tenant architecture with row-level security.
+                  Complete audit logs of who accessed what and when. SOC 2
+                  compliant.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">🚀</span>
+                  Instant Onboarding
+                </CardTitle>
+                <CardDescription>
+                  New hires productive in days
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  &quot;What did we learn from 2008?&quot; &quot;What patterns
+                  do our exits share?&quot; Give new team members access to
+                  decades of tribal knowledge.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Problem/Solution Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4">
+          <div className="grid gap-12 md:grid-cols-2 items-center">
+            <div>
+              <h2 className="text-3xl font-bold">The Problem</h2>
+              <p className="mt-4 text-lg text-slate-600">
+                When a senior partner retires, decades of investment wisdom
+                walks out the door. New associates spend 4-6 months learning
+                tribal knowledge that exists only in people&apos;s heads.
+              </p>
+              <p className="mt-4 text-lg text-slate-600">
+                Past investment decisions are buried in email threads, forgotten
+                folders, and undocumented conversations.
+              </p>
+              <ul className="mt-6 space-y-2 text-slate-600">
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">✗</span>
+                  &quot;Why did we pass on that company in 2019?&quot;
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">✗</span>
+                  &quot;What patterns do our successful exits share?&quot;
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">✗</span>
+                  &quot;How did we analyze similar deals before?&quot;
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold">The Solution</h2>
+              <p className="mt-4 text-lg text-slate-600">
+                AlphaIntel is the institutional memory layer for investment
+                firms. Upload your documents, ask questions in plain English,
+                get answers with citations.
+              </p>
+              <ul className="mt-6 space-y-2 text-slate-600">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span>
+                  Instant recall of any past decision
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span>
+                  Pattern recognition across your portfolio
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span>
+                  New hires productive in days, not months
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span>
+                  Never lose knowledge when people leave
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="bg-slate-50 py-24">
+        <div className="container mx-auto px-4">
+          <h2 className="text-center text-3xl font-bold">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="mt-4 text-center text-slate-600">
+            Start free, scale as you grow
+          </p>
+
+          <div className="mt-16 grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Starter</CardTitle>
+                <CardDescription>For small funds</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">$299</span>
+                  <span className="text-slate-600">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>Up to 5 users</li>
+                  <li>500 documents</li>
+                  <li>500 AI queries/month</li>
+                  <li>Semantic search</li>
+                  <li>Deal tracking</li>
+                  <li>Email support</li>
+                </ul>
+                <Button className="mt-6 w-full" variant="outline">
                   Start Free Trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </Link>
-              <Link href="/demo">
-                <Button size="xl" variant="outline" className="w-full sm:w-auto">
-                  Watch Demo
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-600 border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Professional
+                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
+                    Popular
+                  </span>
+                </CardTitle>
+                <CardDescription>For growing funds</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">$799</span>
+                  <span className="text-slate-600">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>Up to 15 users</li>
+                  <li>Unlimited documents</li>
+                  <li>2,000 AI queries/month</li>
+                  <li>Advanced analytics</li>
+                  <li>API access</li>
+                  <li>Priority support</li>
+                </ul>
+                <Button className="mt-6 w-full">Start Free Trial</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Enterprise</CardTitle>
+                <CardDescription>For large organizations</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">Custom</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>Unlimited users</li>
+                  <li>Unlimited documents</li>
+                  <li>Unlimited queries</li>
+                  <li>SSO/SAML</li>
+                  <li>Custom integrations</li>
+                  <li>Dedicated support</li>
+                </ul>
+                <Button className="mt-6 w-full" variant="outline">
+                  Contact Sales
                 </Button>
-              </Link>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              No credit card required. 14-day free trial.
-            </p>
+              </CardContent>
+            </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Metrics */}
-        <section className="border-y bg-muted/30">
-          <div className="container py-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {metrics.map((metric) => (
-                <div key={metric.label} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">{metric.value}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{metric.label}</div>
-                </div>
-              ))}
-            </div>
+      {/* CTA Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold">
+            Ready to Preserve Your Firm&apos;s Knowledge?
+          </h2>
+          <p className="mt-4 text-lg text-slate-600">
+            Join leading VC and PE firms who trust AlphaIntel
+          </p>
+          <div className="mt-8">
+            <Link href="/signup">
+              <Button size="lg" className="px-12">
+                Get Started Free
+              </Button>
+            </Link>
           </div>
-        </section>
-
-        {/* Features */}
-        <section id="features" className="container py-24">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Built for investment professionals
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Purpose-built for VC, PE, and growth equity workflows. Not another generic enterprise tool.
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={feature.title} className="relative overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Use Cases */}
-        <section id="use-cases" className="bg-muted/30 py-24">
-          <div className="container">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Designed for your workflow
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Whether you're sourcing deals, conducting due diligence, or managing portfolio companies.
-              </p>
-            </div>
-            <div className="grid gap-8 md:grid-cols-3">
-              {useCases.map((useCase) => {
-                const Icon = useCase.icon;
-                return (
-                  <Card key={useCase.title} className="bg-background">
-                    <CardContent className="p-6">
-                      <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                        <Icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <h3 className="mb-4 text-xl font-semibold">{useCase.title}</h3>
-                      <ul className="space-y-3">
-                        {useCase.items.map((item) => (
-                          <li key={item} className="flex items-start gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                            <span className="text-muted-foreground">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Security */}
-        <section className="container py-24">
-          <div className="mx-auto max-w-4xl">
-            <div className="rounded-2xl border bg-card p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Enterprise-Grade Security</h2>
-                  <p className="text-muted-foreground">
-                    Your data never leaves your control. SOC 2 Type II compliant with full encryption at rest and in transit.
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <h4 className="font-medium mb-1">Data Isolation</h4>
-                  <p className="text-sm text-muted-foreground">Complete multi-tenant isolation with dedicated encryption keys</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <h4 className="font-medium mb-1">Audit Logging</h4>
-                  <p className="text-sm text-muted-foreground">Every query and access logged for compliance</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <h4 className="font-medium mb-1">Role-Based Access</h4>
-                  <p className="text-sm text-muted-foreground">Granular permissions from Partner to Analyst</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="bg-primary text-primary-foreground py-24">
-          <div className="container">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Ready to build your firm's institutional memory?
-              </h2>
-              <p className="mb-8 text-lg opacity-90">
-                Join leading VC and PE firms using AlphaIntel to preserve and leverage their collective knowledge.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/register">
-                  <Button size="xl" variant="secondary">
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/contact">
-                  <Button size="xl" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                    Contact Sales
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container">
-          <div className="grid gap-8 md:grid-cols-4">
-            <div>
-              <Link href="/" className="flex items-center space-x-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                  <Sparkles className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold">AlphaIntel</span>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                AI-powered knowledge base for investment professionals.
-              </p>
+      <footer className="border-t bg-slate-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
+              <span className="font-semibold">AlphaIntel</span>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#features" className="hover:text-foreground">Features</Link></li>
-                <li><Link href="#pricing" className="hover:text-foreground">Pricing</Link></li>
-                <li><Link href="/security" className="hover:text-foreground">Security</Link></li>
-                <li><Link href="/integrations" className="hover:text-foreground">Integrations</Link></li>
-              </ul>
+            <div className="text-sm text-slate-600">
+              &copy; {new Date().getFullYear()} AlphaIntel. All rights
+              reserved.
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/about" className="hover:text-foreground">About</Link></li>
-                <li><Link href="/blog" className="hover:text-foreground">Blog</Link></li>
-                <li><Link href="/careers" className="hover:text-foreground">Careers</Link></li>
-                <li><Link href="/contact" className="hover:text-foreground">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/privacy" className="hover:text-foreground">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-foreground">Terms</Link></li>
-                <li><Link href="/security" className="hover:text-foreground">Security</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} AlphaIntel. All rights reserved.</p>
           </div>
         </div>
       </footer>
