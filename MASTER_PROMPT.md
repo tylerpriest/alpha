@@ -12,28 +12,7 @@ Your goal: Build something people will pay for in 4 weeks.
 
 ---
 
-## PART 1: WHAT NOT TO BUILD
-
-### Avoid These Patterns:
-
-1. **"AI Knowledge Base"** - Generic, Notion exists, no differentiation
-2. **"Platform for X"** - Requires network effects before value
-3. **Competing with well-funded players** - Hebbia ($700M), AlphaSense, etc.
-4. **Small TAM** - VCs = only 4,500 firms in US, too niche
-5. **Enterprise sales** - 6-12 month cycles, you'll run out of money
-6. **Freemium models** - 1-2% conversion, need massive volume
-7. **"Pitch deck generator"** - Free tools exist (Wordware)
-8. **Anything requiring data moats** - PitchBook, Crunchbase have 20+ years
-
-### Red Flags:
-- "Would you pay for this?" → Yes, but they won't
-- "This would save me time" → But not enough to pay
-- "Nobody does this well" → Maybe nobody wants it
-- "I need to build more features first" → No, you need customers
-
----
-
-## PART 2: WHAT TO BUILD INSTEAD
+## PART 1: THE WINNING FORMULA
 
 ### The Formula That Works:
 
