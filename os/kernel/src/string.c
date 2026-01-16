@@ -132,3 +132,92 @@ void* memchr(const void* s, int c, usize n) {
     }
     return NULL;
 }
+
+/* Simple snprintf implementation */
+int snprintf(char* buf, usize size, const char* fmt, ...) {
+    if (size == 0) return 0;
+
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+
+    char* p = buf;
+    char* end = buf + size - 1;
+
+    while (*fmt && p < end) {
+        if (*fmt != '%') {
+            *p++ = *fmt++;
+            continue;
+        }
+
+        fmt++;  /* Skip '%' */
+
+        /* Handle format specifiers */
+        switch (*fmt) {
+            case 's': {
+                const char* s = __builtin_va_arg(args, const char*);
+                if (!s) s = "(null)";
+                while (*s && p < end) *p++ = *s++;
+                break;
+            }
+            case 'd': {
+                int val = __builtin_va_arg(args, int);
+                char tmp[32];
+                int i = 0;
+                bool neg = false;
+
+                if (val < 0) {
+                    neg = true;
+                    val = -val;
+                }
+
+                do {
+                    tmp[i++] = '0' + (val % 10);
+                    val /= 10;
+                } while (val > 0);
+
+                if (neg && p < end) *p++ = '-';
+                while (i > 0 && p < end) *p++ = tmp[--i];
+                break;
+            }
+            case 'u': {
+                unsigned int val = __builtin_va_arg(args, unsigned int);
+                char tmp[32];
+                int i = 0;
+
+                do {
+                    tmp[i++] = '0' + (val % 10);
+                    val /= 10;
+                } while (val > 0);
+
+                while (i > 0 && p < end) *p++ = tmp[--i];
+                break;
+            }
+            case 'x': {
+                unsigned int val = __builtin_va_arg(args, unsigned int);
+                char tmp[32];
+                int i = 0;
+                const char* hex = "0123456789abcdef";
+
+                do {
+                    tmp[i++] = hex[val & 0xF];
+                    val >>= 4;
+                } while (val > 0);
+
+                while (i > 0 && p < end) *p++ = tmp[--i];
+                break;
+            }
+            case '%':
+                *p++ = '%';
+                break;
+            default:
+                *p++ = *fmt;
+                break;
+        }
+        fmt++;
+    }
+
+    *p = '\0';
+    __builtin_va_end(args);
+
+    return p - buf;
+}

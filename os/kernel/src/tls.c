@@ -8,11 +8,17 @@
 
 #include "tls.h"
 #include "crypto.h"
+#include "rsa.h"
 #include "tcp.h"
 #include "heap.h"
 #include "pit.h"
 #include "console.h"
 #include "string.h"
+
+/* Server certificate storage */
+static u8 server_cert[4096];
+static u32 server_cert_len;
+static RsaPublicKey server_pubkey;
 
 /* TLS record header */
 typedef struct {

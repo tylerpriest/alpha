@@ -27,6 +27,9 @@ void* memset(void* s, int c, usize n);
 int memcmp(const void* s1, const void* s2, usize n);
 void* memchr(const void* s, int c, usize n);
 
+/* Formatted output */
+int snprintf(char* buf, usize size, const char* fmt, ...);
+
 /* Zero memory (common pattern) */
 static inline void memzero(void* s, usize n) {
     memset(s, 0, n);
