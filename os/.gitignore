@@ -1,0 +1,9 @@
+# Limine bootloader (cloned at build time)
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Object files
+*.o
