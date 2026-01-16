@@ -1,7 +1,10 @@
 /*
- * AlphaOS - Claude API Client Implementation
+ * AlphaOS - Claude Code Client
  *
- * HTTPS client for Claude API.
+ * Connects to CLIProxyAPI which runs Claude Code.
+ * Uses OpenAI-compatible chat completions format.
+ *
+ * https://github.com/router-for-me/CLIProxyAPI
  */
 
 #include "claude.h"
@@ -9,20 +12,18 @@
 #include "tcp.h"
 #include "dns.h"
 #include "ip.h"
-#include "ethernet.h"
 #include "console.h"
 #include "string.h"
 #include "heap.h"
 
-/* API key storage */
-static char api_key[128];
+/* Client state */
+static ClaudeConfig config;
 static bool initialized = false;
 static char last_error[256];
 
 /* Response buffer */
 static char response_buffer[16384];
 
-/* Set error message */
 static void set_error(const char* msg) {
     u32 i = 0;
     while (msg[i] && i < sizeof(last_error) - 1) {
@@ -32,25 +33,30 @@ static void set_error(const char* msg) {
     last_error[i] = '\0';
 }
 
-/* Simple JSON string escape */
-static int json_escape_string(const char* src, char* dst, u32 max_len) {
+static void safe_strcpy(char* dst, const char* src, u32 max_len) {
+    u32 i = 0;
+    while (src[i] && i < max_len - 1) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}
+
+/* JSON string escape */
+static int json_escape(const char* src, char* dst, u32 max_len) {
     u32 j = 0;
-    for (u32 i = 0; src[i] && j < max_len - 1; i++) {
+    for (u32 i = 0; src[i] && j < max_len - 2; i++) {
         char c = src[i];
         if (c == '"' || c == '\\') {
-            if (j + 2 >= max_len) break;
             dst[j++] = '\\';
             dst[j++] = c;
         } else if (c == '\n') {
-            if (j + 2 >= max_len) break;
             dst[j++] = '\\';
             dst[j++] = 'n';
         } else if (c == '\r') {
-            if (j + 2 >= max_len) break;
             dst[j++] = '\\';
             dst[j++] = 'r';
         } else if (c == '\t') {
-            if (j + 2 >= max_len) break;
             dst[j++] = '\\';
             dst[j++] = 't';
         } else {
@@ -61,215 +67,258 @@ static int json_escape_string(const char* src, char* dst, u32 max_len) {
     return j;
 }
 
-/* Build API request body */
-static int build_request_body(const char* user_message, char* body, u32 max_len) {
+/* Build OpenAI-compatible request body */
+static int build_request(const char* message, char* body, u32 max_len) {
     char escaped[4096];
-    json_escape_string(user_message, escaped, sizeof(escaped));
+    json_escape(message, escaped, sizeof(escaped));
 
-    /* Build JSON request */
-    int len = 0;
-    len += snprintf(body + len, max_len - len,
+    /* OpenAI chat completions format */
+    return snprintf(body, max_len,
         "{"
         "\"model\":\"%s\","
-        "\"max_tokens\":4096,"
         "\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}]"
         "}",
-        CLAUDE_MODEL, escaped);
-
-    return len;
+        config.model, escaped);
 }
 
-/* Parse content from JSON response */
-static int parse_response_content(const char* json, char* content, u32 max_len) {
-    /* Find "content":[{"type":"text","text":" */
-    const char* marker = "\"text\":\"";
-    const char* p = json;
+/* Extract content from OpenAI response */
+static int parse_response(const char* json, char* out, u32 max_len) {
+    /* Find "content":" in choices[0].message.content */
+    const char* p = strstr(json, "\"content\":");
+    if (!p) return -1;
 
-    while ((p = strstr(p, marker)) != NULL) {
-        p += strlen(marker);
+    p += 10;  /* skip "content": */
+    while (*p == ' ') p++;
 
-        /* Extract text until closing quote */
-        u32 j = 0;
-        while (*p && j < max_len - 1) {
-            if (*p == '\\' && p[1]) {
-                p++;
-                if (*p == 'n') content[j++] = '\n';
-                else if (*p == 'r') content[j++] = '\r';
-                else if (*p == 't') content[j++] = '\t';
-                else if (*p == '"') content[j++] = '"';
-                else if (*p == '\\') content[j++] = '\\';
-                else content[j++] = *p;
-                p++;
-            } else if (*p == '"') {
-                break;
-            } else {
-                content[j++] = *p++;
-            }
+    if (*p != '"') return -1;
+    p++;  /* skip opening quote */
+
+    u32 j = 0;
+    while (*p && j < max_len - 1) {
+        if (*p == '\\' && p[1]) {
+            p++;
+            if (*p == 'n') out[j++] = '\n';
+            else if (*p == 'r') out[j++] = '\r';
+            else if (*p == 't') out[j++] = '\t';
+            else if (*p == '"') out[j++] = '"';
+            else if (*p == '\\') out[j++] = '\\';
+            else out[j++] = *p;
+            p++;
+        } else if (*p == '"') {
+            break;
+        } else {
+            out[j++] = *p++;
         }
-        content[j] = '\0';
-        return j;
     }
-
-    return -1;  /* Not found */
+    out[j] = '\0';
+    return j;
 }
 
-/* Initialize Claude client */
-int claude_init(const char* key) {
-    if (!key || key[0] == '\0') {
-        set_error("API key required");
+/* Parse IP address */
+static u32 parse_ip(const char* str) {
+    u32 p[4] = {0};
+    int n = 0;
+    for (int i = 0; str[i] && n < 4; i++) {
+        if (str[i] >= '0' && str[i] <= '9')
+            p[n] = p[n] * 10 + (str[i] - '0');
+        else if (str[i] == '.')
+            n++;
+    }
+    return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+}
+
+static bool is_ip(const char* s) {
+    int dots = 0;
+    for (int i = 0; s[i]; i++) {
+        if (s[i] == '.') dots++;
+        else if (s[i] < '0' || s[i] > '9') return false;
+    }
+    return dots == 3;
+}
+
+/* Initialize with CLIProxyAPI endpoint */
+int claude_init_proxy(const ClaudeConfig* cfg) {
+    if (!cfg || !cfg->host[0]) {
+        set_error("Host required");
         return -1;
     }
 
-    /* Copy API key */
-    u32 i = 0;
-    while (key[i] && i < sizeof(api_key) - 1) {
-        api_key[i] = key[i];
-        i++;
-    }
-    api_key[i] = '\0';
+    memcpy(&config, cfg, sizeof(ClaudeConfig));
+
+    if (config.port == 0)
+        config.port = config.use_tls ? 443 : 3000;
+    if (config.model[0] == '\0')
+        safe_strcpy(config.model, CLAUDE_DEFAULT_MODEL, sizeof(config.model));
 
     initialized = true;
-    console_printf("  Claude: API client initialized\n");
-
+    console_printf("  Claude: CLIProxyAPI at %s:%d\n", config.host, config.port);
     return 0;
 }
 
-/* Check if API is available */
+/* Initialize for direct API (still goes through proxy typically) */
+int claude_init(const char* api_key) {
+    memset(&config, 0, sizeof(config));
+    safe_strcpy(config.host, "localhost", sizeof(config.host));
+    config.port = 3000;
+    config.use_tls = false;
+    if (api_key)
+        safe_strcpy(config.api_key, api_key, sizeof(config.api_key));
+    safe_strcpy(config.model, CLAUDE_DEFAULT_MODEL, sizeof(config.model));
+
+    initialized = true;
+    console_printf("  Claude: Using local CLIProxyAPI\n");
+    return 0;
+}
+
 bool claude_is_available(void) {
     if (!initialized) return false;
-
-    /* Check if we have network */
     IpConfig* cfg = ip_get_config();
     return cfg->configured;
 }
 
-/* Send chat message and get response */
-int claude_chat(const char* user_message, char* response, u32 max_len) {
+/* Send message to Claude Code via CLIProxyAPI */
+int claude_chat(const char* message, char* response, u32 max_len) {
     if (!initialized) {
         set_error("Not initialized");
         return -1;
     }
 
     if (!claude_is_available()) {
-        set_error("Network not available");
+        set_error("No network");
         return -2;
     }
 
-    /* Resolve API hostname */
-    u32 api_ip;
-    if (dns_resolve(CLAUDE_API_HOST, &api_ip) != 0) {
-        set_error("DNS resolution failed");
-        return -3;
+    /* Resolve host */
+    u32 ip;
+    if (is_ip(config.host)) {
+        ip = parse_ip(config.host);
+    } else {
+        if (dns_resolve(config.host, &ip) != 0) {
+            set_error("DNS failed");
+            return -3;
+        }
     }
 
-    /* Connect TCP */
-    console_printf("  Claude: Connecting to API...\n");
-    TcpConnection* tcp = tcp_connect(api_ip, CLAUDE_API_PORT);
+    /* Connect */
+    console_printf("  Claude: Connecting...\n");
+    TcpConnection* tcp = tcp_connect(ip, config.port);
     if (!tcp) {
-        set_error("TCP connection failed");
+        set_error("TCP failed");
         return -4;
     }
 
-    /* TLS handshake */
-    TlsConnection* tls = tls_connect(tcp);
-    if (!tls) {
-        tcp_close(tcp);
-        set_error("TLS connection failed");
-        return -5;
-    }
-
-    if (tls_handshake(tls) != 0) {
-        tls_close(tls);
-        tcp_close(tcp);
-        set_error("TLS handshake failed");
-        return -6;
-    }
-
-    /* Build request body */
+    /* Build request */
     char body[8192];
-    int body_len = build_request_body(user_message, body, sizeof(body));
+    int body_len = build_request(message, body, sizeof(body));
 
-    /* Build HTTP request */
     char request[16384];
-    int req_len = snprintf(request, sizeof(request),
-        "POST /v1/messages HTTP/1.1\r\n"
-        "Host: %s\r\n"
-        "Content-Type: application/json\r\n"
-        "X-API-Key: %s\r\n"
-        "Anthropic-Version: %s\r\n"
-        "Content-Length: %d\r\n"
-        "\r\n"
-        "%s",
-        CLAUDE_API_HOST, api_key, CLAUDE_API_VERSION, body_len, body);
+    int req_len;
 
-    /* Send request */
-    if (tls_send(tls, request, req_len) < 0) {
-        tls_close(tls);
-        tcp_close(tcp);
-        set_error("Failed to send request");
-        return -7;
+    if (config.api_key[0]) {
+        req_len = snprintf(request, sizeof(request),
+            "POST /v1/chat/completions HTTP/1.1\r\n"
+            "Host: %s:%d\r\n"
+            "Content-Type: application/json\r\n"
+            "Authorization: Bearer %s\r\n"
+            "Content-Length: %d\r\n"
+            "\r\n%s",
+            config.host, config.port, config.api_key, body_len, body);
+    } else {
+        req_len = snprintf(request, sizeof(request),
+            "POST /v1/chat/completions HTTP/1.1\r\n"
+            "Host: %s:%d\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: %d\r\n"
+            "\r\n%s",
+            config.host, config.port, body_len, body);
     }
 
-    /* Receive response */
-    int resp_len = tls_recv(tls, response_buffer, sizeof(response_buffer) - 1);
-    if (resp_len < 0) {
+    int resp_len;
+
+    if (config.use_tls) {
+        TlsConnection* tls = tls_connect(tcp);
+        if (!tls || tls_handshake(tls) != 0) {
+            if (tls) tls_close(tls);
+            tcp_close(tcp);
+            set_error("TLS failed");
+            return -5;
+        }
+
+        if (tls_send(tls, request, req_len) < 0) {
+            tls_close(tls);
+            tcp_close(tcp);
+            set_error("Send failed");
+            return -6;
+        }
+
+        resp_len = tls_recv(tls, response_buffer, sizeof(response_buffer) - 1);
         tls_close(tls);
-        tcp_close(tcp);
-        set_error("Failed to receive response");
-        return -8;
+    } else {
+        if (tcp_send(tcp, request, req_len) < 0) {
+            tcp_close(tcp);
+            set_error("Send failed");
+            return -6;
+        }
+
+        resp_len = tcp_recv(tcp, response_buffer, sizeof(response_buffer) - 1);
+    }
+
+    tcp_close(tcp);
+
+    if (resp_len < 0) {
+        set_error("Recv failed");
+        return -7;
     }
     response_buffer[resp_len] = '\0';
 
-    /* Close connection */
-    tls_close(tls);
-    tcp_close(tcp);
-
-    /* Find body in HTTP response (after \r\n\r\n) */
-    char* body_start = strstr(response_buffer, "\r\n\r\n");
-    if (!body_start) {
-        set_error("Invalid HTTP response");
-        return -9;
+    /* Find JSON body */
+    char* json = strstr(response_buffer, "\r\n\r\n");
+    if (!json) {
+        set_error("Bad response");
+        return -8;
     }
-    body_start += 4;
+    json += 4;
 
-    /* Parse JSON response */
-    if (parse_response_content(body_start, response, max_len) < 0) {
-        set_error("Failed to parse response");
-        return -10;
+    /* Parse response */
+    if (parse_response(json, response, max_len) < 0) {
+        set_error("Parse failed");
+        return -9;
     }
 
     return 0;
 }
 
-/* Streaming chat (callback for each chunk) */
-int claude_chat_stream(const char* user_message,
-                       ClaudeStreamCallback callback, void* ctx) {
-    /* For now, use non-streaming and call callback once */
+int claude_chat_stream(const char* message, ClaudeStreamCallback cb, void* ctx) {
     char response[8192];
-    int ret = claude_chat(user_message, response, sizeof(response));
-    if (ret == 0 && callback) {
-        u32 len = 0;
-        while (response[len]) len++;
-        callback(response, len, ctx);
+    int ret = claude_chat(message, response, sizeof(response));
+    if (ret == 0 && cb) {
+        u32 len = strlen(response);
+        cb(response, len, ctx);
     }
     return ret;
 }
 
-/* Conversation with multiple messages */
-int claude_conversation(const ClaudeMessage* messages, u32 count,
+int claude_conversation(const ClaudeMessage* msgs, u32 count,
                         char* response, u32 max_len) {
-    /* Build multi-message request (simplified - just use last user message) */
     for (int i = count - 1; i >= 0; i--) {
-        if (messages[i].role == CLAUDE_ROLE_USER) {
-            return claude_chat(messages[i].content, response, max_len);
-        }
+        if (msgs[i].role == CLAUDE_ROLE_USER)
+            return claude_chat(msgs[i].content, response, max_len);
     }
-
-    set_error("No user message in conversation");
+    set_error("No user message");
     return -1;
 }
 
-/* Get last error */
+int claude_chat_with_system(const char* system, const char* message,
+                            char* response, u32 max_len) {
+    char combined[8192];
+    snprintf(combined, sizeof(combined), "[System: %s]\n\n%s", system, message);
+    return claude_chat(combined, response, max_len);
+}
+
 const char* claude_get_error(void) {
     return last_error;
+}
+
+const ClaudeConfig* claude_get_config(void) {
+    return initialized ? &config : NULL;
 }
