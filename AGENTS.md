@@ -1,38 +1,46 @@
 # AGENTS.md
 
-> Operational guide for Arcology development. Keep brief (~60 lines).
-> Status updates and progress notes belong in `IMPLEMENTATION_PLAN.md`.
+> Operational guide for Arcology development.
 
-## Build & Run
+## Quick Start
 
 ```bash
-# Install dependencies
-npm install
-
-# Development server (localhost:5173)
-npm run dev
-
-# Production build
-npm run build
+npm install && npm run dev  # localhost:5173
 ```
 
 ## Validation
 
-Run these after implementing to get immediate feedback:
-
 ```bash
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-
-# Unit tests
-npm test
-
-# All checks
-npm run validate
+npm run validate  # typecheck + lint + test
 ```
+
+## How to Work (Fresh Context)
+
+This project uses the **Ralph methodology**.
+
+1. **Check mode** - Planning or building?
+   - Planning: Read `PROMPT_plan.md`
+   - Building: Read `PROMPT_build.md`
+
+2. **Check state** - Read `IMPLEMENTATION_PLAN.md`
+
+3. **Check specs** - Read `specs/*` for requirements
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| IMPLEMENTATION_PLAN.md | Current tasks, blockers |
+| PROMPT_build.md | Building mode instructions |
+| PROMPT_plan.md | Planning mode instructions |
+| specs/*.md | Feature requirements |
+| docs/PRINCIPLES.md | Coding standards |
+
+### Methodology Docs
+
+- `docs/QUICKSTART_RALPH.md` - Full journey guide
+- `docs/RALPH_PLAYBOOK.md` - Deep methodology
+- `docs/PRINCIPLES.md` - Coding standards
 
 ## Project Structure
 
