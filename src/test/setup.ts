@@ -1,3 +1,21 @@
+// Mock phaser3spectorjs before Phaser tries to load it
+// This must be done before any Phaser imports
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Module = require('module');
+  const originalRequire = Module.prototype.require;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Module.prototype.require = function(id: string, ...args: unknown[]) {
+    if (id === 'phaser3spectorjs') {
+      return {}; // Return empty object for optional dependency
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return originalRequire.apply(this, [id, ...args] as any);
+  };
+} catch {
+  // Module mocking not available, will try other approach
+}
+
 // Mock browser APIs that Phaser needs
 class MockCanvas {
   getContext() {
@@ -58,15 +76,30 @@ global.requestAnimationFrame = ((cb: FrameRequestCallback) =>
 global.cancelAnimationFrame = clearTimeout as unknown as typeof cancelAnimationFrame;
 
 // Mock window properties Phaser expects
+const mockWindow = {
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  devicePixelRatio: 1,
+  innerWidth: 1280,
+  innerHeight: 720,
+  ontouchstart: null,
+};
+
 Object.defineProperty(global, 'window', {
-  value: {
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    devicePixelRatio: 1,
-    innerWidth: 1280,
-    innerHeight: 720,
-  },
+  value: mockWindow,
+  writable: true,
+  configurable: true,
 });
+
+// Also set it directly for Phaser's checks
+(global as any).window = mockWindow;
+
+// Mock document with documentElement (required by Phaser)
+const mockDocumentElement = {
+  ontouchstart: null,
+  onwheel: null,
+  onmousewheel: null,
+};
 
 Object.defineProperty(global, 'document', {
   value: {
@@ -79,12 +112,25 @@ Object.defineProperty(global, 'document', {
         setAttribute: () => {},
         addEventListener: () => {},
         removeEventListener: () => {},
-      };
+      } as unknown as HTMLElement;
     },
     body: {
       appendChild: () => {},
       removeChild: () => {},
     },
     getElementById: () => null,
+    documentElement: mockDocumentElement,
   },
+});
+
+// Mock navigator (required by Phaser for touch detection)
+Object.defineProperty(global, 'navigator', {
+  value: {
+    maxTouchPoints: 0,
+    msPointerEnabled: false,
+    pointerEnabled: false,
+    getGamepads: null,
+  },
+  writable: true,
+  configurable: true,
 });

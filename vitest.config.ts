@@ -7,4 +7,9 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     include: ['src/**/*.test.ts'],
   },
+  resolve: {
+    alias: {
+      'phaser3spectorjs': './src/test/mocks/phaser3spectorjs.ts',
+    },
+  },
 });
