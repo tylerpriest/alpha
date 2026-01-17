@@ -76,9 +76,9 @@ while true; do
     if [[ "$USE_AGENT" == "true" ]]; then
         # Cursor Agent CLI
         if [[ "$MODE" == "plan" ]]; then
-            agent --print --plan --output-format stream-json "$(cat "$PROMPT_FILE")"
+            agent --print --plan --output-format text "$(cat "$PROMPT_FILE")"
         else
-            agent --print --output-format stream-json "$(cat "$PROMPT_FILE")"
+            agent --print --output-format text "$(cat "$PROMPT_FILE")"
         fi
     else
         # Claude CLI (default)
