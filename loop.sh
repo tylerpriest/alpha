@@ -59,8 +59,7 @@ fi
 echo "========================================"
 if [[ "$USE_AGENT" == "true" ]]; then
     echo ""
-    echo "NOTE: Cursor CLI may prompt for command approval."
-    echo "Enable YOLO mode in Cursor Settings for unattended runs."
+    echo "TIP: Type '/auto-run on' in agent to enable auto-approval."
 fi
 echo ""
 
