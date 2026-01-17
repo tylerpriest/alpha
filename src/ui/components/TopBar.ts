@@ -4,6 +4,7 @@ export class TopBar {
   private foodValue: HTMLSpanElement;
   private populationValue: HTMLSpanElement;
   private starsValue: HTMLSpanElement;
+  private satisfactionValue: HTMLSpanElement;
   private dayValue: HTMLSpanElement;
   private timeValue: HTMLSpanElement;
   private onCreditsClick?: () => void;
@@ -45,6 +46,13 @@ export class TopBar {
             <div class="stat-label">Rating</div>
           </div>
         </div>
+        <div class="stat satisfaction">
+          <span class="stat-icon material-symbols-outlined">mood</span>
+          <div>
+            <div class="stat-value" data-stat="satisfaction">—</div>
+            <div class="stat-label">Satisfaction</div>
+          </div>
+        </div>
       </div>
       <div class="time-display">
         <div class="day" data-stat="day">Cycle 1</div>
@@ -67,6 +75,7 @@ export class TopBar {
     this.foodValue = this.element.querySelector('[data-stat="food"]') as HTMLSpanElement;
     this.populationValue = this.element.querySelector('[data-stat="population"]') as HTMLSpanElement;
     this.starsValue = this.element.querySelector('[data-stat="stars"]') as HTMLSpanElement;
+    this.satisfactionValue = this.element.querySelector('[data-stat="satisfaction"]') as HTMLSpanElement;
     this.dayValue = this.element.querySelector('[data-stat="day"]') as HTMLSpanElement;
     this.timeValue = this.element.querySelector('[data-stat="time"]') as HTMLSpanElement;
 
@@ -107,6 +116,28 @@ export class TopBar {
   updateStars(value: number): void {
     const stars = '⭐'.repeat(Math.min(value, 5));
     this.starsValue.textContent = stars || '—';
+  }
+
+  updateSatisfaction(value: number | undefined): void {
+    if (value === undefined || isNaN(value)) {
+      this.satisfactionValue.textContent = '—';
+      return;
+    }
+    
+    const rounded = Math.round(value);
+    this.satisfactionValue.textContent = `${rounded}/100`;
+    
+    // Color coding: green ≥80, cyan ≥60, amber ≥40, magenta <40
+    const satisfactionEl = this.satisfactionValue.closest('.stat') as HTMLElement;
+    if (rounded >= 80) {
+      satisfactionEl.style.setProperty('--stat-color', 'var(--green)');
+    } else if (rounded >= 60) {
+      satisfactionEl.style.setProperty('--stat-color', 'var(--cyan)');
+    } else if (rounded >= 40) {
+      satisfactionEl.style.setProperty('--stat-color', 'var(--amber)');
+    } else {
+      satisfactionEl.style.setProperty('--stat-color', 'var(--magenta)');
+    }
   }
 
   updateDay(value: number): void {

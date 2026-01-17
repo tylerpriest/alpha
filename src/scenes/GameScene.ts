@@ -46,6 +46,13 @@ export class GameScene extends Phaser.Scene {
   private hasShownGameOver = false;
   private lastRoomRedrawHour = -1;
   private lastAutoSaveDay = 0;
+  
+  // Notification tracking (to avoid spamming)
+  private hasShownLowRationsWarning = false;
+  private hasShownZeroRationsAlert = false;
+  private hasShownBankruptcyWarning = false;
+  private hasShownStarvationAlert = false;
+  private lastNotificationCheckHour = -1;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -579,6 +586,12 @@ export class GameScene extends Phaser.Scene {
         if (quarterlyProcessed) {
           const quarterlyAmount = this.economySystem.getQuarterlyRevenue();
           console.log(`Quarterly office revenue: ${quarterlyAmount.toLocaleString()} CR`);
+          
+          // Show notification to player
+          this.uiManager.showSuccess(
+            `Quarterly Office Revenue: +${quarterlyAmount.toLocaleString()} CR`,
+            7000 // Show for 7 seconds
+          );
         }
 
         // Check for auto-save (every 5 days)
@@ -593,8 +606,94 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
+    // Check for important notifications (check every hour to avoid spamming)
+    const currentHour = Math.floor(this.timeSystem.getHour());
+    if (currentHour !== this.lastNotificationCheckHour) {
+      this.checkNotifications();
+      this.lastNotificationCheckHour = currentHour;
+    }
+
     // Update registry for UI
     this.updateRegistry();
+  }
+
+  /**
+   * Check for important game events and show notifications
+   */
+  private checkNotifications(): void {
+    const credits = this.economySystem.getMoney();
+    const rations = this.resourceSystem.getFood();
+    const population = this.residentSystem.getPopulation();
+    
+    // Bankruptcy warning: Show when credits drop below -$5,000 (halfway to bankruptcy)
+    const BANKRUPTCY_THRESHOLD = -10000;
+    const BANKRUPTCY_WARNING_THRESHOLD = -5000;
+    if (credits < BANKRUPTCY_WARNING_THRESHOLD && credits >= BANKRUPTCY_THRESHOLD) {
+      if (!this.hasShownBankruptcyWarning) {
+        this.uiManager.showWarning(
+          `Warning: Credits critically low (${credits.toLocaleString()} CR). Bankruptcy at ${BANKRUPTCY_THRESHOLD.toLocaleString()} CR.`,
+          8000 // Show for 8 seconds
+        );
+        this.hasShownBankruptcyWarning = true;
+      }
+    } else if (credits >= BANKRUPTCY_WARNING_THRESHOLD) {
+      // Reset warning flag if credits recover
+      this.hasShownBankruptcyWarning = false;
+    }
+
+    // Low rations warning: Show when processed food is below 1 day's consumption
+    // Estimate: ~3 meals per resident per day, plus restaurant consumption
+    const mealsPerResidentPerDay = 3;
+    const estimatedDailyConsumption = population * mealsPerResidentPerDay;
+    // Also account for restaurant consumption (rough estimate: 30 per fast food, 20 per restaurant)
+    const fastFoods = this.building.getFastFoods();
+    const restaurants = this.building.getRestaurants();
+    const restaurantConsumption = (fastFoods.length * 30) + (restaurants.length * 20);
+    const totalDailyConsumption = estimatedDailyConsumption + restaurantConsumption;
+    
+    // Warn when rations are below 1 day's consumption
+    if (rations === 0) {
+      // Show critical warning if rations hit zero
+      if (!this.hasShownZeroRationsAlert) {
+        this.uiManager.showError(
+          'Critical: No rations remaining! Residents will starve!',
+          10000 // Show for 10 seconds
+        );
+        this.hasShownZeroRationsAlert = true;
+        // Reset low warning flag so it can show again if rations recover then drop
+        this.hasShownLowRationsWarning = false;
+      }
+    } else if (rations < totalDailyConsumption) {
+      if (!this.hasShownLowRationsWarning) {
+        this.uiManager.showWarning(
+          `Low Rations: ${Math.floor(rations)} remaining. Build more farms and kitchens!`,
+          7000 // Show for 7 seconds
+        );
+        this.hasShownLowRationsWarning = true;
+      }
+      // Reset zero alert flag if rations recover above zero
+      this.hasShownZeroRationsAlert = false;
+    } else if (rations >= totalDailyConsumption) {
+      // Reset warning flags if rations recover to safe levels
+      this.hasShownLowRationsWarning = false;
+      this.hasShownZeroRationsAlert = false;
+    }
+
+    // Starvation alert: Check if any residents have hunger at 0
+    const residents = this.residentSystem.getResidents();
+    const starvingResidents = residents.filter(r => r.hunger === 0);
+    if (starvingResidents.length > 0) {
+      if (!this.hasShownStarvationAlert) {
+        this.uiManager.showError(
+          `Alert: ${starvingResidents.length} resident${starvingResidents.length > 1 ? 's' : ''} starving! Build farms and kitchens immediately!`,
+          10000 // Show for 10 seconds
+        );
+        this.hasShownStarvationAlert = true;
+      }
+    } else {
+      // Reset alert flag if no residents are starving
+      this.hasShownStarvationAlert = false;
+    }
   }
 
   private showEconomyBreakdown(): void {

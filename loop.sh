@@ -120,13 +120,40 @@ while true; do
         exit $EXIT_CODE
     fi
 
-    # Push changes after each iteration (build mode only)
+    # Commit and push changes after each iteration (build mode only)
     if [[ "$MODE" == "build" ]]; then
-        if git diff --quiet && git diff --staged --quiet; then
-            echo "No changes to push"
+        # Check for uncommitted changes
+        if ! git diff --quiet || ! git diff --staged --quiet; then
+            # Stage all changes
+            git add -A
+            
+            # Commit if there are staged changes
+            if ! git diff --staged --quiet; then
+                # Run validation before committing (as per PROMPT_build.md)
+                echo "Running validation (typecheck, lint, test)..."
+                if npm run validate; then
+                    echo "Validation passed. Committing changes..."
+                    git commit -m "feat: auto-commit from Ralph loop iteration $ITERATION" || echo "Commit failed"
+                else
+                    echo ""
+                    echo "❌ Validation failed! Skipping commit."
+                    echo "Fix errors and the agent will retry in the next iteration."
+                    echo ""
+                fi
+            fi
+        fi
+        
+        # Push if there are commits to push
+        echo "Pushing changes..."
+        if git push origin arcology 2>/dev/null; then
+            echo "Push successful"
         else
-            echo "Pushing changes..."
-            git push 2>/dev/null || echo "Push failed (may need to set upstream)"
+            # Check if it's because we're already up to date
+            if git diff --quiet HEAD origin/arcology 2>/dev/null; then
+                echo "Already up to date with origin"
+            else
+                echo "Push failed (may need to pull first or resolve conflicts)"
+            fi
         fi
     fi
 

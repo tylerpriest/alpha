@@ -6,6 +6,7 @@ import { RoomInfoPanel } from './components/RoomInfoPanel';
 import { VictoryOverlay } from './components/VictoryOverlay';
 import { GameOverOverlay } from './components/GameOverOverlay';
 import { EconomyBreakdownPanel } from './components/EconomyBreakdownPanel';
+import { Notification, NotificationType } from './components/Notification';
 
 export class UIManager {
   private registry: Phaser.Data.DataManager;
@@ -17,6 +18,7 @@ export class UIManager {
   private victoryOverlay: VictoryOverlay;
   private gameOverOverlay: GameOverOverlay;
   private economyBreakdownPanel: EconomyBreakdownPanel;
+  private notification: Notification;
 
   constructor(registry: Phaser.Data.DataManager) {
     this.registry = registry;
@@ -56,6 +58,7 @@ export class UIManager {
     this.victoryOverlay = new VictoryOverlay(this.overlay);
     this.gameOverOverlay = new GameOverOverlay(this.overlay);
     this.economyBreakdownPanel = new EconomyBreakdownPanel(this.overlay);
+    this.notification = new Notification(this.overlay);
 
     // Listen to registry changes
     this.registry.events.on('changedata-money', (_: Phaser.Game, value: number) => {
@@ -75,6 +78,9 @@ export class UIManager {
     });
     this.registry.events.on('changedata-starRating', (_: Phaser.Game, value: number) => {
       this.topBar.updateStars(value);
+    });
+    this.registry.events.on('changedata-averageSatisfaction', (_: Phaser.Game, value: number | undefined) => {
+      this.topBar.updateSatisfaction(value);
     });
     this.registry.events.on('changedata-selectedRoom', (_: Phaser.Game, value: string) => {
       this.buildMenu.setSelected(value);
@@ -149,6 +155,44 @@ export class UIManager {
     this.economyBreakdownPanel.hide();
   }
 
+  /**
+   * Show a notification toast
+   * @param message The message to display
+   * @param type Notification type (success, info, warning, error)
+   * @param duration Duration in milliseconds (default: 5000)
+   */
+  showNotification(message: string, type: NotificationType = 'info', duration?: number): string {
+    return this.notification.show(message, type, duration);
+  }
+
+  /**
+   * Show a success notification
+   */
+  showSuccess(message: string, duration?: number): string {
+    return this.notification.showSuccess(message, duration);
+  }
+
+  /**
+   * Show an info notification
+   */
+  showInfo(message: string, duration?: number): string {
+    return this.notification.showInfo(message, duration);
+  }
+
+  /**
+   * Show a warning notification
+   */
+  showWarning(message: string, duration?: number): string {
+    return this.notification.showWarning(message, duration);
+  }
+
+  /**
+   * Show an error notification
+   */
+  showError(message: string, duration?: number): string {
+    return this.notification.showError(message, duration);
+  }
+
   destroy(): void {
     this.sidebar.destroy();
     this.topBar.destroy();
@@ -157,5 +201,6 @@ export class UIManager {
     this.victoryOverlay.destroy();
     this.gameOverOverlay.destroy();
     this.economyBreakdownPanel.destroy();
+    this.notification.destroy();
   }
 }

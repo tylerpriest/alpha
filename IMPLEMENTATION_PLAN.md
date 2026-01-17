@@ -586,8 +586,37 @@ Phase 5 (Audio & Polish)
   - `getAverageSatisfaction()` method added to ResidentSystem
   - Calculated and stored in registry as `averageSatisfaction`
   - Displayed in Economy Breakdown panel with color coding (green ≥80, cyan ≥60, amber ≥40, magenta <40)
+- [x] Notification system for game events
+  - Created Notification component (`src/ui/components/Notification.ts`)
+  - Toast-style notifications with success/info/warning/error types
+  - Cyberpunk styling with glass panel, neon accents, smooth animations
+  - Integrated into UIManager with convenience methods
+  - Shows notification when quarterly revenue is received (7 second duration)
+  - Low rations warning: Shows when processed food is below 1 day's consumption (7 second duration)
+  - Bankruptcy warning: Shows when credits drop below -$5,000 (8 second duration)
+  - Starvation alert: Shows when any residents have hunger at 0 (10 second duration)
+  - Critical zero-rations notification: Shows error type when rations hit zero (10 second duration)
+  - Notification checks run every hour to avoid spamming
+  - Warning flags reset when conditions improve
+  - Positioned top-right, auto-dismisses, can be manually closed
 
 **Next Priority:**
-1. Test quarterly revenue system with multiple quarters
-2. Add visual feedback when quarterly revenue is received
-3. Consider adding satisfaction to TopBar or other UI locations
+1. ~~Add visual feedback when quarterly revenue is received~~ ✅ COMPLETED
+   - Created Notification component for toast messages
+   - Integrated into UIManager with success/info/warning/error types
+   - Shows notification when quarterly revenue is received (7 second duration)
+   - Cyberpunk-styled with glass panel, neon accents, and smooth animations
+2. ~~Add notifications for other important events (low rations, bankruptcy warnings, etc.)~~ ✅ COMPLETED
+   - Low rations warning: Shows when processed food is below 1 day's consumption
+   - Bankruptcy warning: Shows when credits drop below -$5,000 (halfway to bankruptcy at -$10,000)
+   - Starvation alert: Shows when any residents have hunger at 0
+   - Notifications check every hour to avoid spamming
+   - Warning flags reset when conditions improve
+   - Critical zero-rations notification shows error type
+3. ~~Add satisfaction to TopBar~~ ✅ COMPLETED
+   - Added satisfaction stat display to TopBar (shows "X/100" format)
+   - Color coding: green ≥80, cyan ≥60, amber ≥40, magenta <40
+   - Updates automatically via registry listener for `averageSatisfaction`
+   - Uses Material Symbols "mood" icon
+   - Positioned after star rating in stats group
+4. Test quarterly revenue system with multiple quarters
