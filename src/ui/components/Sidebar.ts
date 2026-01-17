@@ -97,6 +97,10 @@ export class Sidebar {
     });
   }
 
+  getActiveSection(): string {
+    return this.activeSection;
+  }
+
   destroy(): void {
     this.element.remove();
   }

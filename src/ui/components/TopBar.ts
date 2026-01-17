@@ -6,6 +6,7 @@ export class TopBar {
   private starsValue: HTMLSpanElement;
   private dayValue: HTMLSpanElement;
   private timeValue: HTMLSpanElement;
+  private onCreditsClick?: () => void;
 
   constructor(parent: HTMLElement) {
     this.element = document.createElement('div');
@@ -49,6 +50,15 @@ export class TopBar {
         <div class="day" data-stat="day">Cycle 1</div>
         <div class="time" data-stat="time">6:00 AM</div>
       </div>
+      <div class="top-bar-actions">
+        <button class="top-bar-btn" title="Settings" aria-label="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="top-bar-btn alerts-btn" title="Alerts" aria-label="Alerts">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="alerts-badge" style="display: none;">0</span>
+        </button>
+      </div>
     `;
 
     parent.appendChild(this.element);
@@ -59,6 +69,20 @@ export class TopBar {
     this.starsValue = this.element.querySelector('[data-stat="stars"]') as HTMLSpanElement;
     this.dayValue = this.element.querySelector('[data-stat="day"]') as HTMLSpanElement;
     this.timeValue = this.element.querySelector('[data-stat="time"]') as HTMLSpanElement;
+
+    // Add click handler to Credits stat
+    const moneyStat = this.element.querySelector('.stat.money') as HTMLElement;
+    moneyStat.style.cursor = 'pointer';
+    moneyStat.title = 'Click to view economy breakdown';
+    moneyStat.addEventListener('click', () => {
+      if (this.onCreditsClick) {
+        this.onCreditsClick();
+      }
+    });
+  }
+
+  setOnCreditsClick(callback: () => void): void {
+    this.onCreditsClick = callback;
   }
 
   updateMoney(value: number): void {

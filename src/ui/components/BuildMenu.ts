@@ -33,7 +33,41 @@ export class BuildMenu {
     `;
     this.element.appendChild(speedControls);
 
+    // Wire up speed control buttons
+    const speedButtons = speedControls.querySelectorAll('.speed-btn');
+    speedButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const speed = parseInt((btn as HTMLElement).dataset.speed || '1', 10);
+        this.setSpeed(speed);
+      });
+    });
+
     parent.appendChild(this.element);
+  }
+
+  setSpeed(speed: number): void {
+    // Update active state
+    const speedButtons = this.element.querySelectorAll('.speed-btn');
+    speedButtons.forEach((btn) => {
+      const btnSpeed = parseInt((btn as HTMLElement).dataset.speed || '1', 10);
+      if (btnSpeed === speed) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Emit event for GameScene to handle
+    const event = new CustomEvent('speed-change', { detail: { speed } });
+    document.dispatchEvent(event);
+  }
+
+  getCurrentSpeed(): number {
+    const activeBtn = this.element.querySelector('.speed-btn.active');
+    if (activeBtn) {
+      return parseInt((activeBtn as HTMLElement).dataset.speed || '1', 10);
+    }
+    return 1;
   }
 
   private createRoomButton(roomType: RoomType, cost: number): HTMLButtonElement {
@@ -53,6 +87,9 @@ export class BuildMenu {
   }
 
   private capitalize(str: string): string {
+    // Handle special cases
+    if (str === 'fastfood') return 'Fast Food';
+    if (str === 'restaurant') return 'Fine Dining';
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
