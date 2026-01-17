@@ -132,13 +132,25 @@ while true; do
                 # Run validation before committing (as per PROMPT_build.md)
                 echo "Running validation (typecheck, lint, test)..."
                 if npm run validate; then
-                    echo "Validation passed. Committing changes..."
+                    echo "✅ Validation passed. Committing changes..."
                     git commit -m "feat: auto-commit from Ralph loop iteration $ITERATION" || echo "Commit failed"
                 else
                     echo ""
                     echo "❌ Validation failed! Skipping commit."
-                    echo "Fix errors and the agent will retry in the next iteration."
                     echo ""
+                    echo "⚠️  CRITICAL: The agent MUST fix these errors in THIS iteration."
+                    echo ""
+                    echo "   Process:"
+                    echo "   1. Run 'npm run validate' to see all errors"
+                    echo "   2. Fix errors systematically (typecheck → lint → tests)"
+                    echo "   3. Re-run 'npm run validate' after each batch of fixes"
+                    echo "   4. Continue fixing until validation passes"
+                    echo "   5. Only when validation passes, proceed to commit"
+                    echo ""
+                    echo "   The loop will continue automatically, but the agent must complete"
+                    echo "   the fix-work before exiting. Do NOT wait for next iteration."
+                    echo ""
+                    # Don't unstage changes - agent should fix them
                 fi
             fi
         fi

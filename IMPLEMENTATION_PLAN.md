@@ -2,7 +2,7 @@
 
 > Prioritized task list for Arcology MVP. Updated after comprehensive code analysis.
 
-**Last Updated:** 2026-01-27 - Planning mode session completed
+**Last Updated:** 2026-01-27 - Building mode: Office worker lunch behavior implemented
 
 **Latest Planning Session (2026-01-27 - Planning Mode):** Comprehensive planning session completed with full verification:
 - Reviewed all 11 spec files (BUILDING, RESIDENTS, FOOD_SYSTEM, ELEVATORS, ECONOMY, UI_UX, MENUS, SAVE_LOAD, AUDIO, TIME_EVENTS, GRAPHICS)
@@ -86,7 +86,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 - ✅ **Demolition system confirmed implemented** - 50% refund working (GameScene.ts:326-332, Building.removeRoom() exists)
 - ✅ **Fast Food and Restaurant rooms confirmed** - Both in ROOM_SPECS (constants.ts:103-126) with correct specs
 - ❌ **Sky lobbies missing** - Not in ROOM_SPECS, no elevator zone system, no pathfinding for zone transfers
-- ❌ **Building height limit not enforced** - No MAX_FLOORS_MVP constant in constants.ts, no validation in Building.addRoom() or GameScene
+- ✅ **Building height limit enforced** - MAX_FLOORS_MVP constant added, validation in Building.addRoom() and GameScene, UI shows limit info
 - ❌ **Tenant types missing** - Resident class (Resident.ts:22-691) has no `type` field, all residents are residential tenants by default
 - ❌ **Office worker lunch behavior missing** - No code in Resident.ts for office workers seeking Fast Food at 12 PM, no listener for `schedule:lunch-start` event
 - ❌ **Audio system completely absent** - No AudioSystem class, no sound files, no audio asset loading in BootScene, only one comment in ElevatorSystem.ts about bell sound
@@ -124,9 +124,9 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 
 **Critical Gaps Identified:**
 - ❌ Sky lobbies not implemented (required every 15 floors per spec)
-- ❌ Building height limit (20 floors MVP) not enforced
-- ❌ Tenant type differentiation (Office Worker vs Residential Tenant)
-- ❌ Office workers seeking Fast Food at lunch (12 PM)
+- ✅ Building height limit (20 floors MVP) enforced
+- ✅ Tenant type differentiation (Office Worker vs Residential Tenant) - COMPLETED
+- ✅ Office workers seeking Fast Food at lunch (12 PM) - COMPLETED
 - ❌ Audio system completely missing
 - ❌ Resident visual variety (color palettes, size variation, traits display)
 - ❌ Some spec acceptance criteria not fully met
@@ -135,9 +135,9 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 
 **Phase 0 - Critical Missing Features (HIGHEST PRIORITY):**
 1. Sky lobby system (required for floors 15+)
-2. Building height limit enforcement (20 floors MVP)
-3. Tenant type system (Office Worker vs Residential Tenant)
-4. Office worker lunch behavior (seek Fast Food at 12 PM)
+2. ✅ Building height limit enforcement (20 floors MVP) - COMPLETED
+3. ✅ Tenant type system (Office Worker vs Residential Tenant) - COMPLETED
+4. ✅ Office worker lunch behavior (seek Fast Food at 12 PM) - COMPLETED
 
 **Phase 1 - Audio System:**
 1. UI sound effects
@@ -190,48 +190,48 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - Show elevator zone boundaries visually (optional, nice-to-have)
 
 **Building Height Limit:**
-- [ ] Enforce 20-floor MVP limit in `src/utils/constants.ts` and `src/entities/Building.ts`
-  - Add `MAX_FLOORS_MVP = 20` constant to constants.ts
-  - Validate room placement: `floor < MAX_FLOORS_MVP` in Building.addRoom() (Building.ts:17-58)
-  - Show error message when attempting to build above limit
-  - **Test:** Cannot place room on floor 20 or above
-  - **Test:** Error message displays when limit reached
-- [ ] Update UI to show height limit in `src/ui/components/BuildMenu.ts`
-  - Display "Max Floors: 20" in build menu or info panel
-  - Show warning when approaching limit (e.g., floor 18+)
+- [x] Enforce 20-floor MVP limit in `src/utils/constants.ts` and `src/entities/Building.ts`
+  - Add `MAX_FLOORS_MVP = 20` constant to constants.ts ✅
+  - Validate room placement: `floor < MAX_FLOORS_MVP` in Building.addRoom() (Building.ts:17-58) ✅
+  - Show error message when attempting to build above limit ✅
+  - **Test:** Cannot place room on floor 20 or above ✅
+  - **Test:** Error message displays when limit reached ✅
+- [x] Update UI to show height limit in `src/ui/components/BuildMenu.ts`
+  - Display "Max Floors: 20" in build menu or info panel ✅
+  - Show warning when approaching limit (e.g., floor 18+) ✅ (Implemented in BuildMenu, error shown in GameScene)
 
 **Tenant Type System:**
-- [ ] Add tenant type to Resident entity in `src/entities/Resident.ts`
-  - Property: `type: 'office_worker' | 'resident'` (add to Resident class, default 'resident')
-  - Office workers: Don't live in building, arrive in morning, leave in evening
-  - Residential tenants: Live in apartments, may work in building or elsewhere
-  - Update `serialize()` method (Resident.ts:662-672) to include type
-  - **Test:** New residents spawn as 'resident' type by default
-  - **Test:** Office workers can be created separately (future: spawn at offices)
-- [ ] Implement office worker behavior in `src/systems/ResidentSystem.ts`
-  - Arrive at 9 AM (weekdays only)
-  - Leave at 5 PM (weekdays only)
-  - Only need office space (no apartment required)
-  - Affected by elevator congestion during rush hours
-  - Listen to `schedule:work-start` and `schedule:work-end` events from TimeSystem
-  - **Test:** Office workers arrive at 9 AM on weekdays
-  - **Test:** Office workers leave at 5 PM on weekdays
-  - **Test:** Office workers don't arrive on weekends
+- [x] Add tenant type to Resident entity in `src/entities/Resident.ts` ✅
+  - Property: `type: 'office_worker' | 'resident'` (add to Resident class, default 'resident') ✅
+  - Office workers: Don't live in building, arrive in morning, leave in evening ✅
+  - Residential tenants: Live in apartments, may work in building or elsewhere ✅
+  - Update `serialize()` method (Resident.ts:662-672) to include type ✅
+  - **Test:** New residents spawn as 'resident' type by default ✅
+  - **Test:** Office workers can be created separately (future: spawn at offices) ✅
+- [x] Implement office worker behavior in `src/systems/ResidentSystem.ts` ✅
+  - Arrive at 9 AM (weekdays only) ✅
+  - Leave at 5 PM (weekdays only) ✅
+  - Only need office space (no apartment required) ✅
+  - Affected by elevator congestion during rush hours (inherited from Resident class) ✅
+  - Listen to `schedule:work-start` and `schedule:work-end` events from TimeSystem ✅
+  - **Test:** Office workers arrive at 9 AM on weekdays ✅
+  - **Test:** Office workers leave at 5 PM on weekdays ✅
+  - **Test:** Office workers don't arrive on weekends ✅
 - [ ] Visual differentiation in `src/entities/Resident.ts` and `src/ui/components/RoomInfoPanel.ts`
   - Office workers: Different color or icon (optional, nice-to-have)
   - Show type in resident info panel
 
 **Office Worker Lunch Behavior:**
-- [ ] Implement lunch-seeking behavior for office workers in `src/entities/Resident.ts`
-  - At 12 PM, office workers seek Fast Food restaurants
-  - Use pathfinding to reach Fast Food room
-  - Consume food and reduce hunger
-  - Return to office after lunch
-  - Listen to `schedule:lunch-start` event from TimeSystem
-  - Update `updateIdle()` method (Resident.ts:206-244) to check for lunch time if type is 'office_worker'
-  - **Test:** Office workers seek Fast Food at 12 PM
-  - **Test:** Office workers consume food at Fast Food restaurants
-  - **Test:** Office workers return to office after lunch
+- [x] Implement lunch-seeking behavior for office workers in `src/entities/Resident.ts` ✅
+  - At 12 PM, office workers seek Fast Food restaurants ✅
+  - Use pathfinding to reach Fast Food room ✅
+  - Consume food and reduce hunger ✅
+  - Return to office after lunch ✅
+  - Listen to `schedule:lunch-start` event from TimeSystem ✅
+  - Update `updateIdle()` method (Resident.ts:206-244) to check for lunch time if type is 'office_worker' ✅
+  - **Test:** Office workers seek Fast Food at 12 PM ✅
+  - **Test:** Office workers consume food at Fast Food restaurants ✅
+  - **Test:** Office workers return to office after lunch ✅
 
 ### Phase 1 - Audio System
 
@@ -350,7 +350,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - [x] Room costs are deducted from money (✅ implemented)
   - [x] Rooms can be demolished (refund partial cost) (✅ implemented - GameScene.ts:326-332, Building.removeRoom() exists, refunds 50%)
   - [ ] Sky lobbies can be placed on required floors (❌ missing - Phase 0)
-  - [ ] Building height limited to 20 floors (MVP) (❌ missing - Phase 0)
+  - [x] Building height limited to 20 floors (MVP) (✅ implemented - Phase 0)
   - [x] Fast Food rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:103-114)
   - [x] Restaurant rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:115-126)
   - [ ] Elevators only serve floors within lobby zones (❌ pending sky lobby implementation - Phase 0)
@@ -363,7 +363,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - [x] Residents leave when starving too long (✅ implemented - 24h at hunger 0, Resident.ts:91-95)
   - [x] Residents find and take jobs (✅ implemented)
   - [x] Stress system implemented (✅ implemented - 0-100 scale, Resident.ts:26)
-  - [ ] Tenant types differentiated (❌ missing - Phase 0, Resident.ts has no `type` field, all default to residential)
+  - [x] Tenant types differentiated (✅ implemented - Resident.ts has `type` field, office workers spawn at 9 AM, leave at 5 PM on weekdays)
   - [x] Adjacency conflicts cause stress (✅ implemented - Resident.ts:579)
   - [x] Stress-based leaving condition (✅ implemented - >80 for 48h, Resident.ts:44)
   - [x] Elevator congestion affects stress (✅ implemented - Resident.ts:98)
@@ -376,7 +376,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - [x] Fast Food operates 11 AM - 2 PM and 5 PM - 7 PM (✅ implemented - RestaurantSystem.ts:36-53)
   - [x] Fine Dining operates 6 PM - 11 PM only (✅ implemented - RestaurantSystem.ts:36-53)
   - [x] Restaurants consume processed food from kitchens (✅ implemented - RestaurantSystem.ts)
-  - [ ] Office workers seek Fast Food at lunch time (❌ missing - Phase 0, no lunch behavior in Resident.ts)
+  - [x] Office workers seek Fast Food at lunch time (✅ implemented - Resident.ts handles lunch-seeking behavior)
   - [x] Evaluation system calculates restaurant score (✅ implemented - RestaurantSystem.ts evaluation logic)
   - [x] Restaurant income scales with evaluation score (✅ implemented - RestaurantSystem.ts income calculation)
   - [ ] Restaurants show open/closed state visually (⚠️ RestaurantSystem.isRestaurantOpen() tracks state but Room.ts:51-107 draw() does not display it - Phase 3, see "Fix Remaining Spec Discrepancies" section)
@@ -486,7 +486,8 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - [ ] Visual style matches priority reference image (⚠️ subjective - requires visual comparison test via LLM review pattern)
 
 **TypeScript/Linting Status:**
-- ✅ **No TypeScript errors** - Linter check passed (verified 2026-01-27)
+- ✅ **No TypeScript errors** - Linter check passed (verified 2025-01-27)
+- ✅ **Building height limit tests added** - `src/entities/Building.test.ts` with comprehensive height limit tests
 - ⚠️ **LLM review placeholder** - `src/lib/llm-review.ts` has TODO for actual LLM integration (non-blocking, Phase 3)
 
 **Add Missing Test Coverage:**
@@ -502,11 +503,12 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - Test kitchen food processing
   - Test food consumption
   - Test food chain (farm → kitchen → processed)
-- [ ] Test Building entity (`src/entities/Building.test.ts`)
-  - Test room placement with overlap detection
-  - Test floor constraints
-  - Test room removal/demolition
-  - Test room queries (getApartments, getOffices, etc.)
+- [x] Test Building entity (`src/entities/Building.test.ts`) ✅
+  - Test room placement with overlap detection ✅
+  - Test floor constraints ✅
+  - Test height limit enforcement ✅
+  - Test room removal/demolition (covered in existing tests)
+  - Test room queries (getApartments, getOffices, etc.) (covered in existing tests)
 - [ ] Test Resident entity (`src/entities/Resident.test.ts`)
   - Test state machine transitions
   - Test hunger decay
@@ -552,7 +554,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - Test default type assignment
   - Test office worker arrival/departure schedules
   - Test office worker behavior differences
-- [ ] Test office worker lunch behavior (when implemented)
+- [x] Test office worker lunch behavior ✅ (tests added in ResidentSystem.test.ts)
   - Test Fast Food seeking at 12 PM
   - Test food consumption at restaurants
   - Test return to office after lunch
@@ -715,7 +717,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 - Building height limit not enforced (no MAX_FLOORS_MVP constant, no validation in Building.addRoom or GameScene)
 - Audio system completely missing (Phase 1 priority - no AudioSystem class, no sound files, no audio asset loading)
 - Tenant type differentiation missing (Phase 0 priority - Resident class has no `type` field, all residents are residential tenants)
-- Office worker lunch behavior missing (Phase 0 priority - no code for office workers seeking fast food at 12 PM)
+- ✅ Office worker lunch behavior implemented (Phase 0 - office workers seek Fast Food at 12 PM, consume food, return to office)
 - Resident visual variety missing (Phase 2 - no color palette or size variation system, all residents look identical except hunger color)
 - Restaurant open/closed visual state may not be displayed (RestaurantSystem tracks `isOpen` via `isRestaurantOpen()` but Room.ts rendering may not visually indicate state)
 - LLM review system placeholder (src/lib/llm-review.ts has TODO for actual LLM integration)
@@ -728,7 +730,7 @@ Phase 0 (Critical Missing Features)
 ├── Sky Lobby System ──→ Elevator Zones ──→ Pathfinding Updates
 ├── Building Height Limit (independent)
 ├── Tenant Type System ──→ Office Worker Behavior
-└── Office Worker Lunch Behavior (depends on Tenant Type System)
+└── ✅ Office Worker Lunch Behavior (depends on Tenant Type System) - COMPLETED
          │
          ↓
 Phase 1 (Audio System) - Independent
@@ -787,7 +789,7 @@ Phase 3 (Spec Compliance & Testing)
 1. Implement sky lobby system (room type, elevator zones, pathfinding updates)
 2. Enforce building height limit (20 floors MVP)
 3. Implement tenant type system (Office Worker vs Residential Tenant)
-4. Implement office worker lunch behavior (seek Fast Food at 12 PM)
+4. ✅ Implement office worker lunch behavior (seek Fast Food at 12 PM) - COMPLETED
 
 **After Phase 0:**
 1. Implement audio system (Phase 1)
