@@ -48,6 +48,10 @@ export class ResidentSystem {
       if (resident.hasStarvedTooLong()) {
         toRemove.push(resident);
       }
+      // Residents leave after stress >80 for 48 consecutive hours
+      else if (resident.hasHighStressTooLong()) {
+        toRemove.push(resident);
+      }
     }
 
     for (const resident of toRemove) {
@@ -115,5 +119,45 @@ export class ResidentSystem {
         }
       }
     }
+  }
+
+  /**
+   * Add a resident directly (for save/load restoration)
+   */
+  addResident(resident: Resident): void {
+    if (!this.residents.includes(resident)) {
+      this.residents.push(resident);
+    }
+  }
+
+  /**
+   * Set the next resident ID (for save/load restoration)
+   */
+  setNextResidentId(id: number): void {
+    this.nextResidentId = id;
+  }
+
+  /**
+   * Get the next resident ID
+   */
+  getNextResidentId(): number {
+    return this.nextResidentId;
+  }
+
+  /**
+   * Calculate building-wide average satisfaction
+   * Returns average of all resident satisfactions (0-100)
+   */
+  getAverageSatisfaction(foodAvailable: boolean): number {
+    if (this.residents.length === 0) {
+      return 0;
+    }
+
+    let totalSatisfaction = 0;
+    for (const resident of this.residents) {
+      totalSatisfaction += resident.calculateSatisfaction(foodAvailable);
+    }
+
+    return totalSatisfaction / this.residents.length;
   }
 }
