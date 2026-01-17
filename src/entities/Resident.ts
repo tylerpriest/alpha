@@ -9,6 +9,8 @@ import {
   HUNGER_COLORS,
   GRID_SIZE,
   FLOOR_HEIGHT,
+  getSkyLobbyZone,
+  SKY_LOBBY_FLOORS,
 } from '../utils/constants';
 import { ResidentState, ResidentData, ElevatorState } from '../utils/types';
 import type { GameScene } from '../scenes/GameScene';
@@ -22,6 +24,7 @@ const RESIDENT_NAMES = [
 export class Resident {
   public readonly id: string;
   public name: string;
+  public type: 'office_worker' | 'resident' = 'resident'; // Tenant type
   public hunger: number = HUNGER_MAX;
   public stress: number = 0; // 0-100 stress level
   public state: ResidentState = ResidentState.IDLE;
@@ -40,6 +43,9 @@ export class Resident {
 
   private stateTimer = 0;
   private targetKitchen: Room | null = null;
+  private targetFastFood: Room | null = null; // Target Fast Food restaurant for lunch
+  private isSeekingLunch = false; // Track if office worker is seeking lunch
+  private lunchStartTime: number | null = null; // Track when lunch started (game hour)
   private starvationTime = 0; // Tracks time at hunger 0 (in game ms)
   private highStressTime = 0; // Tracks time at stress >80 (in game ms)
   private sleepStartHour: number | null = null; // Track when sleep started for stress relief
@@ -49,6 +55,8 @@ export class Resident {
   private targetRoom: Room | null = null;
   private elevatorShaft: ElevatorShaft | null = null;
   private elevatorWaitStartTime = 0; // Timestamp when waiting for elevator started
+  private skyLobbyTransferFloor: number | null = null; // Sky lobby floor for zone transfer
+  private pathfindingLeg: 'first' | 'transfer' | 'final' | null = null; // Which leg of multi-zone journey
 
   private x: number;
   private y: number;
@@ -79,6 +87,46 @@ export class Resident {
     this.nameLabel.setDepth(31);
 
     this.drawSilhouette();
+
+    // Set up event listeners for office workers
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners(): void {
+    // Listen for lunch start event (office workers seek Fast Food at 12 PM)
+    const gameScene = this.scene as GameScene;
+    if (gameScene && gameScene.timeSystem) {
+      gameScene.timeSystem.on('schedule:lunch-start', () => {
+        this.handleLunchStart();
+      });
+    }
+  }
+
+  private handleLunchStart(): void {
+    // Only office workers seek Fast Food at lunch
+    if (this.type === 'office_worker' && this.job && !this.isSeekingLunch) {
+      const gameScene = this.scene as GameScene;
+      const fastFoods = gameScene.building.getFastFoods();
+      const restaurantSystem = gameScene.restaurantSystem;
+
+      // Find an open Fast Food restaurant
+      const openFastFoods = fastFoods.filter((ff) => 
+        restaurantSystem.isRestaurantOpen(ff)
+      );
+
+      if (openFastFoods.length > 0) {
+        // Pick a random open Fast Food restaurant
+        this.targetFastFood = openFastFoods[Math.floor(Math.random() * openFastFoods.length)];
+        this.isSeekingLunch = true;
+        this.lunchStartTime = gameScene.timeSystem.getHour();
+
+        // Go to the Fast Food restaurant
+        this.goToRoom(this.targetFastFood, () => {
+          // Try to eat when arriving at restaurant
+          this.tryToEatAtRestaurant();
+        });
+      }
+    }
   }
 
   update(delta: number, gameHour: number): void {
@@ -204,8 +252,23 @@ export class Resident {
   }
 
   private updateIdle(gameHour: number): void {
-    // Check if hungry - find a kitchen and go eat
-    if (this.hunger < 50 && !this.targetKitchen) {
+    // Office workers: Check if returning from lunch (after eating at restaurant)
+    if (this.type === 'office_worker' && this.isSeekingLunch && this.targetFastFood === null) {
+      // Lunch is complete, return to office
+      if (this.job) {
+        this.goToRoom(this.job, () => {
+          this.state = ResidentState.WORKING;
+          this.stateTimer = 0;
+          this.isSeekingLunch = false;
+          this.lunchStartTime = null;
+        });
+        return;
+      }
+    }
+
+    // Check if hungry - find a kitchen and go eat (residential tenants only)
+    // Office workers eat at Fast Food during lunch, not at kitchens
+    if (this.type === 'resident' && this.hunger < 50 && !this.targetKitchen) {
       const gameScene = this.scene as GameScene;
       const kitchens = gameScene.building.getKitchens();
 
@@ -222,7 +285,8 @@ export class Resident {
     }
 
     // Check if should go to work (9 AM - 5 PM)
-    if (this.job && gameHour >= 9 && gameHour < 17) {
+    // Office workers: only if not seeking lunch
+    if (this.job && gameHour >= 9 && gameHour < 17 && !this.isSeekingLunch) {
       this.goToRoom(this.job, () => {
         this.state = ResidentState.WORKING;
         this.stateTimer = 0;
@@ -257,6 +321,50 @@ export class Resident {
     }
 
     this.targetKitchen = null;
+  }
+
+  /**
+   * Try to eat at a restaurant (Fast Food)
+   * Office workers use this during lunch break
+   */
+  private tryToEatAtRestaurant(): void {
+    const gameScene = this.scene as GameScene;
+
+    // Check if restaurant is still open
+    if (this.targetFastFood && gameScene.restaurantSystem.isRestaurantOpen(this.targetFastFood)) {
+      // Try to consume 1 unit of processed food (same as kitchen)
+      if (gameScene.resourceSystem.consumeFood(1)) {
+        // Food consumed - start eating
+        this.state = ResidentState.EATING;
+        this.stateTimer = 0;
+      } else {
+        // No food available - return to office
+        this.targetFastFood = null;
+        this.isSeekingLunch = false;
+        this.lunchStartTime = null;
+        if (this.job) {
+          this.goToRoom(this.job, () => {
+            this.state = ResidentState.WORKING;
+            this.stateTimer = 0;
+          });
+        } else {
+          this.state = ResidentState.IDLE;
+        }
+      }
+    } else {
+      // Restaurant closed - return to office
+      this.targetFastFood = null;
+      this.isSeekingLunch = false;
+      this.lunchStartTime = null;
+      if (this.job) {
+        this.goToRoom(this.job, () => {
+          this.state = ResidentState.WORKING;
+          this.stateTimer = 0;
+        });
+      } else {
+        this.state = ResidentState.IDLE;
+      }
+    }
   }
 
   private updateWalking(delta: number): void {
@@ -366,19 +474,76 @@ export class Resident {
     const elevatorY = 500 + car.getVisualY();
     this.setPosition(elevatorX, elevatorY);
 
-    // Check if we've arrived at destination floor and doors are open
-    if (car.currentFloor === targetFloor && 
-        (car.state === ElevatorState.LOADING || car.state === ElevatorState.DOORS_OPENING)) {
-      // Exit elevator
-      this.elevatorShaft.car.removePassenger(this);
-      this.elevatorShaft = null;
+    // Check if we're doing a multi-zone transfer
+    if (this.pathfindingLeg === 'first' && this.skyLobbyTransferFloor !== null) {
+      // First leg: check if we've arrived at sky lobby
+      if (car.currentFloor === this.skyLobbyTransferFloor && 
+          (car.state === ElevatorState.LOADING || car.state === ElevatorState.DOORS_OPENING)) {
+        // Exit first elevator at sky lobby
+        this.elevatorShaft.car.removePassenger(this);
+        this.elevatorShaft = null;
+        
+        // Start transfer leg: walk to elevator in next zone
+        this.pathfindingLeg = 'transfer';
+        this.continueToNextZone();
+        return;
+      }
+    } else {
+      // Final leg: check if we've arrived at destination floor
+      if (car.currentFloor === targetFloor && 
+          (car.state === ElevatorState.LOADING || car.state === ElevatorState.DOORS_OPENING)) {
+        // Exit elevator at destination
+        this.elevatorShaft.car.removePassenger(this);
+        this.elevatorShaft = null;
+        this.skyLobbyTransferFloor = null;
+        this.pathfindingLeg = null;
 
-      // Walk to final destination
+        // Walk to final destination
+        const pos = this.targetRoom.getWorldPosition();
+        this.targetX = pos.x;
+        this.targetY = pos.y;
+        this.state = ResidentState.WALKING;
+      }
+    }
+  }
+
+  private continueToNextZone(): void {
+    // Called when resident arrives at sky lobby - continue to next zone
+    if (!this.targetRoom || this.skyLobbyTransferFloor === null) {
+      this.state = ResidentState.IDLE;
+      return;
+    }
+
+    const gameScene = this.scene as GameScene;
+    const elevatorSystem = gameScene.elevatorSystem;
+    const targetFloor = this.targetRoom.floor;
+    const targetZone = getSkyLobbyZone(targetFloor);
+
+    // Find elevator in target zone
+    const targetZoneShaft = elevatorSystem.getShaftForZone(targetZone);
+    if (!targetZoneShaft) {
+      // No elevator in target zone - fallback to walking (shouldn't happen)
       const pos = this.targetRoom.getWorldPosition();
       this.targetX = pos.x;
       this.targetY = pos.y;
       this.state = ResidentState.WALKING;
+      this.skyLobbyTransferFloor = null;
+      this.pathfindingLeg = null;
+      return;
     }
+
+    // Walk to elevator in target zone (at sky lobby floor)
+    this.elevatorShaft = targetZoneShaft;
+    this.pathfindingLeg = 'final'; // Final leg: to destination
+
+    const direction = targetFloor > this.skyLobbyTransferFloor ? 'up' : 'down';
+    elevatorSystem.callElevator(this.skyLobbyTransferFloor, direction, this);
+
+    const elevatorX = this.elevatorShaft.position * GRID_SIZE;
+    const elevatorY = this.getFloorY(this.skyLobbyTransferFloor);
+    this.targetX = elevatorX;
+    this.targetY = elevatorY;
+    this.state = ResidentState.WALKING_TO_ELEVATOR;
   }
 
   private updateWorking(_delta: number): void {
@@ -393,6 +558,13 @@ export class Resident {
       this.hunger = Math.min(HUNGER_MAX, this.hunger + FOOD_PER_MEAL);
       // Good meal reduces stress by 10
       this.stress = Math.max(0, this.stress - 10);
+      
+      // If office worker was eating at restaurant, clear lunch state
+      if (this.type === 'office_worker' && this.isSeekingLunch && this.targetFastFood) {
+        this.targetFastFood = null;
+        // Will return to office in updateIdle()
+      }
+      
       this.state = ResidentState.IDLE;
     }
   }
@@ -425,6 +597,8 @@ export class Resident {
   goToRoom(room: Room, onArrival?: () => void): void {
     this.targetRoom = room;
     this.onArrival = onArrival ?? null;
+    this.skyLobbyTransferFloor = null;
+    this.pathfindingLeg = null;
 
     const currentFloor = this.getCurrentFloor();
     const targetFloor = room.floor;
@@ -438,14 +612,75 @@ export class Resident {
       return;
     }
 
-    // Different floor - need elevator
+    // Check if we need a zone transfer (different zones)
+    const currentZone = getSkyLobbyZone(currentFloor);
+    const targetZone = getSkyLobbyZone(targetFloor);
+
     const gameScene = this.scene as GameScene;
     const elevatorSystem = gameScene.elevatorSystem;
 
-    // Find nearest elevator shaft
-    const shafts = elevatorSystem.getAllShafts();
-    if (shafts.length === 0) {
-      // No elevators - fallback to teleport (shouldn't happen in normal gameplay)
+    // Same zone - use single elevator (existing logic)
+    if (currentZone === targetZone) {
+      const shaft = elevatorSystem.getShaftForZone(currentZone);
+      if (!shaft) {
+        // No elevator for this zone - fallback to teleport
+        const pos = room.getWorldPosition();
+        this.targetX = pos.x;
+        this.targetY = pos.y;
+        this.state = ResidentState.WALKING;
+        return;
+      }
+
+      this.elevatorShaft = shaft;
+      const direction = targetFloor > currentFloor ? 'up' : 'down';
+      elevatorSystem.callElevator(currentFloor, direction, this);
+
+      const elevatorX = this.elevatorShaft.position * GRID_SIZE;
+      const elevatorY = this.getFloorY(currentFloor);
+      this.targetX = elevatorX;
+      this.targetY = elevatorY;
+      this.state = ResidentState.WALKING_TO_ELEVATOR;
+      return;
+    }
+
+    // Different zones - need sky lobby transfer
+    // Find the sky lobby floor between current and target zones
+    let transferFloor: number | null = null;
+    if (targetZone > currentZone) {
+      // Going up - use sky lobby at the start of target zone
+      transferFloor = SKY_LOBBY_FLOORS[targetZone - 1] ?? null;
+    } else {
+      // Going down - use sky lobby at the start of current zone (if we're above it)
+      // Or use the sky lobby between zones
+      if (currentZone > 0) {
+        transferFloor = SKY_LOBBY_FLOORS[currentZone - 1] ?? null;
+      }
+    }
+
+    if (!transferFloor) {
+      // No sky lobby found - fallback to direct path (shouldn't happen)
+      const shaft = elevatorSystem.getShaftForZone(currentZone);
+      if (shaft) {
+        this.elevatorShaft = shaft;
+        const direction = targetFloor > currentFloor ? 'up' : 'down';
+        elevatorSystem.callElevator(currentFloor, direction, this);
+        const elevatorX = this.elevatorShaft.position * GRID_SIZE;
+        const elevatorY = this.getFloorY(currentFloor);
+        this.targetX = elevatorX;
+        this.targetY = elevatorY;
+        this.state = ResidentState.WALKING_TO_ELEVATOR;
+      }
+      return;
+    }
+
+    // Plan multi-leg journey: current floor → sky lobby → target floor
+    this.skyLobbyTransferFloor = transferFloor;
+    this.pathfindingLeg = 'first'; // First leg: to sky lobby
+
+    // Start first leg: walk to elevator in current zone
+    const currentZoneShaft = elevatorSystem.getShaftForZone(currentZone);
+    if (!currentZoneShaft) {
+      // No elevator - fallback
       const pos = room.getWorldPosition();
       this.targetX = pos.x;
       this.targetY = pos.y;
@@ -453,16 +688,10 @@ export class Resident {
       return;
     }
 
-    // For MVP, use first shaft (nearest shaft logic can be added later)
-    this.elevatorShaft = shafts[0];
-
-    // Determine direction
-    const direction = targetFloor > currentFloor ? 'up' : 'down';
-
-    // Call elevator
+    this.elevatorShaft = currentZoneShaft;
+    const direction = transferFloor > currentFloor ? 'up' : 'down';
     elevatorSystem.callElevator(currentFloor, direction, this);
 
-    // Walk to elevator position
     const elevatorX = this.elevatorShaft.position * GRID_SIZE;
     const elevatorY = this.getFloorY(currentFloor);
     this.targetX = elevatorX;
@@ -663,6 +892,7 @@ export class Resident {
     return {
       id: this.id,
       name: this.name,
+      type: this.type,
       hunger: this.hunger,
       stress: this.stress,
       homeId: this.home?.id ?? null,
