@@ -6,9 +6,22 @@ export class ResidentSystem {
   private scene: GameScene;
   private residents: Resident[] = [];
   private nextResidentId = 1;
+  private officeWorkers: Resident[] = []; // Track office workers separately
 
   constructor(scene: GameScene) {
     this.scene = scene;
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners(): void {
+    // Listen for work start/end events to manage office workers
+    this.scene.timeSystem.on('schedule:work-start', () => {
+      this.spawnOfficeWorkers();
+    });
+
+    this.scene.timeSystem.on('schedule:work-end', () => {
+      this.removeOfficeWorkers();
+    });
   }
 
   update(delta: number): void {
@@ -64,6 +77,7 @@ export class ResidentSystem {
     const pos = apartment.getWorldPosition();
 
     const resident = new Resident(this.scene, id, pos.x, pos.y);
+    resident.type = 'resident'; // Explicitly set type
     resident.setHome(apartment);
 
     // Try to find a job
@@ -79,11 +93,66 @@ export class ResidentSystem {
     return resident;
   }
 
+  /**
+   * Spawn office workers at 9 AM on weekdays
+   * Office workers don't live in the building, they arrive for work
+   */
+  private spawnOfficeWorkers(): void {
+    // Only spawn on weekdays
+    if (this.scene.timeSystem.isWeekend()) {
+      return;
+    }
+
+    const offices = this.scene.building.getOffices();
+    
+    for (const office of offices) {
+      // Spawn office workers for available job slots
+      while (office.hasJobOpenings()) {
+        const id = `resident_${this.nextResidentId++}`;
+        const pos = office.getWorldPosition();
+        
+        const officeWorker = new Resident(this.scene, id, pos.x, pos.y);
+        officeWorker.type = 'office_worker';
+        officeWorker.setJob(office);
+        // Office workers don't have homes
+        officeWorker.home = null;
+        
+        this.residents.push(officeWorker);
+        this.officeWorkers.push(officeWorker);
+      }
+    }
+  }
+
+  /**
+   * Remove office workers at 5 PM on weekdays
+   * Office workers leave the building at end of work day
+   */
+  private removeOfficeWorkers(): void {
+    // Only remove on weekdays
+    if (this.scene.timeSystem.isWeekend()) {
+      return;
+    }
+
+    // Remove all office workers
+    for (const worker of this.officeWorkers) {
+      this.removeResident(worker);
+    }
+    
+    // Clear the office workers array
+    this.officeWorkers = [];
+  }
+
   removeResident(resident: Resident): void {
     const index = this.residents.indexOf(resident);
     if (index !== -1) {
       this.residents.splice(index, 1);
       resident.destroy();
+    }
+    
+    // Also remove from office workers if present
+    const officeWorkerIndex = this.officeWorkers.indexOf(resident);
+    if (officeWorkerIndex !== -1) {
+      this.officeWorkers.splice(officeWorkerIndex, 1);
     }
   }
 
@@ -101,6 +170,14 @@ export class ResidentSystem {
 
   getEmployed(): Resident[] {
     return this.residents.filter((r) => r.job !== null);
+  }
+
+  getOfficeWorkers(): Resident[] {
+    return this.officeWorkers;
+  }
+
+  getResidentialTenants(): Resident[] {
+    return this.residents.filter((r) => r.type === 'resident');
   }
 
   getHungryResidents(): Resident[] {
