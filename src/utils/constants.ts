@@ -2,6 +2,9 @@
 export const GRID_SIZE = 64;
 export const FLOOR_HEIGHT = GRID_SIZE;
 
+// Building constraints
+export const MAX_FLOORS_MVP = 20; // Maximum floors for MVP (floors 0-19)
+
 // Economy
 export const INITIAL_MONEY = 20000;
 
@@ -19,6 +22,7 @@ export const FOOD_PER_MEAL = 30;
 // Room color specifications (Cyberpunk Venus palette - dark bases, bright neon)
 export const ROOM_COLORS = {
   lobby: { base: 0x1a2a2a, accent: 0x4ae4e4 },     // Very dark teal + Bright cyan
+  skylobby: { base: 0x1a2a2a, accent: 0x4ae4e4 }, // Very dark teal + Bright cyan (same as lobby)
   apartment: { base: 0x2a2420, accent: 0xe4a44a }, // Dark brown + Warm orange
   office: { base: 0x1a2028, accent: 0x4a8ae4 },    // Dark blue-gray + Blue
   farm: { base: 0x1a2018, accent: 0x4ae44a },      // Dark green-brown + Bright green
@@ -44,6 +48,35 @@ export const HUNGER_COLORS = {
   critical: 0xe44a8a,    // Magenta pulse (0-19)
 } as const;
 
+// Sky lobby floor requirements (every 15 floors)
+export const SKY_LOBBY_FLOORS = [15, 30, 45, 60, 75, 90] as const;
+export const SKY_LOBBY_ZONE_SIZE = 15; // Floors per zone (0-14, 15-29, 30-44, etc.)
+
+// Helper functions for sky lobby zones
+export function getSkyLobbyZone(floor: number): number {
+  // Zone 0: floors 0-14, Zone 1: floors 15-29, Zone 2: floors 30-44, etc.
+  return Math.floor(floor / SKY_LOBBY_ZONE_SIZE);
+}
+
+export function getZoneMinFloor(zone: number): number {
+  return zone * SKY_LOBBY_ZONE_SIZE;
+}
+
+export function getZoneMaxFloor(zone: number): number {
+  return (zone + 1) * SKY_LOBBY_ZONE_SIZE - 1;
+}
+
+export function getRequiredSkyLobbyFloor(floor: number): number | null {
+  // Returns the sky lobby floor required for the given floor, or null if none required
+  // Floor 15+ requires sky lobby on floor 15, floor 30+ requires sky lobby on floor 30, etc.
+  for (const skyLobbyFloor of SKY_LOBBY_FLOORS) {
+    if (floor >= skyLobbyFloor) {
+      return skyLobbyFloor;
+    }
+  }
+  return null;
+}
+
 // Room specifications
 export const ROOM_SPECS = {
   lobby: {
@@ -53,6 +86,17 @@ export const ROOM_SPECS = {
     maxFloor: 0,
     color: ROOM_COLORS.lobby.base,
     accentColor: ROOM_COLORS.lobby.accent,
+    income: 0,
+    expenses: 0,
+  },
+  skylobby: {
+    width: 20, // Grid units
+    cost: 2000,
+    minFloor: 15, // Can only be placed on specific floors
+    maxFloor: 90, // Highest valid floor
+    validFloors: SKY_LOBBY_FLOORS, // Array of valid floors: [15, 30, 45, 60, 75, 90]
+    color: ROOM_COLORS.skylobby.base,
+    accentColor: ROOM_COLORS.skylobby.accent,
     income: 0,
     expenses: 0,
   },

@@ -21,6 +21,7 @@ export interface RoomData {
 export interface ResidentData {
   id: string;
   name: string;
+  type: 'office_worker' | 'resident';
   hunger: number;
   stress: number; // 0-100
   homeId: string | null;
@@ -78,6 +79,7 @@ export interface RoomSaveData {
 export interface ResidentSaveData {
   id: string;
   name: string;
+  type: 'office_worker' | 'resident';
   hunger: number;            // 0-100
   stress: number;            // 0-100 (for future use)
   jobRoomId: string | null;
@@ -168,6 +170,7 @@ export interface ElevatorShaftData {
   position: number;     // X position in grid units
   minFloor: number;     // Lowest floor served
   maxFloor: number;     // Highest floor served
+  zone: number;         // Zone this elevator serves (0 = floors 0-14, 1 = floors 15-29, etc.)
 }
 
 export interface ElevatorCarData {
