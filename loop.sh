@@ -73,7 +73,6 @@ fi
 echo ""
 
 ITERATION=0
-MAX_RETRIES_PER_ITERATION=10
 
 while true; do
     ITERATION=$((ITERATION + 1))
@@ -82,190 +81,54 @@ while true; do
     echo "Iteration $ITERATION starting..."
     echo "----------------------------------------"
 
-    # For build mode, we need to retry until validation passes
-    # For plan mode, we proceed normally
-    VALIDATION_PASSED=false
-    RETRY_COUNT=0
+    # Run the agent with the prompt
+    if [[ "$USE_AGENT" == "true" ]]; then
+        # Cursor Agent CLI
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            # Interactive mode - allows typing input
+            if [[ "$MODE" == "plan" ]]; then
+                agent --plan "$(cat "$PROMPT_FILE")"
+            else
+                agent "$(cat "$PROMPT_FILE")"
+            fi
+        else
+            # Auto-run mode - non-interactive
+            if [[ "$MODE" == "plan" ]]; then
+                agent --print --plan --output-format text "$(cat "$PROMPT_FILE")"
+            else
+                agent --print --output-format text "$(cat "$PROMPT_FILE")"
+            fi
+        fi
+    else
+        # Claude CLI (default)
+        cat "$PROMPT_FILE" | claude \
+            --dangerously-skip-permissions \
+            --model opus \
+            --verbose \
+            --output-format stream-json
+    fi
 
-    while true; do
-        # Run the agent with the prompt
+    EXIT_CODE=$?
+
+    if [[ $EXIT_CODE -ne 0 ]]; then
         if [[ "$USE_AGENT" == "true" ]]; then
-            # Cursor Agent CLI
-            if [[ "$INTERACTIVE" == "true" ]]; then
-                # Interactive mode - allows typing input
-                if [[ "$MODE" == "plan" ]]; then
-                    agent --plan "$(cat "$PROMPT_FILE")"
-                else
-                    # For build mode with validation failures, add context to prompt
-                    if [[ "$VALIDATION_PASSED" == "false" ]] && [[ $RETRY_COUNT -gt 0 ]]; then
-                        {
-                            cat "$PROMPT_FILE"
-                            echo ""
-                            echo "---"
-                            echo "⚠️  VALIDATION FAILED - FIX ERRORS BEFORE EXITING"
-                            echo ""
-                            echo "The previous attempt left validation errors. You MUST:"
-                            echo "1. Run 'npm run validate' to see all errors"
-                            echo "2. Fix all errors systematically (typecheck → lint → tests)"
-                            echo "3. Re-run 'npm run validate' after fixes"
-                            echo "4. Continue until validation passes"
-                            echo "5. Only then proceed to commit and exit"
-                            echo ""
-                            echo "You are still in iteration $ITERATION. Do NOT exit until validation passes."
-                        } | agent
-                    else
-                        agent "$(cat "$PROMPT_FILE")"
-                    fi
-                fi
-            else
-                # Auto-run mode - non-interactive
-                if [[ "$MODE" == "plan" ]]; then
-                    agent --print --plan --output-format text "$(cat "$PROMPT_FILE")"
-                else
-                    # For build mode with validation failures, add context to prompt
-                    if [[ "$VALIDATION_PASSED" == "false" ]] && [[ $RETRY_COUNT -gt 0 ]]; then
-                        {
-                            cat "$PROMPT_FILE"
-                            echo ""
-                            echo "---"
-                            echo "⚠️  VALIDATION FAILED - FIX ERRORS BEFORE EXITING"
-                            echo ""
-                            echo "The previous attempt left validation errors. You MUST:"
-                            echo "1. Run 'npm run validate' to see all errors"
-                            echo "2. Fix all errors systematically (typecheck → lint → tests)"
-                            echo "3. Re-run 'npm run validate' after fixes"
-                            echo "4. Continue until validation passes"
-                            echo "5. Only then proceed to commit and exit"
-                            echo ""
-                            echo "You are still in iteration $ITERATION. Do NOT exit until validation passes."
-                        } | agent --print --output-format text
-                    else
-                        agent --print --output-format text "$(cat "$PROMPT_FILE")"
-                    fi
-                fi
-            fi
+            echo "Cursor exited with code $EXIT_CODE"
         else
-            # Claude CLI (default)
-            if [[ "$MODE" == "build" ]] && [[ "$VALIDATION_PASSED" == "false" ]] && [[ $RETRY_COUNT -gt 0 ]]; then
-                # For build mode with validation failures, add context to prompt
-                {
-                    cat "$PROMPT_FILE"
-                    echo ""
-                    echo "---"
-                    echo "⚠️  VALIDATION FAILED - FIX ERRORS BEFORE EXITING"
-                    echo ""
-                    echo "The previous attempt left validation errors. You MUST:"
-                    echo "1. Run 'npm run validate' to see all errors"
-                    echo "2. Fix all errors systematically (typecheck → lint → tests)"
-                    echo "3. Re-run 'npm run validate' after fixes"
-                    echo "4. Continue until validation passes"
-                    echo "5. Only then proceed to commit and exit"
-                    echo ""
-                    echo "You are still in iteration $ITERATION. Do NOT exit until validation passes."
-                } | claude \
-                    --dangerously-skip-permissions \
-                    --model opus \
-                    --verbose \
-                    --output-format stream-json
-            else
-                cat "$PROMPT_FILE" | claude \
-                    --dangerously-skip-permissions \
-                    --model opus \
-                    --verbose \
-                    --output-format stream-json
-            fi
+            echo "Claude exited with code $EXIT_CODE"
         fi
+        echo "Stopping loop."
+        exit $EXIT_CODE
+    fi
 
-        EXIT_CODE=$?
-
-        if [[ $EXIT_CODE -ne 0 ]]; then
-            if [[ "$USE_AGENT" == "true" ]]; then
-                echo "Cursor exited with code $EXIT_CODE"
-            else
-                echo "Claude exited with code $EXIT_CODE"
-            fi
-            echo "Stopping loop."
-            exit $EXIT_CODE
-        fi
-
-        # For build mode, check validation before proceeding
-        if [[ "$MODE" == "build" ]]; then
-            # Check for uncommitted changes
-            if ! git diff --quiet || ! git diff --staged --quiet; then
-                # Stage all changes
-                git add -A
-                
-                # Commit if there are staged changes
-                if ! git diff --staged --quiet; then
-                    # Run validation before committing (as per PROMPT_build.md)
-                    echo "Running validation (typecheck, lint, test)..."
-                    if npm run validate; then
-                        echo "✅ Validation passed. Committing changes..."
-                        git commit -m "feat: auto-commit from Ralph loop iteration $ITERATION" || echo "Commit failed"
-                        VALIDATION_PASSED=true
-                    else
-                        RETRY_COUNT=$((RETRY_COUNT + 1))
-                        echo ""
-                        echo "❌ Validation failed! (Attempt $RETRY_COUNT/$MAX_RETRIES_PER_ITERATION)"
-                        echo ""
-                        echo "⚠️  CRITICAL: Re-running agent in SAME iteration to fix errors."
-                        echo ""
-                        echo "   Process:"
-                        echo "   1. Run 'npm run validate' to see all errors"
-                        echo "   2. Fix errors systematically (typecheck → lint → tests)"
-                        echo "   3. Re-run 'npm run validate' after each batch of fixes"
-                        echo "   4. Continue fixing until validation passes"
-                        echo "   5. Only when validation passes, proceed to commit"
-                        echo ""
-                        echo "   You are still in iteration $ITERATION. Do NOT exit until validation passes."
-                        echo ""
-                        
-                        # Check retry limit
-                        if [[ $RETRY_COUNT -ge $MAX_RETRIES_PER_ITERATION ]]; then
-                            echo "❌ ERROR: Reached max retries ($MAX_RETRIES_PER_ITERATION) for iteration $ITERATION"
-                            echo "Validation still failing. Stopping loop."
-                            exit 1
-                        fi
-                        
-                        # Don't unstage changes - agent should fix them
-                        # Continue the inner loop to re-run the agent
-                        echo "Re-running agent to fix validation errors..."
-                        echo ""
-                        continue
-                    fi
-                else
-                    # No staged changes - validation check not needed
-                    VALIDATION_PASSED=true
-                fi
-            else
-                # No uncommitted changes - validation check not needed
-                VALIDATION_PASSED=true
-            fi
-            
-            # Push if there are commits to push (only if validation passed)
-            if [[ "$VALIDATION_PASSED" == "true" ]]; then
-                echo "Pushing changes..."
-                if git push origin arcology 2>/dev/null; then
-                    echo "Push successful"
-                else
-                    # Check if it's because we're already up to date
-                    if git diff --quiet HEAD origin/arcology 2>/dev/null; then
-                        echo "Already up to date with origin"
-                    else
-                        echo "Push failed (may need to pull first or resolve conflicts)"
-                    fi
-                fi
-            fi
+    # Push changes after each iteration (build mode only)
+    if [[ "$MODE" == "build" ]]; then
+        if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to push"
         else
-            # Plan mode - no validation needed
-            VALIDATION_PASSED=true
+            echo "Pushing changes..."
+            git push origin arcology 2>/dev/null || echo "Push failed (may need to set upstream)"
         fi
-
-        # Break out of retry loop if validation passed (or plan mode)
-        if [[ "$VALIDATION_PASSED" == "true" ]]; then
-            break
-        fi
-    done
+    fi
 
     echo ""
     echo "Iteration $ITERATION complete."
