@@ -1,185 +1,236 @@
-# Implementation Plan
+# Implementation Plan - Graphics & UI Priority
 
-> Prioritized task list for Arcology MVP. Update after each iteration.
->
-> **Last Updated:** Planning cycle analysis complete. All code vs spec discrepancies verified.
+> Prioritized task list for Arcology MVP. Graphics and UI/UX are now HIGHEST PRIORITY.
 
 ## Current Focus
 
-**Visual Polish Priority:** Make it look great even with limited functionality. Graphics & UI/UX are HIGH PRIORITY - can run in parallel with other work.
-
-Core food system is complete. Next priorities:
-1. **Quick wins** - Spec alignment + immediate gameplay improvements
-2. **Visual polish** - Venus atmosphere, day/night cycle, neon lighting
-3. **Core systems** - Time events, restaurants, menus
-
-**Quick Wins Ready Now:** All 9 items have zero dependencies and can be parallelized.
+**Visual Polish & UI Priority:** Make it look amazing with cyberpunk Venus colony aesthetic. All graphics and UI work should be completed first to establish the visual identity.
 
 ## Priority Summary
 
-**Phase 1A - Visual Polish (HIGH PRIORITY - Start Immediately):**
-1. Venus atmosphere background (amber-pink gradient clouds)
-2. Day/night visual cycle overlay (dawn/day/dusk/night)
-3. Room neon accent lighting (cyberpunk aesthetic)
-4. Polished build menu (icons, hover states, tooltips)
-5. Improved top bar design (cleaner layout)
+**Phase 0 - Graphics Foundation (HIGHEST PRIORITY):**
+1. Complete Venus atmosphere background (amber-pink gradient, parallax clouds)
+2. Day/night visual cycle overlay (dawn/day/dusk/night transitions)
+3. Room neon accent lighting (cyberpunk aesthetic per room type)
+4. Scanline overlay (CRT effect)
+5. Grid pattern overlay (subtle dot grid)
 
-**Phase 1B - Quick Wins (Parallel with 1A):**
+**Phase 1 - UI/UX Complete Redesign (HIGHEST PRIORITY):**
+1. Left sidebar navigation (collapsible, VENUS_OS branding)
+2. Top bar redesign (Credits, Rations, Residents, Time, Star Rating)
+3. Build Zone menu polish (neon accents, hover states, glitch effects)
+4. Glass panel styling (backdrop blur, borders, shadows)
+5. Typography system (Space Grotesk, Material Symbols)
+6. Color system implementation (cyan primary, magenta secondary)
+7. Ghost preview for room placement (cyan valid, magenta invalid)
+8. Room selection highlight (electric yellow border)
+
+**Phase 2 - Quick Wins (No Dependencies):**
 1. Fix spec discrepancies (5 constants updates - 5 minutes)
 2. Star rating calculation & display
 3. Victory/Game Over overlays
 4. Pause functionality (Space key + isPaused state)
-5. Game speed controls (1x, 2x, 4x)
-6. Ghost preview for room placement
-7. Room demolition with refund (50%)
-8. Keyboard shortcuts (1-7, Q, Delete, ESC, Space)
-9. Room selection & info panel
+5. Time speed controls (1x, 2x, 4x) in UI
+6. Room demolition with refund (50%)
+7. Keyboard shortcuts (1-7, Q, Delete, ESC, Space)
+8. Room selection & info panel
 
-**Phase 2 - Core Systems (Foundation):**
+**Phase 3 - Core Systems (Foundation):**
 1. Time Events System (enables restaurants, schedules, day/night logic)
 2. Day of week tracking (enables weekend behavior)
 3. Restaurant System (Fast Food, Fine Dining room types)
 4. Menu System (MainMenuScene, PauseMenuScene, SettingsScene)
 5. Save/Load System (depends on menu system for UI)
 
-**Phase 3 - Major Features (Dependencies Required):**
+**Phase 4 - Major Features (Dependencies Required):**
 1. Elevator System (enables proper pathfinding)
 2. Pathfinding System (depends on elevators)
 3. Stress System (depends on pathfinding for elevator waits)
 4. Satisfaction/Rent Tiers (depends on stress system)
 
-**Phase 4 - Audio & Final Polish:**
+**Phase 5 - Audio & Final Polish:**
 1. UI sound effects (button clicks, placement sounds)
 2. Money sounds (income chime, expense tone)
 3. Alert sounds (low food, bankruptcy warning)
 4. Ambient audio (optional)
 
-## Code Analysis Summary (Verified)
+## Code Analysis Summary
 
-**Implemented (Confirmed with File References):**
-- Building system with overlap detection (`src/entities/Building.ts:20-42`)
-- Floor management with sorted room storage (`src/entities/Floor.ts`)
-- Room entity with capacity tracking (`src/entities/Room.ts`)
-- Time system with day/hour tracking (`src/systems/TimeSystem.ts`)
-- Economy system with bankruptcy at -$10,000 (`src/systems/EconomySystem.ts:38`)
-- Resident state machine: IDLE→WALKING→WORKING/EATING/SLEEPING (`src/entities/Resident.ts:100-200`)
-- Resource system: farms→raw food→kitchens→meals (`src/systems/ResourceSystem.ts`)
-- UI top bar: money, food, population, time (`src/scenes/UIScene.ts:20-80`)
-- Build menu with room buttons (`src/scenes/UIScene.ts:90-150`)
-- Camera controls: right-click pan, scroll zoom (`src/scenes/GameScene.ts:81-121`)
-- Room types: lobby, apartment, office, farm, kitchen (`src/utils/constants.ts:20-70`)
-- Resident hunger visual: green→orange→red color coding (`src/entities/Resident.ts:199-210`)
-- Daily income/expense processing (`src/systems/EconomySystem.ts:28-50`)
-- Unit tests for EconomySystem (7 cases) and TimeSystem (6 cases)
+**Already Implemented:**
+- Venus atmosphere background (`src/graphics/VenusAtmosphere.ts`)
+- Day/night overlay (`src/graphics/DayNightOverlay.ts`)
+- Basic UI structure (`src/ui/UIManager.ts`, `src/ui/components/TopBar.ts`)
+- Building system with overlap detection
+- Time system with day/hour tracking
+- Economy system with bankruptcy at -$10,000
+- Resident state machine: IDLE→WALKING→WORKING/EATING/SLEEPING
+- Resource system: farms→raw food→kitchens→meals
+- Room types: lobby, apartment, office, farm, kitchen
 
-**Missing Critical Features (Confirmed by Code Search):**
-- Menu system (BootScene.create() line 43 directly starts GameScene, no MainMenuScene)
-- Save/Load system (SaveData interface exists in types.ts:38-52, but no SaveSystem.ts file)
-- Elevator system (completely missing - no ElevatorSystem.ts, no elevator entities)
-- Pathfinding (Resident.goToRoom() line 208-214 sets targetY directly, bypassing floor-based movement)
-- Restaurant room types (Fast Food, Fine Dining not in ROOM_SPECS constants.ts:20-70)
-- Stress system (Resident class has no stress property, spec requires 0-100 tracking)
-- Time events (TimeSystem has no EventEmitter, no schedule event emission)
-- Star rating system (no calculation function, no display in UIScene)
-- Game speed controls (GAME_SPEED constant in constants.ts:10, no UI controls, no mutability)
-- Day of week tracking (TimeSystem only tracks day number, not dayOfWeek enum)
-- Sky lobby room type (not in ROOM_SPECS, required every 15 floors per BUILDING.md)
-- Room selection/info panel (GameScene.handleClick() only handles placement, no selection logic)
-- Ghost preview (no visual feedback during placement in GameScene)
-- Keyboard shortcuts (GameScene.setupInput() only handles mouse/pointer, no keyboard handlers)
-- Victory/Game Over screens (no scene or overlay implementation, no checks in GameScene.update())
-- Pause functionality (TimeSystem has no isPaused property, no pause logic)
-- Room demolition UI (Building.removeRoom() exists but no Delete key handler, no refund logic)
+**Missing Critical Features:**
+- Left sidebar navigation (completely missing)
+- UI terminology updates (Money→Credits, Food→Rations, Population→Residents)
+- Scanline overlay (CSS exists but not applied)
+- Grid pattern overlay
+- Glitch hover effects
+- Room neon accent lighting (colors defined but not applied to rooms)
+- Ghost preview for placement
+- Room selection & info panel
+- Star rating calculation & display
+- Victory/Game Over screens
+- Pause functionality
+- Time speed controls UI
+- Room demolition UI
+- Keyboard shortcuts
+- Menu system (BootScene goes directly to GameScene)
+- Save/Load system
+- Elevator system
+- Pathfinding (Resident.goToRoom() teleports)
+- Restaurant room types (Fast Food, Fine Dining not in ROOM_SPECS)
+- Stress system
+- Time events (TimeSystem has no EventEmitter)
 
 **Spec Discrepancies (Verified - All in `src/utils/constants.ts`):**
-
-| Property | Code Value | Spec Value | Line | Action |
-|----------|------------|------------|------|--------|
-| Apartment capacity | 2 | 4 | 38 | UPDATE |
-| Apartment cost | $5,000 | $2,000 | 32 | UPDATE |
-| Office cost | $8,000 | $8,000 | 42 | ✓ OK |
-| Office jobs | 4 | 6 | 48 | UPDATE |
-| Farm cost | $15,000 | $3,000 | 52 | UPDATE |
-| Kitchen cost | $10,000 | $2,500 | 62 | UPDATE |
-
-**Missing Room Types (Need to add to ROOM_SPECS):**
-
-| Room Type | Cost | Width | Spec Reference |
-|-----------|------|-------|----------------|
-| Fast Food | $5,000 | 4 | BUILDING.md, FOOD_SYSTEM.md |
-| Restaurant | $10,000 | 5 | BUILDING.md, FOOD_SYSTEM.md |
-| Sky Lobby | $2,000 | 20 | BUILDING.md (every 15 floors) |
-
-**Note:** Fixing spec discrepancies is a 5-minute task with no dependencies.
-
-**Missing Tests (Code Quality):**
-- ResidentSystem.ts - No test file exists
-- ResourceSystem.ts - No test file exists
-- Resident entity - Complex state machine needs tests
-
-**Incomplete Implementation Details:**
-- `Resident.updateWorking()` (line 179-182) - Only comment, no productivity logic
-- `Resident.updateSleeping()` (line 193-196) - Comment says "restores hunger resistance" but no code
-- `BootScene.ts` (lines 38-39) - Asset loading commented out (no actual assets)
+- Apartment capacity: 2 → 4 (line 66)
+- Apartment cost: $5,000 → $2,000 (line 59)
+- Farm cost: $15,000 → $3,000 (line 81)
+- Kitchen cost: $10,000 → $2,500 (line 92)
+- Office jobs: 4 → 6 (line 77)
 
 ## Tasks
 
-### Phase 1A - Visual Polish (HIGH PRIORITY)
+### Phase 0 - Graphics Foundation (HIGHEST PRIORITY)
 
 **Venus Atmosphere & Day/Night:**
-- [ ] Create Venus atmosphere background in GameScene
-  - Amber-pink gradient: #e8a87c → #d4726a (day), #4a3a5a → #1a1a2a (night)
-  - Add parallax cloud layers for depth
+- [ ] Enhance Venus atmosphere background
+  - Verify amber-pink gradient matches spec: #e8a87c → #d4726a (day), #4a3a5a → #1a1a2a (night)
+  - Add parallax cloud layers for depth (already implemented, verify)
   - Position behind building at z-depth 0
-- [ ] Implement day/night overlay system
+- [ ] Enhance day/night overlay system
   - Night (10 PM-5 AM): Dark blue overlay with room interior lights
   - Dawn (5-7 AM): Gradient from dark to warm
   - Day (7 AM-6 PM): No overlay, full brightness
   - Dusk (6-8 PM): Orange/purple gradient
-  - Use Phaser.GameObjects.Rectangle with blend mode
+  - Use Phaser.GameObjects.Rectangle with blend mode (already implemented, verify)
+- [ ] Add scanline overlay
+  - Create scanline CSS class (already in ui.css)
+  - Apply to UI overlay container
+  - Opacity: 20-30%
+- [ ] Add grid pattern overlay
+  - Subtle dot grid: rgba(0, 204, 170, 0.05)
+  - Size: 24px × 24px
+  - Optional line grid for build mode
+
+**Room Visual Polish:**
 - [ ] Add neon accent lighting to rooms
   - Room colors from GRAPHICS.md spec
   - Glow effects during night hours
   - Accent borders on each room type
+  - Interior detail silhouettes (furniture, equipment)
 
-**UI Polish:**
-- [ ] Redesign build menu with spec colors
-  - Dark background (0x1a1a2a)
-  - Room buttons with neon accents
-  - Hover states with brightness increase
+### Phase 1 - UI/UX Complete Redesign (HIGHEST PRIORITY)
+
+**Left Sidebar Navigation:**
+- [ ] Create Sidebar component (`src/ui/components/Sidebar.ts`)
+  - Collapsible (72px expanded, 20px collapsed)
+  - Brand header: "VENUS_OS" with version badge "TOWER_04 // ALPHA"
+  - Section header: "COMMAND" or "TOWER OPS"
+  - Navigation buttons: Sector View, Build Zone, Energy Grid, Economy, Heat Map, Alerts
+  - Active state: Primary cyan glow with border
+  - Hover: Glitch animation effect
+  - Collapse toggle button
+  - Overseer profile at bottom
+- [ ] Integrate sidebar into UIManager
+  - Add to UI overlay
+  - Handle collapse/expand state
+  - Wire up navigation actions
+
+**Top Bar Redesign:**
+- [ ] Update TopBar component terminology
+  - Money → Credits (display as "12,500 CR")
+  - Food → Rations (display as "Rations: 450")
+  - Population → Residents (display as "Residents: 45")
+  - Day → Cycle or Sol (display as "Cycle 5" or "Sol 5")
+- [ ] Add VENUS_OS branding
+  - Brand text: "VENUS_OS v4.2" or "TOWER_04 // ALPHA"
+  - Version badge styling
+- [ ] Add additional top bar elements
+  - Ext-Temp display (optional): "Ext-Temp: 462°C"
+  - System Override button
+  - Settings icon button
+  - Alerts icon with badge count
+- [ ] Update styling to match glass panel spec
+  - Backdrop blur: 12px
+  - Border: rgba(39, 58, 55, 0.8)
+  - Box shadow: 0 4px 30px rgba(0, 0, 0, 0.5)
+
+**Build Zone Menu Polish:**
+- [ ] Update BuildMenu component
+  - Rename to "Build Zone" in UI
+  - Update room button styling with neon accents
+  - Add glitch hover effects
+  - Improve hover states with brightness increase
   - Selection highlight (electric yellow #e4e44a)
-- [ ] Polish top bar layout
-  - Cleaner typography (off-white #e4e4e4)
-  - Icon-based indicators
-  - Star rating display (empty/filled stars)
-- [ ] Add toast notification system
-  - Room built confirmation
-  - Resident moved in/out alerts
-  - Low food/money warnings
-  - Position: bottom-right, auto-dismiss
+  - Update cost display to use "CR" instead of "$"
+- [ ] Enhance speed controls
+  - Better visual styling
+  - Active state highlighting
+  - Tooltips on hover
 
-### Phase 1B - Quick Wins (No Dependencies)
+**UI Visual Effects:**
+- [ ] Apply glass panel styling to all UI elements
+  - Background: rgba(24, 36, 34, 0.85)
+  - Backdrop filter: blur(12px)
+  - Border: 1px solid rgba(39, 58, 55, 0.8)
+  - Box shadow: 0 4px 30px rgba(0, 0, 0, 0.5)
+- [ ] Implement glitch hover effects
+  - CSS animation for button hovers
+  - Color shift: cyan → magenta → yellow
+  - Duration: 0.3s cubic-bezier
+- [ ] Add neon glow effects
+  - Primary cyan: 0 0 15px rgba(0, 204, 170, 0.3)
+  - Secondary magenta: 0 0 15px rgba(255, 0, 170, 0.3)
+  - Text glow: text-shadow: 0 0 10px currentColor
+- [ ] Update typography
+  - Ensure Space Grotesk is loaded
+  - Material Symbols for icons
+  - Monospace for technical displays
+
+**Ghost Preview & Selection:**
+- [ ] Implement ghost preview for placement
+  - Add `pointermove` handler in GameScene
+  - Draw semi-transparent rectangle at grid-snapped cursor position
+  - Cyan (#4ae4e4) = valid, Magenta (#e44a8a) = invalid
+  - Use `Building.hasOverlap()` for validation
+  - Hide when no room type selected
+- [ ] Room selection & info panel
+  - Click on room when no placement active → select room
+  - Store `selectedRoomId` in registry
+  - Draw yellow border on selected room
+  - Show info panel: type, residents/workers, income/expenses
+
+### Phase 2 - Quick Wins (No Dependencies)
 
 **Spec Alignment (5 minutes):**
-- [ ] Fix apartment capacity: 2 → 4 (constants.ts:38)
-- [ ] Fix apartment cost: $5,000 → $2,000 (constants.ts:32)
-- [ ] Fix farm cost: $15,000 → $3,000 (constants.ts:52)
-- [ ] Fix kitchen cost: $10,000 → $2,500 (constants.ts:62)
-- [ ] Fix office jobs: 4 → 6 (constants.ts:48)
+- [ ] Fix apartment capacity: 2 → 4 (constants.ts:66)
+- [ ] Fix apartment cost: $5,000 → $2,000 (constants.ts:59)
+- [ ] Fix farm cost: $15,000 → $3,000 (constants.ts:81)
+- [ ] Fix kitchen cost: $10,000 → $2,500 (constants.ts:92)
+- [ ] Fix office jobs: 4 → 6 (constants.ts:77)
 
 **Game State Quick Wins:**
 - [ ] Star rating system
   - Add `getStarRating()`: 1 star at 100 pop, 2 stars at 300 pop (MVP cap)
-  - Display star icons in UIScene top bar
+  - Display star icons in TopBar
   - Add to registry: `starRating` value
 - [ ] Victory overlay (population >= 300)
   - Check in GameScene.update() each frame
-  - Show overlay: days played, population, money, rooms built
+  - Show overlay: cycles played, population, credits, rooms built
   - Buttons: Continue Playing, Main Menu
   - Pause TimeSystem when shown
-- [ ] Game Over overlay (money < -$10,000)
+- [ ] Game Over overlay (credits < -10,000 CR)
   - Check `economySystem.isBankrupt()` in GameScene.update()
-  - Show overlay: days survived, max population reached
+  - Show overlay: cycles survived, max population reached
   - Buttons: Restart, Main Menu
   - Pause TimeSystem when shown
 - [ ] Pause system
@@ -193,23 +244,12 @@ Core food system is complete. Next priorities:
   - Update TimeSystem.speed on click
 
 **Building Quick Wins:**
-- [ ] Ghost preview for placement
-  - Add `pointermove` handler in GameScene
-  - Draw semi-transparent rectangle at grid-snapped cursor position
-  - Cyan (#4ae4e4) = valid, Magenta (#e44a8a) = invalid
-  - Use `Building.hasOverlap()` for validation
-  - Hide when no room type selected
 - [ ] Room demolition
   - Add Delete key handler in GameScene.setupInput()
   - Select room first (click to select), then Delete to demolish
   - Refund = `ROOM_SPECS[type].cost * 0.5`
   - Call `economySystem.earn(refund)` then `building.removeRoom(id)`
   - Evict residents/workers before destroying room
-- [ ] Room selection & info panel
-  - Click on room when no placement active → select room
-  - Store `selectedRoomId` in registry
-  - Draw yellow border on selected room
-  - Show info panel: type, residents/workers, income/expenses
 - [ ] Keyboard shortcuts
   - 1-7: Select room types (lobby, apartment, office, farm, kitchen, fastfood, restaurant)
   - Q: Cancel selection
@@ -217,7 +257,7 @@ Core food system is complete. Next priorities:
   - ESC: Toggle pause (or open pause menu later)
   - Space: Toggle pause
 
-### Phase 2 - Core Systems
+### Phase 3 - Core Systems
 
 **Menu System:**
 - [ ] MainMenuScene.ts
@@ -246,7 +286,7 @@ Core food system is complete. Next priorities:
   - Track `lastAutoSaveDay` in TimeSystem
   - Trigger on day rollover
 - [ ] Save slot UI (overlay or scene)
-  - Show slot previews: day, population, money
+  - Show slot previews: cycle, population, credits
   - Empty slot indicator
   - Delete slot option
 - [ ] Error handling
@@ -271,20 +311,20 @@ Core food system is complete. Next priorities:
 
 **Restaurant System:**
 - [ ] Add room types to ROOM_SPECS
-  - `fastfood`: cost $5,000, width 4, capacity 20, expenses $50, color 0x4a2a2a
-  - `restaurant`: cost $10,000, width 5, capacity 15, expenses $100, color 0x3a2a3a
+  - `fastfood`: cost 5,000 CR, width 4, capacity 20, expenses 50 CR, color 0x4a2a2a
+  - `restaurant`: cost 10,000 CR, width 5, capacity 15, expenses 100 CR, color 0x3a2a3a
 - [ ] Create RestaurantSystem.ts
   - Track operating hours (Fast Food: 11-2, 5-7; Restaurant: 6-11 PM)
   - Food consumption: 30/day (FF), 20/day (restaurant)
   - Evaluation score: 0-100 based on food availability
 - [ ] Income integration
-  - Base: $500/day (FF), $800/day (restaurant)
+  - Base: 500 CR/day (FF), 800 CR/day (restaurant)
   - Actual = base × (evaluation_score / 100)
   - Add to EconomySystem.processDailyIncome()
 
 **Note:** Restaurant system depends on Time Events for operating hours.
 
-### Phase 3 - Major Features
+### Phase 4 - Major Features
 
 **Elevator System:**
 - [ ] Create ElevatorSystem.ts
@@ -309,7 +349,7 @@ Core food system is complete. Next priorities:
   - Same floor: Direct walk
   - Different floor: Walk to elevator → queue → ride → walk to destination
 - [ ] Sky lobby transfers
-  - Add `skylobby` room type (cost $2,000, width 20)
+  - Add `skylobby` room type (cost 2,000 CR, width 20)
   - Valid floors: 15, 30, 45, 60, 75, 90
   - Elevator zones: 0-14, 15-29, 30-44, etc.
   - Prevent building above floor 15 without sky lobby
@@ -339,13 +379,13 @@ Core food system is complete. Next priorities:
   - Food bonus: +10 if food available
   - Employment bonus: +15 if employed
 - [ ] Rent tiers based on satisfaction
-  - <40: $50/day
-  - 40-60: $100/day
-  - 60-80: $150/day
-  - >80: $200/day
+  - <40: 50 CR/day
+  - 40-60: 100 CR/day
+  - 60-80: 150 CR/day
+  - >80: 200 CR/day
 - [ ] Update EconomySystem to use satisfaction-based rent
 
-### Phase 4 - Audio & Polish
+### Phase 5 - Audio & Polish
 
 **Audio System:**
 - [ ] UI sounds
@@ -356,7 +396,7 @@ Core food system is complete. Next priorities:
   - Income chime (cash register)
   - Expense tone
 - [ ] Alert sounds
-  - Low food warning
+  - Low rations warning
   - Starvation alert
   - Bankruptcy warning
 - [ ] Volume controls
@@ -372,21 +412,6 @@ Core food system is complete. Next priorities:
   - Workaholic, Foodie, Night Owl, Early Bird, Social, Introvert
   - Show in resident info panel
 
-### Low Priority (Post-MVP)
-
-- [ ] Multiple elevator shafts (up to 6)
-- [ ] Express elevators (skip floors)
-- [ ] Room upgrades
-- [ ] Statistics panel (population/income graphs)
-- [ ] Tutorial hints for new players
-- [ ] Resident relationships and life events
-- [ ] Export/import save files
-- [ ] Save versioning and migration
-- [ ] Accessibility: colorblind modes, text scaling
-- [ ] Minimap for large buildings
-- [ ] Undo/redo for placements
-- [ ] Minute-level time granularity
-
 ## Completed
 
 **Infrastructure:**
@@ -401,10 +426,15 @@ Core food system is complete. Next priorities:
 - [x] Room types: lobby, apartment, office, farm, kitchen
 - [x] Building.removeRoom() method (needs UI integration)
 
+**Graphics Foundation:**
+- [x] Venus atmosphere background (`src/graphics/VenusAtmosphere.ts`)
+- [x] Day/night overlay (`src/graphics/DayNightOverlay.ts`)
+
 **UI System:**
-- [x] Top bar (money, food, population, time display)
-- [x] Build menu with room buttons
+- [x] Basic top bar (money, food, population, time display)
+- [x] Basic build menu with room buttons
 - [x] Camera controls (right-click pan, scroll zoom)
+- [x] Glass panel CSS styling (needs application)
 
 **Time & Economy:**
 - [x] Time system (day/hour tracking, formatted display)
@@ -430,6 +460,7 @@ Core food system is complete. Next priorities:
 - Systems pattern: TimeSystem, EconomySystem, ResidentSystem, ResourceSystem
 - Entity hierarchy: Building → Floor → Room, Residents reference Rooms
 - Vitest with canvas mocks for Phaser testing
+- HTML/CSS UI overlay (UIManager) separate from Phaser scenes
 
 **Known Technical Debt:**
 - Resident.goToRoom() teleports (sets targetY directly) - needs elevator integration
@@ -437,30 +468,35 @@ Core food system is complete. Next priorities:
 - GAME_SPEED is constant, should be mutable property
 - BootScene skips menu, goes directly to GameScene
 - No keyboard input handlers in GameScene
+- UI terminology still uses "Money" instead of "Credits" in code
 
 ## Dependency Graph
 
 ```
-Phase 1A (Visual) ─────────────────┐
-                                   ├──→ MVP Playable
-Phase 1B (Quick Wins) ─────────────┘
+Phase 0 (Graphics) ─────────────────┐
+                                    ├──→ Visual Identity Established
+Phase 1 (UI/UX) ───────────────────┘
          │
          ↓
-Phase 2 (Core Systems)
+Phase 2 (Quick Wins)
+         │
+         ↓
+Phase 3 (Core Systems)
 ├── Time Events ──→ Restaurant System
 ├── Menu System ──→ Save/Load System
          │
          ↓
-Phase 3 (Major Features)
+Phase 4 (Major Features)
 ├── Elevator System ──→ Pathfinding
 └── Pathfinding ──→ Stress System ──→ Satisfaction/Rent
          │
          ↓
-Phase 4 (Audio & Polish)
+Phase 5 (Audio & Polish)
 ```
 
 **Parallel Work Possible:**
-- Phase 1A (Visual) + Phase 1B (Quick Wins) = FULL PARALLEL
+- Phase 0 (Graphics) + Phase 1 (UI/UX) = FULL PARALLEL
+- Phase 2 (Quick Wins) = FULLY INDEPENDENT
 - Time Events + Menu System = PARALLEL
 - Elevator + Restaurant = PARALLEL (after time events)
 - Audio = FULLY INDEPENDENT
@@ -470,27 +506,30 @@ Phase 4 (Audio & Polish)
 | Goal | Metric | Current Status |
 |------|--------|----------------|
 | Victory | 300 population (2 stars) | No victory check |
-| Game Over | -$10,000 bankruptcy | isBankrupt() exists, no trigger |
+| Game Over | -10,000 CR bankruptcy | isBankrupt() exists, no trigger |
 | Building Height | 20 floors max | No limit enforced |
 | Playable | Menu → Game → Save | No menu, no save |
+| Visual Polish | Graphics & UI complete | Partial (atmosphere done, UI needs work) |
 
 ## Next Actions
 
-**Immediate (Start Now):**
-1. Fix 5 spec discrepancies in constants.ts (5 min)
-2. Add Venus atmosphere background to GameScene
-3. Implement day/night overlay system
-4. Add star rating calculation + display
-5. Add victory/game over overlays
-6. Add pause functionality to TimeSystem
-7. Add speed controls to UIScene
-8. Implement ghost preview for placement
-9. Add keyboard shortcuts
+**Immediate (Start Now - Graphics & UI Priority):**
+1. Complete Venus atmosphere polish
+2. Add scanline overlay
+3. Add grid pattern overlay
+4. Create left sidebar navigation component
+5. Redesign top bar with new terminology (Credits, Rations, Residents)
+6. Polish build zone menu with neon accents and glitch effects
+7. Implement ghost preview for placement
+8. Add room selection highlight
+9. Apply glass panel styling to all UI elements
+10. Add glitch hover effects
 
-**After Phase 1:**
-1. Time Events system (enables restaurants)
-2. Restaurant room types + system
-3. Menu system (MainMenuScene, PauseMenuScene)
-4. Save/Load system
-5. Elevator/Pathfinding
-6. Stress system
+**After Graphics/UI Complete:**
+1. Fix 5 spec discrepancies in constants.ts (5 min)
+2. Add star rating calculation + display
+3. Add victory/game over overlays
+4. Add pause functionality to TimeSystem
+5. Add speed controls to UI
+6. Implement keyboard shortcuts
+7. Add room demolition UI
