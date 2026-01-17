@@ -122,16 +122,17 @@ describe('ElevatorSystem', () => {
 
   describe('ElevatorShaft', () => {
     it('should initialize with correct parameters', () => {
-      const shaft = new ElevatorShaft('shaft_1', 10, 0, 5);
+      const shaft = new ElevatorShaft('shaft_1', 10, 0); // Zone 0: floors 0-14
       expect(shaft.id).toBe('shaft_1');
       expect(shaft.position).toBe(10);
+      expect(shaft.zone).toBe(0);
       expect(shaft.minFloor).toBe(0);
-      expect(shaft.maxFloor).toBe(5);
+      expect(shaft.maxFloor).toBe(14);
       expect(shaft.car.currentFloor).toBe(0);
     });
 
     it('should queue elevator calls', () => {
-      const shaft = new ElevatorShaft('shaft_1', 10, 0, 5);
+      const shaft = new ElevatorShaft('shaft_1', 10, 0); // Zone 0
       const mockResident = { id: 'resident_1' } as any;
 
       shaft.callElevator(2, 'up', mockResident);
@@ -140,10 +141,25 @@ describe('ElevatorSystem', () => {
       expect(shaft.callQueue[0].direction).toBe('up');
     });
 
-    it('should update max floor when building grows', () => {
-      const shaft = new ElevatorShaft('shaft_1', 10, 0, 5);
+    it('should update max floor when building grows within zone', () => {
+      const shaft = new ElevatorShaft('shaft_1', 10, 0); // Zone 0: floors 0-14
       shaft.update(0, 10); // Building now has 10 floors
-      expect(shaft.maxFloor).toBe(10);
+      expect(shaft.maxFloor).toBe(10); // Updated but still within zone
+      shaft.update(0, 20); // Building has 20 floors, but zone max is 14
+      expect(shaft.maxFloor).toBe(14); // Capped at zone max
+    });
+
+    it('should reject calls outside zone', () => {
+      const shaft = new ElevatorShaft('shaft_1', 10, 0); // Zone 0: floors 0-14
+      const mockResident = { id: 'resident_1' } as any;
+
+      // Valid call within zone
+      shaft.callElevator(5, 'up', mockResident);
+      expect(shaft.callQueue.length).toBe(1);
+
+      // Invalid call outside zone
+      shaft.callElevator(20, 'up', mockResident);
+      expect(shaft.callQueue.length).toBe(1); // No new call added
     });
   });
 

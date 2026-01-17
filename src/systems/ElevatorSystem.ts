@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { Building } from '../entities/Building';
 import { Resident } from '../entities/Resident';
 import { ElevatorState, ElevatorCall, ElevatorShaftData, ElevatorCarData } from '../utils/types';
-import { GRID_SIZE, FLOOR_HEIGHT } from '../utils/constants';
+import { GRID_SIZE, FLOOR_HEIGHT, getSkyLobbyZone, getZoneMinFloor, getZoneMaxFloor, SKY_LOBBY_ZONE_SIZE } from '../utils/constants';
 
 // Constants
 const ELEVATOR_TRAVEL_TIME_PER_FLOOR = 2000; // 2 seconds per floor in ms
@@ -148,23 +148,26 @@ export class ElevatorCar {
 export class ElevatorShaft {
   public readonly id: string;
   public readonly position: number; // X position in grid units
+  public readonly zone: number; // Zone this elevator serves (0 = floors 0-14, 1 = floors 15-29, etc.)
   public minFloor: number;
   public maxFloor: number;
   public car: ElevatorCar;
   private callQueue: ElevatorCall[] = [];
   private waitingResidents: Map<number, Resident[]> = new Map(); // floor -> residents waiting
 
-  constructor(id: string, position: number, minFloor: number, maxFloor: number) {
+  constructor(id: string, position: number, zone: number) {
     this.id = id;
     this.position = position;
-    this.minFloor = minFloor;
-    this.maxFloor = maxFloor;
-    this.car = new ElevatorCar(minFloor);
+    this.zone = zone;
+    this.minFloor = getZoneMinFloor(zone);
+    this.maxFloor = getZoneMaxFloor(zone);
+    this.car = new ElevatorCar(this.minFloor);
   }
 
   update(delta: number, topFloor: number): void {
-    // Update max floor if building grew
-    this.maxFloor = Math.max(this.maxFloor, topFloor);
+    // Update max floor if building grew within this zone
+    const zoneMaxFloor = getZoneMaxFloor(this.zone);
+    this.maxFloor = Math.min(Math.max(this.maxFloor, topFloor), zoneMaxFloor);
 
     // Update car
     this.car.update(delta, topFloor);
@@ -251,6 +254,12 @@ export class ElevatorShaft {
   }
 
   callElevator(floor: number, direction: 'up' | 'down', resident: Resident): void {
+    // Validate floor is within this zone
+    if (floor < this.minFloor || floor > this.maxFloor) {
+      console.warn(`Cannot call elevator on floor ${floor} - outside zone ${this.zone} (floors ${this.minFloor}-${this.maxFloor})`);
+      return;
+    }
+
     // Check if call already exists for this floor/direction
     const existingCall = this.callQueue.find(c => c.floor === floor && c.direction === direction);
     
@@ -336,6 +345,7 @@ export class ElevatorShaft {
       position: this.position,
       minFloor: this.minFloor,
       maxFloor: this.maxFloor,
+      zone: this.zone,
     };
   }
 }
@@ -348,10 +358,26 @@ export class ElevatorSystem {
     this.building = building;
   }
 
-  createShaft(id: string, position: number, minFloor: number = 0, maxFloor: number = 0): ElevatorShaft {
-    const shaft = new ElevatorShaft(id, position, minFloor, maxFloor);
+  createShaft(id: string, position: number, zone: number = 0): ElevatorShaft {
+    const shaft = new ElevatorShaft(id, position, zone);
     this.shafts.set(id, shaft);
     return shaft;
+  }
+
+  getShaftForZone(zone: number): ElevatorShaft | undefined {
+    // Find shaft serving the specified zone
+    for (const shaft of this.shafts.values()) {
+      if (shaft.zone === zone) {
+        return shaft;
+      }
+    }
+    return undefined;
+  }
+
+  getShaftForFloor(floor: number): ElevatorShaft | undefined {
+    // Find shaft serving the zone that contains this floor
+    const zone = getSkyLobbyZone(floor);
+    return this.getShaftForZone(zone);
   }
 
   getShaft(id: string): ElevatorShaft | undefined {
@@ -381,17 +407,15 @@ export class ElevatorSystem {
   }
 
   callElevator(floor: number, direction: 'up' | 'down', resident: Resident): ElevatorShaft | null {
-    // Find nearest shaft (for MVP, just use first shaft)
-    // In future, could find closest shaft to resident's position
-    const shaft = this.getAllShafts()[0];
-    if (!shaft) return null;
-
-    if (floor >= shaft.minFloor && floor <= shaft.maxFloor) {
-      shaft.callElevator(floor, direction, resident);
-      return shaft;
+    // Find shaft serving the zone that contains this floor
+    const shaft = this.getShaftForFloor(floor);
+    if (!shaft) {
+      console.warn(`No elevator shaft found for floor ${floor} (zone ${getSkyLobbyZone(floor)})`);
+      return null;
     }
 
-    return null;
+    shaft.callElevator(floor, direction, resident);
+    return shaft;
   }
 
   removeResident(resident: Resident): void {
