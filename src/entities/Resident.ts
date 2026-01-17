@@ -6,6 +6,7 @@ import {
   HUNGER_MAX,
   FOOD_PER_MEAL,
   MS_PER_GAME_HOUR,
+  HUNGER_COLORS,
 } from '../utils/constants';
 import { ResidentState, ResidentData } from '../utils/types';
 import type { GameScene } from '../scenes/GameScene';
@@ -22,7 +23,8 @@ export class Resident {
   public state: ResidentState = ResidentState.IDLE;
 
   private scene: Phaser.Scene;
-  private sprite: Phaser.GameObjects.Rectangle;
+  private graphics: Phaser.GameObjects.Graphics;
+  private glowGraphics: Phaser.GameObjects.Graphics;
   private nameLabel: Phaser.GameObjects.Text;
 
   public home: Room | null = null;
@@ -36,19 +38,35 @@ export class Resident {
   private targetKitchen: Room | null = null;
   private starvationTime = 0; // Tracks time at hunger 0 (in game ms)
 
+  private x: number;
+  private y: number;
+  private walkBob = 0;
+  private pulsePhase = 0;
+
   constructor(scene: Phaser.Scene, id: string, x: number, y: number) {
     this.scene = scene;
     this.id = id;
     this.name = RESIDENT_NAMES[Math.floor(Math.random() * RESIDENT_NAMES.length)];
+    this.x = x;
+    this.y = y;
 
-    // Simple rectangle sprite for now
-    this.sprite = scene.add.rectangle(x, y, 16, 28, 0x4aff4a);
-    this.sprite.setOrigin(0.5, 1);
+    // Create graphics for silhouette
+    this.graphics = scene.add.graphics();
+    this.graphics.setDepth(30);
 
-    this.nameLabel = scene.add.text(x, y - 35, this.name, {
+    // Create glow graphics (additive blend)
+    this.glowGraphics = scene.add.graphics();
+    this.glowGraphics.setDepth(29);
+    this.glowGraphics.setBlendMode(Phaser.BlendModes.ADD);
+
+    this.nameLabel = scene.add.text(x, y - 40, this.name, {
       fontSize: '10px',
-      color: '#ffffff',
+      color: '#e4e4e4',
+      fontFamily: 'Space Grotesk, sans-serif',
     }).setOrigin(0.5);
+    this.nameLabel.setDepth(31);
+
+    this.drawSilhouette();
   }
 
   update(delta: number, gameHour: number): void {
@@ -86,11 +104,64 @@ export class Resident {
         break;
     }
 
-    // Update sprite color based on hunger
-    this.updateSpriteColor();
+    // Update visuals
+    this.pulsePhase += delta * 0.005;
+    this.drawSilhouette();
 
     // Update name label position
-    this.nameLabel.setPosition(this.sprite.x, this.sprite.y - 35);
+    this.nameLabel.setPosition(this.x, this.y - 40);
+  }
+
+  private drawSilhouette(): void {
+    this.graphics.clear();
+    this.glowGraphics.clear();
+
+    const color = this.getHungerColor();
+    const bobOffset = this.state === ResidentState.WALKING ? Math.sin(this.walkBob) * 2 : 0;
+    const baseY = this.y + bobOffset;
+
+    // Silhouette body (24x32px)
+    const w = 12;
+    const h = 32;
+
+    // Draw holographic glow outline
+    const glowAlpha = this.hunger < HUNGER_CRITICAL
+      ? 0.3 + Math.sin(this.pulsePhase) * 0.2 // Pulsing for critical
+      : 0.25;
+
+    this.glowGraphics.lineStyle(4, color, glowAlpha);
+    this.glowGraphics.strokeRoundedRect(this.x - w, baseY - h, w * 2, h, 4);
+
+    // Head glow
+    this.glowGraphics.strokeCircle(this.x, baseY - h - 6, 8);
+
+    // Draw silhouette body
+    this.graphics.fillStyle(0x1a1a2a, 0.9);
+    this.graphics.fillRoundedRect(this.x - w, baseY - h, w * 2, h, 4);
+
+    // Draw head
+    this.graphics.fillCircle(this.x, baseY - h - 6, 7);
+
+    // Draw holographic accent border
+    this.graphics.lineStyle(1.5, color, 0.8);
+    this.graphics.strokeRoundedRect(this.x - w, baseY - h, w * 2, h, 4);
+    this.graphics.strokeCircle(this.x, baseY - h - 6, 7);
+
+    // Inner detail line (suggests clothing)
+    this.graphics.lineStyle(1, color, 0.3);
+    this.graphics.lineBetween(this.x - w + 3, baseY - h + 10, this.x + w - 3, baseY - h + 10);
+  }
+
+  private getHungerColor(): number {
+    if (this.hunger >= 70) {
+      return HUNGER_COLORS.satisfied; // Cyan
+    } else if (this.hunger >= 40) {
+      return HUNGER_COLORS.hungry; // Amber
+    } else if (this.hunger >= 20) {
+      return HUNGER_COLORS.veryHungry; // Orange
+    } else {
+      return HUNGER_COLORS.critical; // Magenta
+    }
   }
 
   private updateIdle(gameHour: number): void {
@@ -154,14 +225,19 @@ export class Resident {
     }
 
     const speed = 100; // Pixels per second
-    const dx = this.targetX - this.sprite.x;
-    const dy = this.targetY - this.sprite.y;
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
+    // Update walk bob animation
+    this.walkBob += delta * 0.015;
+
     if (dist < 5) {
-      this.sprite.setPosition(this.targetX, this.targetY);
+      this.x = this.targetX;
+      this.y = this.targetY;
       this.targetX = null;
       this.targetY = null;
+      this.walkBob = 0;
 
       if (this.onArrival) {
         this.onArrival();
@@ -172,7 +248,8 @@ export class Resident {
     } else {
       const moveX = (dx / dist) * speed * (delta / 1000);
       const moveY = (dy / dist) * speed * (delta / 1000);
-      this.sprite.setPosition(this.sprite.x + moveX, this.sprite.y + moveY);
+      this.x += moveX;
+      this.y += moveY;
     }
   }
 
@@ -193,16 +270,6 @@ export class Resident {
   private updateSleeping(_delta: number): void {
     // Sleeping restores a small amount of hunger resistance
     // (actually handled by reduced decay during sleep)
-  }
-
-  private updateSpriteColor(): void {
-    if (this.hunger < HUNGER_CRITICAL) {
-      this.sprite.setFillStyle(0xff4a4a); // Red - critical
-    } else if (this.hunger < 50) {
-      this.sprite.setFillStyle(0xffaa4a); // Orange - hungry
-    } else {
-      this.sprite.setFillStyle(0x4aff4a); // Green - satisfied
-    }
   }
 
   goToRoom(room: Room, onArrival?: () => void): void {
@@ -251,12 +318,14 @@ export class Resident {
   }
 
   getPosition(): { x: number; y: number } {
-    return { x: this.sprite.x, y: this.sprite.y };
+    return { x: this.x, y: this.y };
   }
 
   setPosition(x: number, y: number): void {
-    this.sprite.setPosition(x, y);
-    this.nameLabel.setPosition(x, y - 35);
+    this.x = x;
+    this.y = y;
+    this.nameLabel.setPosition(x, y - 40);
+    this.drawSilhouette();
   }
 
   serialize(): ResidentData {
@@ -277,7 +346,8 @@ export class Resident {
     if (this.job) {
       this.job.removeWorker(this);
     }
-    this.sprite.destroy();
+    this.graphics.destroy();
+    this.glowGraphics.destroy();
     this.nameLabel.destroy();
   }
 }

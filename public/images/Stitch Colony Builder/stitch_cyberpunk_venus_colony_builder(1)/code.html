@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Venusian Tower Management Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF007F","secondary": "#B2F302","venus-sky": "#FF6600","energy-beam": "#00E5FF","rust-dark": "#1a1210","rust-panel": "#291d1a","rust-border": "#5c3a2e","dirt": "#8c7560",},
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'grunge-pattern': "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWExMjEwIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMyOTFkMWEiLz4KPC9zdmc+')",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: #FF007F;text-shadow: 2px 0 #B2F302, -2px 0 #00E5FF;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(178, 243, 2, 0.05) 50%, rgba(178, 243, 2, 0.05));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .organic-glass {
+            background: rgba(41, 29, 26, 0.75);
+            backdrop-filter: blur(12px) sepia(30%);
+            border: 1px solid rgba(92, 58, 46, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 1rem;
+        }
+        .organic-shape {
+            border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
+        }
+        .organic-shape-inv {
+            border-radius: 0.5rem 1.5rem 0.5rem 1.5rem;
+        }
+        .text-glow {
+            text-shadow: 0 0 10px currentColor;
+        }
+    </style>
+</head>
+<body class="bg-[#120c0b] text-white font-display overflow-hidden h-screen w-screen flex selection:bg-primary selection:text-white">
+<div class="fixed inset-0 z-0 bg-cover bg-center opacity-60 pointer-events-none mix-blend-overlay" data-alt="Abstract orange hazy atmosphere of Venus with swirling dust clouds" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoWpkxBTcpMTnacuvkXbNPKkGbZt1qHbrjwu5Y_EMwXMMDX-azUTPHi4CtpLK2GJAjjxzgak09JCTQjpo9zgPBtAnZeUpP9JKb8nIhGbCB7U_jjupJpKqSxxww_7DEWbdnsgwlmnfpjFdIkiGkgJv_-Hjs8dZZr25z6urUmcD7MLVaSlURkZzSJBEyf4TZBUvFm1gBmjwuvN0UeYNwujU_KBX65MIHiPvWJT1kGFg0apPUFcWXadP4DvtB7SHEgDMD0uwrl9JsjlU');"></div>
+<div class="fixed inset-0 z-0 bg-gradient-to-br from-venus-sky/40 via-rust-dark/80 to-energy-beam/20 pointer-events-none"></div>
+<div class="fixed top-[-20%] right-[-10%] w-[80vw] h-[150vh] bg-gradient-to-b from-energy-beam/20 via-energy-beam/10 to-transparent rotate-[-15deg] blur-[80px] pointer-events-none z-0 mix-blend-screen"></div>
+<div class="fixed inset-0 z-50 pointer-events-none scanline opacity-30"></div>
+<aside class="w-20 lg:w-72 bg-rust-dark/95 backdrop-blur border-r border-rust-border flex flex-col justify-between z-30 shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-all duration-300">
+<div class="p-5 border-b border-rust-border flex items-center gap-3 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50"></div>
+<div class="size-8 text-primary animate-pulse relative z-10">
+<span class="material-symbols-outlined text-4xl drop-shadow-[0_0_8px_rgba(255,0,127,0.8)]">filter_vintage</span>
+</div>
+<div class="hidden lg:flex flex-col relative z-10">
+<h1 class="text-xl font-bold tracking-widest leading-none text-white italic">FLORA_OS</h1>
+<span class="text-[10px] text-secondary tracking-[0.2em] font-mono">POST-TERRA // V.02</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 p-3 overflow-y-auto scrollbar-hide">
+<div class="flex flex-col gap-2">
+<p class="hidden lg:block px-3 py-2 text-xs font-bold text-dirt tracking-wider font-mono">TOWER OPS</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl bg-primary/20 border border-primary/50 text-white hover:bg-primary hover:text-white transition-all duration-200 shadow-[0_0_15px_rgba(255,0,127,0.2)]">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform">grid_view</span>
+<span class="hidden lg:block text-sm font-bold">Dashboard</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-rust-panel border border-transparent hover:border-rust-border text-dirt hover:text-secondary transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">agriculture</span>
+<span class="hidden lg:block text-sm font-medium">Overgrowth</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-rust-panel border border-transparent hover:border-rust-border text-dirt hover:text-energy-beam transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">bolt</span>
+<span class="hidden lg:block text-sm font-medium">Energy Grid</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-rust-panel border border-transparent hover:border-rust-border text-dirt hover:text-venus-sky transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">security</span>
+<span class="hidden lg:block text-sm font-medium">Perimeter</span>
+</button>
+</div>
+<div class="mt-4 flex flex-col gap-2">
+<p class="hidden lg:block px-3 py-2 text-xs font-bold text-dirt tracking-wider font-mono">EXPEDITION</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-rust-panel border border-transparent hover:border-rust-border text-dirt hover:text-secondary transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">forest</span>
+<span class="hidden lg:block text-sm font-medium">Wilderness</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-rust-panel border border-transparent hover:border-rust-border text-dirt hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">biotech</span>
+<span class="hidden lg:block text-sm font-medium">Mutations</span>
+</button>
+</div>
+</nav>
+<div class="p-4 bg-gradient-to-t from-black/80 to-transparent border-t border-rust-border">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] text-venus-sky font-bold tracking-wider">ATMOSPHERE CLEARING</span>
+<span class="text-[10px] text-energy-beam font-mono font-bold">42.8%</span>
+</div>
+<div class="h-2 w-full bg-rust-panel rounded-full overflow-hidden border border-rust-border">
+<div class="h-full bg-gradient-to-r from-venus-sky via-primary to-energy-beam w-[42.8%] shadow-[0_0_15px_rgba(0,229,255,0.6)]"></div>
+</div>
+<p class="mt-2 text-[10px] text-dirt truncate">Beam Array: <span class="text-energy-beam animate-pulse">ACTIVE</span></p>
+</div>
+<div class="p-4 border-t border-rust-border flex items-center gap-3 bg-rust-dark">
+<div class="size-10 rounded-xl bg-cover bg-center border-2 border-primary" data-alt="Portrait of a female cyberpunk commander with neon glowing visor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALNJsT8XoIBYdadK8crI0fku6BxGdAdmmLdyLhnS18gJHZXdTVZB3tMbvT0MclRiQNrOolHyd-s68_WNionTUXcZw09Crn2RCzYfh0qT3-V1lw7YKTJAshhU6BTuk8FAvk9306d79Ww7XIuGEF6720UIJK8Z9GsDK8ubRvRwxO9s_kPcSWykO3OJKP47U_A9HxExWb7Yvx0hfCvKfLM6icQZxlc71b_zTcqFiykrkJ7laCyq5bN7uk3P0glkgkOuooDBUa7LRkRIA'); box-shadow: 0 0 10px #FF007F;"></div>
+<div class="hidden lg:flex flex-col">
+<span class="text-sm font-bold text-white leading-none tracking-wide">Capt. Raine</span>
+<span class="text-[10px] text-secondary mt-0.5">Scavenger Class</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
+<header class="h-16 bg-rust-dark/80 backdrop-blur-md border-b border-rust-border flex items-center justify-between px-6 shrink-0 z-20 shadow-lg">
+<div class="flex items-center gap-8 overflow-x-auto scrollbar-hide">
+<div class="flex items-center gap-3 pr-6 border-r border-rust-border/50">
+<div class="p-1.5 rounded-lg bg-rust-panel border border-rust-border">
+<span class="material-symbols-outlined text-secondary text-sm">local_florist</span>
+</div>
+<div>
+<p class="text-[10px] text-dirt font-bold tracking-wider">FLORA DENSITY</p>
+<p class="text-sm font-mono font-bold text-white">82% <span class="text-secondary text-[10px]">RAPID GROWTH</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-rust-border/50">
+<div class="p-1.5 rounded-lg bg-rust-panel border border-rust-border">
+<span class="material-symbols-outlined text-energy-beam text-sm">solar_power</span>
+</div>
+<div>
+<p class="text-[10px] text-dirt font-bold tracking-wider">BEAM POWER</p>
+<p class="text-sm font-mono font-bold text-white">99.2% <span class="text-energy-beam text-[10px]">MAX</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-rust-border/50">
+<div class="p-1.5 rounded-lg bg-rust-panel border border-rust-border">
+<span class="material-symbols-outlined text-venus-sky text-sm">cloud</span>
+</div>
+<div>
+<p class="text-[10px] text-dirt font-bold tracking-wider">TOXICITY</p>
+<p class="text-sm font-mono font-bold text-white">340 PPM <span class="text-venus-sky text-[10px] animate-pulse">HIGH</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="p-1.5 rounded-lg bg-rust-panel border border-rust-border">
+<span class="material-symbols-outlined text-primary text-sm">monetization_on</span>
+</div>
+<div>
+<p class="text-[10px] text-dirt font-bold tracking-wider">SCRAP</p>
+<p class="text-sm font-mono font-bold text-white">14.2k</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-rust-border/50">
+<div class="px-2 py-1 bg-primary/20 rounded border border-primary/40 text-xs font-bold text-primary animate-pulse">
+                ALERT: STORM
+            </div>
+<button class="p-2 text-dirt hover:text-white transition-colors"><span class="material-symbols-outlined">settings</span></button>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden relative">
+<div class="flex-1 overflow-y-auto overflow-x-hidden relative p-4 lg:p-10 scrollbar-hide flex flex-col items-center">
+<div class="absolute top-40 left-10 w-96 h-96 bg-venus-sky/20 rounded-full blur-[120px] pointer-events-none mix-blend-color-dodge"></div>
+<div class="absolute bottom-20 right-10 w-80 h-80 bg-primary/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen"></div>
+<div class="w-full max-w-4xl flex flex-col gap-6 pb-20">
+<div class="group relative flex items-stretch min-h-[160px] border-l-4 border-r-4 border-rust-border hover:border-energy-beam transition-colors duration-300">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-energy-beam">SKY</span>
+<span class="text-3xl font-bold font-display text-white italic">01</span>
+</div>
+<div class="flex-1 organic-glass organic-shape-inv m-0 bg-cover bg-center flex flex-col justify-end p-6 relative overflow-hidden ring-1 ring-white/10" data-alt="Futuristic landing pad with rain and neon lights" style="background-image: linear-gradient(to top, rgba(26,18,16,0.9), transparent), url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8tTi7giyIKAkYZ2azxbEUhA8607bp2Umj2AbNzg6Qfxwt70CRFK9PGCT-wx_lXV4BLN6jlUogss_IRkmhc5yxRoXTUj-I9ueoNJQbGd9g2MWp_5xRBPjj09f-gk-AkCT1AEvpVrVhlpUX4hueXm-UAILUfw4hqzc-w605PCiC1sx6553Yo78WZZzbxdOSFRanxY8nEEl1GLOWpUrhpA-jjHLoytXsSTXvc66xQB7Bh0gpi1loQdrgQJ5jAGDhs1C8ytMud7arj4o');">
+<div class="absolute top-0 right-0 w-32 h-32 bg-energy-beam/10 blur-xl rounded-bl-full"></div>
+<div class="absolute top-3 right-4 flex gap-2">
+<span class="px-2 py-1 bg-black/60 backdrop-blur text-[10px] font-bold text-energy-beam border border-energy-beam/50 rounded-lg shadow-[0_0_10px_rgba(0,229,255,0.3)]">BEAM ALIGNED</span>
+</div>
+<h3 class="text-2xl font-bold text-white relative z-10 font-display italic tracking-wide drop-shadow-md">Skyport <span class="text-energy-beam">Zenith</span></h3>
+<p class="text-sm text-gray-300 relative z-10 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-energy-beam">flight_takeoff</span>
+                            Atmospheric Harvesters Docked
+                        </p>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[200px] border-l-4 border-r-4 border-rust-border hover:border-primary transition-colors duration-300">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-primary">HAB</span>
+<span class="text-3xl font-bold font-display text-white italic">05</span>
+</div>
+<div class="flex-1 organic-glass organic-shape m-0 bg-cover bg-center flex flex-col justify-end p-6 relative overflow-hidden ring-1 ring-white/10" data-alt="Luxurious cyberpunk apartment interior with neon blue lighting" style="background-image: linear-gradient(to top, rgba(255,0,127,0.3), rgba(26,18,16,0.6)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent mix-blend-overlay"></div>
+<div class="absolute -bottom-10 -left-10 w-64 h-64 bg-secondary/10 blur-2xl rounded-full"></div>
+<div class="absolute top-3 right-4 flex gap-1">
+<span class="px-2 py-1 bg-primary/80 text-[10px] font-bold text-white rounded-lg shadow-lg">98% SATISFACTION</span>
+</div>
+<h3 class="text-2xl font-bold text-white relative z-10 italic">Neon Canopy Suites</h3>
+<p class="text-sm text-primary/80 relative z-10 font-medium">Integrated Flora Living</p>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[240px] border-l-4 border-r-4 border-secondary hover:border-primary transition-colors duration-300 shadow-[0_0_40px_rgba(178,243,2,0.1)]">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-100 transition-opacity">
+<span class="text-xs font-mono text-secondary">BIO</span>
+<span class="text-3xl font-bold font-display text-white text-glow">09</span>
+</div>
+<div class="absolute -right-6 top-1/2 -translate-y-1/2 h-24 w-6 bg-rust-dark border-y border-r border-secondary/50 rounded-r-xl flex flex-col justify-center items-center gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse delay-75"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse delay-150"></div>
+</div>
+<div class="flex-1 organic-glass rounded-2xl m-0 bg-cover bg-center flex flex-col justify-between p-6 relative overflow-hidden" data-alt="Cyberpunk hydroponics bay with intense pink grow lights and overgrown plants" style="background-image: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8pMD3s5ZoIwK-VV8ztxPeJH7hft2YHZ2DWibpbPtx4B57RYcGMT1UyWChgQJRokkW0fER6QmiG-Mgdo1bu5Tfz5r1ZxpXNo3sAaYPIwguaE-autIUF8NtjQv64PAUJwSFeQsdo6bq2hNH5pDh5hbi0DzlDh-JJRJUGFqAlhBCwrsN_MzHEbdX2Mw69sJ_vTvimb2yYlK0FVv41DnuPOAqJQETrjp6bfO0lrwu36yGzziJ_13sirWeV3QsfPnLEbZMVGmCYGay_0k');">
+<div class="absolute inset-0 bg-gradient-to-tr from-secondary/20 via-primary/30 to-transparent mix-blend-overlay"></div>
+<div class="absolute inset-0 bg-cover bg-center opacity-70 mix-blend-lighten" data-alt="Close up of pink led grow lights on plants" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4BynnUCD-YukhNvNxtiZWWRuuWL09GMyh8gidV69tqx7ED53B2oJV7X_ADxpPOJ1h9552mQYDZ2WzSl86zmw_U6ZErhq-ITyb7QKfigmq4KAqQ9rIoI3n1RwaIl5IyUD_N13521xlgkL9odABsL6eQdgr1TUWtfnrcth_dz3PnTjCnEGbHeudk3YX60L-8nSYGsVS1PJ206DOMJt368RKmAs3CrVr_HJE5fK6tTfgua_IC5uH3erNcHtOvwf192exx8yWIzc3v6I'); filter: hue-rotate(-20deg) saturate(1.5);"></div>
+<div class="flex justify-between items-start relative z-10">
+<div class="px-3 py-1.5 bg-secondary text-black text-xs font-black rounded-lg flex items-center gap-2 shadow-[0_0_15px_rgba(178,243,2,0.8)] transform -rotate-1">
+<span class="material-symbols-outlined text-[16px]">coronavirus</span>
+                                RAPID MUTATION
+                            </div>
+<button class="size-8 rounded-full bg-black/60 backdrop-blur text-white flex items-center justify-center hover:bg-primary hover:text-white transition-colors border border-white/10"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+<div class="relative z-10 mt-auto">
+<h3 class="text-3xl font-black text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] italic">
+<span class="text-secondary">Super</span> Bloom <span class="text-primary">Garden</span>
+</h3>
+<div class="flex gap-4 mt-2 text-xs font-mono font-bold bg-black/40 w-fit p-2 rounded-lg backdrop-blur-sm border border-secondary/30">
+<span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-[14px]">eco</span> YIELD: +400%</span>
+<span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-[14px]">water_drop</span> PH: ACIDIC</span>
+</div>
+</div>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[120px] border-l-4 border-r-4 border-rust-border hover:border-rust-border/80 transition-colors duration-300 opacity-90">
+<div class="absolute -left-14 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-dirt">SVC</span>
+<span class="text-3xl font-bold font-display text-dirt italic">B1</span>
+</div>
+<div class="flex-1 bg-[#1a1412] organic-shape m-0 bg-cover bg-center flex flex-col justify-center p-6 relative overflow-hidden grayscale hover:grayscale-[0.5] transition-all duration-500 border border-rust-border" data-alt="Empty, eerie concrete industrial corridor with flickering lights" style="background-image: linear-gradient(to right, rgba(26,20,18,0.95), rgba(26,20,18,0.7)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBU6nkMwVS3E6olcqa78HpA7YN7A0DerAvxxOPbhWFFv-JkhVtUvf7abm3pkiRGragQtUqbOJOgR9Fd-eoxPkr4d-GULs8fnRBVSXZ4fOFuRNIzl5vW4PK7cVy-JlNRgQvnjmSIoRbG5nRfDu-6TWk37LEr6x4k94Di_0AXLogvhZ7sfSWHVkEdhV5AStr-pXY-0ZPNgIeeN_G-4XFbherLMATDlqgw3JGjZ8vE4O6ZMaGfnUbIJTIVs3AKYSOBc9UX-JuO-swMV58');">
+<div class="absolute inset-0 opacity-20 bg-venus-sky mix-blend-color-burn"></div>
+<div class="flex items-center gap-6 relative z-10">
+<span class="material-symbols-outlined text-venus-sky text-3xl animate-pulse">warning</span>
+<div>
+<h3 class="text-lg font-bold text-dirt tracking-widest">MAINTENANCE TUNNEL</h3>
+<p class="text-xs text-rust-border font-mono mt-1">STRUCTURAL INTEGRITY CRITICAL</p>
+</div>
+<div class="h-px bg-rust-border flex-1 border-t border-dashed border-dirt/50"></div>
+<span class="px-2 py-1 bg-rust-border/30 text-[10px] text-venus-sky rounded border border-venus-sky/30">SEALED</span>
+</div>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[180px] border-l-4 border-r-4 border-rust-border hover:border-energy-beam transition-colors duration-300">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-energy-beam">PWR</span>
+<span class="text-3xl font-bold font-display text-white italic">00</span>
+</div>
+<div class="flex-1 organic-glass organic-shape-inv m-0 bg-cover bg-center flex flex-col justify-end p-6 relative overflow-hidden" data-alt="Dark server room with blue glowing lights" style="background-image: linear-gradient(to top, rgba(0,229,255,0.1), transparent), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDth7sHUGpZwwu81s75oCLnT100wyfwBkF6Hi7ziOAo7iYaj3J6KlRm05JhG7O70K-ihQkvVRzRaIMmOprvSMtxI9oIgjxZLPVbf3ZPBJf-K3RBzTdRs8HVYFuLSpoO2LJ9ixU9yeKHy-HweACrhos0qcYRUVN48B1c-L7s_43chFGjgLWovvUtZdPSdqRAnrjtdkK3A2F5pEUadqtQdbhJQ4iC_aCNWeKlYvBobGUjPrEHNtSlemThuj2icvY9zggrd_kL1ayv614');">
+<div class="absolute inset-0 bg-energy-beam/5 mix-blend-overlay"></div>
+<h3 class="text-xl font-bold text-white relative z-10 font-display">Fusion Reactor <span class="text-energy-beam">Relay</span></h3>
+<div class="w-full bg-black/50 rounded-full h-1.5 mt-2 relative overflow-hidden border border-energy-beam/30">
+<div class="bg-energy-beam h-full w-[92%] shadow-[0_0_10px_#00E5FF]"></div>
+</div>
+<p class="text-xs text-energy-beam mt-1 relative z-10 font-mono">Output: 1.2 GW // STABLE</p>
+</div>
+</div>
+</div>
+</div>
+<aside class="w-80 bg-rust-dark/95 border-l border-rust-border flex flex-col shadow-[-10px_0_40px_rgba(0,0,0,0.5)] z-20 relative">
+<div class="h-2 bg-rust-panel w-full border-b border-rust-border flex justify-center gap-2 items-center">
+<div class="w-16 h-1 bg-rust-border rounded-full"></div>
+</div>
+<div class="p-5 border-b border-rust-border bg-gradient-to-b from-rust-panel to-rust-dark">
+<h2 class="text-xs font-bold text-dirt tracking-widest mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">tablet_mac</span>
+                    FIELD INSPECTOR
+                </h2>
+<div class="flex items-center gap-3 mt-3">
+<div class="size-3 bg-secondary rounded-full shadow-[0_0_10px_rgba(178,243,2,0.8)] animate-pulse"></div>
+<span class="text-xl font-bold text-white italic text-shadow-neon-pink">LVL 09: SUPER BLOOM</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-5 scrollbar-hide">
+<div class="bg-[#241a17] rounded-xl p-4 border border-rust-border relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-6xl text-venus-sky rotate-12">warning</span>
+</div>
+<div class="flex justify-between items-center mb-4 relative z-10">
+<span class="text-xs text-dirt font-bold">CONTAINMENT</span>
+<span class="text-[10px] text-black font-bold border border-venus-sky bg-venus-sky px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(255,102,0,0.6)]">BREACH RISK</span>
+</div>
+<div class="grid grid-cols-2 gap-3 relative z-10">
+<div class="flex flex-col gap-1 p-2 bg-black/20 rounded-lg border border-white/5">
+<span class="text-[9px] text-dirt uppercase tracking-widest">Integrity</span>
+<span class="text-lg font-mono font-bold text-white">64%</span>
+</div>
+<div class="flex flex-col gap-1 p-2 bg-black/20 rounded-lg border border-venus-sky/30">
+<span class="text-[9px] text-dirt uppercase tracking-widest">Spore Count</span>
+<span class="text-lg font-mono font-bold text-venus-sky animate-pulse">CRITICAL</span>
+</div>
+</div>
+</div>
+<div class="bg-[#1c2e25] rounded-xl p-4 border border-secondary/30 flex flex-col gap-3 shadow-[0_4px_20px_rgba(178,243,2,0.05)]">
+<div class="flex justify-between items-center">
+<span class="text-xs text-secondary font-bold">FLORA OVERGROWTH</span>
+<span class="material-symbols-outlined text-secondary text-sm">trending_up</span>
+</div>
+<div class="flex items-end gap-1.5 h-28 border-b border-secondary/20 pb-1 px-1">
+<div class="w-1/6 bg-secondary/20 h-[30%] rounded-t-sm"></div>
+<div class="w-1/6 bg-secondary/40 h-[45%] rounded-t-sm"></div>
+<div class="w-1/6 bg-secondary/60 h-[40%] rounded-t-sm"></div>
+<div class="w-1/6 bg-secondary/80 h-[65%] rounded-t-sm"></div>
+<div class="w-1/6 bg-secondary h-[90%] rounded-t-sm relative group shadow-[0_0_15px_rgba(178,243,2,0.5)]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary text-black text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                MAX YIELD
+                            </div>
+</div>
+<div class="w-1/6 bg-primary h-[70%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between text-[9px] text-secondary/70 font-mono tracking-wider">
+<span>DAY 01</span>
+<span>DAY 07</span>
+</div>
+</div>
+<div class="bg-[#1a2226] rounded-xl p-4 border border-energy-beam/20 relative overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs text-energy-beam/80 font-bold">UV LIGHTING GRID</span>
+</div>
+<div class="mt-1 text-2xl font-mono font-bold text-white drop-shadow-md">1.21 GW</div>
+<div class="w-full bg-black/40 h-2 mt-3 rounded-full overflow-hidden">
+<div class="bg-energy-beam h-full w-[85%] relative">
+<div class="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<span class="text-xs text-dirt font-bold tracking-widest">BOTANISTS ON SITE</span>
+<div class="flex gap-3">
+<div class="size-12 bg-rust-panel rounded-xl flex items-center justify-center border border-rust-border shadow-md">
+<span class="material-symbols-outlined text-secondary">face_3</span>
+</div>
+<div class="size-12 bg-rust-panel rounded-xl flex items-center justify-center border border-rust-border shadow-md">
+<span class="material-symbols-outlined text-primary">face_6</span>
+</div>
+<div class="size-12 bg-rust-panel rounded-xl flex items-center justify-center border border-rust-border shadow-md">
+<span class="material-symbols-outlined text-energy-beam">smart_toy</span>
+</div>
+<div class="size-12 border-2 border-dashed border-dirt/40 rounded-xl flex items-center justify-center text-dirt hover:border-primary hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-auto">
+<button class="py-3 rounded-xl bg-venus-sky/10 border border-venus-sky/50 text-venus-sky text-xs font-bold hover:bg-venus-sky hover:text-black transition-colors uppercase">Purge Gas</button>
+<button class="py-3 rounded-xl bg-rust-panel border border-dirt/30 text-white text-xs font-bold hover:bg-white hover:text-black transition-colors uppercase">Scavenge</button>
+</div>
+</div>
+</aside>
+<div class="absolute bottom-6 right-[22rem] z-30 flex flex-col items-end pointer-events-none gap-3">
+<div class="bg-black/90 backdrop-blur border-l-4 border-venus-sky p-4 rounded-r-xl max-w-sm shadow-[0_5px_20px_rgba(0,0,0,0.5)] transform translate-x-4 animate-[slideIn_0.5s_ease-out_forwards]">
+<div class="flex items-center gap-2 text-venus-sky mb-1">
+<span class="material-symbols-outlined text-lg animate-pulse">cyclone</span>
+<span class="text-xs font-black tracking-widest uppercase">ACID STORM INBOUND</span>
+</div>
+<p class="text-xs text-gray-400 font-mono">Sector 7 exterior shields eroding. Corrosion imminent.</p>
+</div>
+<div class="bg-black/90 backdrop-blur border-l-4 border-secondary p-4 rounded-r-xl max-w-sm shadow-[0_5px_20px_rgba(0,0,0,0.5)] transform translate-x-4 animate-[slideIn_0.5s_ease-out_0.2s_forwards]">
+<div class="flex items-center gap-2 text-secondary mb-1">
+<span class="material-symbols-outlined text-lg">spa</span>
+<span class="text-xs font-black tracking-widest uppercase">HARVEST READY</span>
+</div>
+<p class="text-xs text-gray-400 font-mono">Neon-Ferns have reached maturity. Yield estimated: High.</p>
+</div>
+</div>
+</div>
+</main>
+<style>
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+</style>
+
+</body></html>

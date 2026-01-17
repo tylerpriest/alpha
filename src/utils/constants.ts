@@ -16,6 +16,32 @@ export const HUNGER_CRITICAL = 20;
 export const HUNGER_MAX = 100;
 export const FOOD_PER_MEAL = 30;
 
+// Room color specifications (Cyberpunk Venus palette)
+export const ROOM_COLORS = {
+  lobby: { base: 0x2a3a4a, accent: 0x4ae4e4 },     // Deep slate + Cyan
+  apartment: { base: 0x4a4a4a, accent: 0xe4a44a }, // Warm concrete + Orange
+  office: { base: 0x3a3a4a, accent: 0x4a8ae4 },    // Cool gray + Blue
+  farm: { base: 0x4a3a2a, accent: 0x4ae44a },      // Earthy brown + Green
+  kitchen: { base: 0x3a3a3a, accent: 0xe4e4d4 },   // Charcoal + Warm white
+} as const;
+
+// UI Colors
+export const UI_COLORS = {
+  validPlacement: 0x4ae4e4,   // Cyan glow
+  invalidPlacement: 0xe44a8a, // Magenta warning
+  selection: 0xe4e44a,        // Electric yellow
+  textPrimary: 0xe4e4e4,      // Off-white
+  textSecondary: 0xa4a4c4,    // Muted lavender
+} as const;
+
+// Resident hunger indicator colors (Holographic tint)
+export const HUNGER_COLORS = {
+  satisfied: 0x4ae4e4,   // Cyan (70-100)
+  hungry: 0xe4a44a,      // Amber (40-69)
+  veryHungry: 0xe46a4a,  // Orange (20-39)
+  critical: 0xe44a8a,    // Magenta pulse (0-19)
+} as const;
+
 // Room specifications
 export const ROOM_SPECS = {
   lobby: {
@@ -23,7 +49,8 @@ export const ROOM_SPECS = {
     cost: 0,
     minFloor: 0,
     maxFloor: 0,
-    color: 0x4a4a6a,
+    color: ROOM_COLORS.lobby.base,
+    accentColor: ROOM_COLORS.lobby.accent,
     income: 0,
     expenses: 0,
   },
@@ -32,7 +59,8 @@ export const ROOM_SPECS = {
     cost: 5000,
     minFloor: 1,
     maxFloor: 100,
-    color: 0x6a8a4a,
+    color: ROOM_COLORS.apartment.base,
+    accentColor: ROOM_COLORS.apartment.accent,
     income: 100, // Rent per day
     expenses: 10, // Maintenance per day
     capacity: 2, // Residents
@@ -42,7 +70,8 @@ export const ROOM_SPECS = {
     cost: 8000,
     minFloor: 1,
     maxFloor: 100,
-    color: 0x4a6a8a,
+    color: ROOM_COLORS.office.base,
+    accentColor: ROOM_COLORS.office.accent,
     income: 200, // Per employed resident per day
     expenses: 20,
     jobs: 4, // Number of jobs
@@ -52,7 +81,8 @@ export const ROOM_SPECS = {
     cost: 15000,
     minFloor: 1,
     maxFloor: 100,
-    color: 0x8a6a4a,
+    color: ROOM_COLORS.farm.base,
+    accentColor: ROOM_COLORS.farm.accent,
     income: 0,
     expenses: 50,
     foodProduction: 10, // Per day
@@ -62,7 +92,8 @@ export const ROOM_SPECS = {
     cost: 10000,
     minFloor: 1,
     maxFloor: 100,
-    color: 0x8a4a4a,
+    color: ROOM_COLORS.kitchen.base,
+    accentColor: ROOM_COLORS.kitchen.accent,
     income: 0,
     expenses: 30,
     foodProcessing: 20, // Converts raw food to meals per day

@@ -4,6 +4,10 @@ import { TimeSystem } from '../systems/TimeSystem';
 import { EconomySystem } from '../systems/EconomySystem';
 import { ResidentSystem } from '../systems/ResidentSystem';
 import { ResourceSystem } from '../systems/ResourceSystem';
+import { VenusAtmosphere } from '../graphics/VenusAtmosphere';
+import { DayNightOverlay } from '../graphics/DayNightOverlay';
+import { AtmosphericEffects } from '../graphics/AtmosphericEffects';
+import { UIManager } from '../ui/UIManager';
 import { INITIAL_MONEY, GRID_SIZE } from '../utils/constants';
 
 export class GameScene extends Phaser.Scene {
@@ -12,6 +16,10 @@ export class GameScene extends Phaser.Scene {
   public economySystem!: EconomySystem;
   public residentSystem!: ResidentSystem;
   public resourceSystem!: ResourceSystem;
+
+  private venusAtmosphere!: VenusAtmosphere;
+  private dayNightOverlay!: DayNightOverlay;
+  private atmosphericEffects!: AtmosphericEffects;
 
   private isDragging = false;
   private dragStartX = 0;
@@ -35,13 +43,20 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(-1000, -2000, 3280, 3720);
     this.cameras.main.scrollY = -500;
 
-    // Draw ground line
+    // Create Venus atmosphere background (behind everything)
+    this.venusAtmosphere = new VenusAtmosphere(this);
+
+    // Draw ground with dark gradient
     const groundY = 500;
     const groundLine = this.add.graphics();
-    groundLine.lineStyle(4, 0x4a4a4a, 1);
+    groundLine.setDepth(5);
+    groundLine.lineStyle(4, 0x3a3a4a, 1);
     groundLine.lineBetween(-1000, groundY, 2280, groundY);
-    groundLine.fillStyle(0x2a2a3e, 1);
-    groundLine.fillRect(-1000, groundY, 3280, 1000);
+    // Ground gradient
+    groundLine.fillStyle(0x1a1a2e, 1);
+    groundLine.fillRect(-1000, groundY, 3280, 200);
+    groundLine.fillStyle(0x0a0a1e, 1);
+    groundLine.fillRect(-1000, groundY + 200, 3280, 800);
 
     // Draw grid lines for reference
     this.drawGrid();
@@ -49,8 +64,17 @@ export class GameScene extends Phaser.Scene {
     // Create initial lobby
     this.building.addRoom('lobby', 0, 0);
 
-    // Launch UI scene
+    // Create day/night overlay (above rooms)
+    this.dayNightOverlay = new DayNightOverlay(this);
+
+    // Create atmospheric particle effects
+    this.atmosphericEffects = new AtmosphericEffects(this);
+
+    // Launch Phaser UI scene (for in-game overlays)
     this.scene.launch('UIScene');
+
+    // Create DOM UI Manager
+    this._uiManager = new UIManager(this.registry);
 
     // Set up input handlers
     this.setupInput();
@@ -61,7 +85,8 @@ export class GameScene extends Phaser.Scene {
 
   private drawGrid(): void {
     const graphics = this.add.graphics();
-    graphics.lineStyle(1, 0x333344, 0.3);
+    graphics.setDepth(1);
+    graphics.lineStyle(1, 0x4a4a5a, 0.2);
 
     const groundY = 500;
     const buildingLeft = 0;
@@ -142,6 +167,14 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     // Update time
     this.timeSystem.update(delta);
+
+    // Update atmosphere and lighting based on time of day
+    const hour = this.timeSystem.getHour();
+    this.venusAtmosphere.update(hour, this.cameras.main.scrollX);
+    this.dayNightOverlay.update(hour);
+
+    // Update atmospheric particles
+    this.atmosphericEffects.update(delta);
 
     // Update residents
     this.residentSystem.update(delta);

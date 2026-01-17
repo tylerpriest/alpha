@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
+import './styles/ui.css';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,

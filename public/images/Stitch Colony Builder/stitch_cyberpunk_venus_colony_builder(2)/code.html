@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Venus OS: Advanced Colony Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Rajdhani:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "amber-glow": "#FFB300",
+                    "hazard": "#FFEA00",
+                    "navy-deep": "#02040a",
+                    "navy-surface": "#0b1626",
+                    "navy-card": "#13233b",
+                    "navy-border": "#1e3a5f",
+                    "venus-atmo": "#d97706",
+                },
+                fontFamily: {
+                    "display": ["Space Grotesk", "sans-serif"],
+                    "tech": ["Rajdhani", "sans-serif"],
+                },
+                animation: {
+                    'scan': 'scan 4s linear infinite',
+                    'walk': 'walk 20s linear infinite',
+                }
+            },
+        },
+    }
+</script>
+<style>
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .glass-panel {
+        background: rgba(19, 35, 59, 0.7);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(30, 58, 95, 0.5);
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+    .heatmap-overlay {
+        background: radial-gradient(circle at 50% 50%, rgba(255, 179, 0, 0.15) 0%, rgba(255, 0, 0, 0.1) 40%, transparent 80%);
+        mix-blend-mode: hard-light;
+        pointer-events: none;
+    }
+    .grid-lines {
+        background-image: 
+            linear-gradient(rgba(30, 58, 95, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(30, 58, 95, 0.3) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+    @keyframes walk {
+        0% { transform: translateX(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateX(100px); opacity: 0; }
+    }
+</style>
+</head>
+<body class="bg-navy-deep text-slate-300 font-tech overflow-hidden h-screen w-screen flex selection:bg-amber-glow selection:text-navy-deep">
+<div class="fixed inset-0 z-0 bg-cover bg-center opacity-20 pointer-events-none mix-blend-screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoWpkxBTcpMTnacuvkXbNPKkGbZt1qHbrjwu5Y_EMwXMMDX-azUTPHi4CtpLK2GJAjjxzgak09JCTQjpo9zgPBtAnZeUpP9JKb8nIhGbCB7U_jjupJpKqSxxww_7DEWbdnsgwlmnfpjFdIkiGkgJv_-Hjs8dZZr25z6urUmcD7MLVaSlURkZzSJBEyf4TZBUvFm1gBmjwuvN0UeYNwujU_KBX65MIHiPvWJT1kGFg0apPUFcWXadP4DvtB7SHEgDMD0uwrl9JsjlU'); filter: hue-rotate(180deg) saturate(0.5);"></div>
+<div class="fixed inset-0 z-0 bg-gradient-to-br from-navy-deep via-navy-deep/95 to-navy-surface/90 pointer-events-none"></div>
+<aside class="w-16 lg:w-20 bg-navy-surface border-r border-navy-border flex flex-col items-center py-4 z-40 shadow-2xl">
+<div class="mb-8 text-amber-glow animate-pulse">
+<span class="material-symbols-outlined text-4xl">hexagon</span>
+</div>
+<nav class="flex flex-col gap-4 w-full px-2">
+<button class="p-3 rounded-lg bg-amber-glow/10 border border-amber-glow text-amber-glow relative group">
+<span class="material-symbols-outlined">grid_view</span>
+<div class="absolute left-14 top-2 bg-navy-card border border-navy-border px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">Sector View</div>
+</button>
+<button class="p-3 rounded-lg hover:bg-navy-card text-slate-400 hover:text-white transition-colors group relative">
+<span class="material-symbols-outlined">add_business</span>
+<div class="absolute left-14 top-2 bg-navy-card border border-navy-border px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">Build Zone</div>
+</button>
+<button class="p-3 rounded-lg hover:bg-navy-card text-slate-400 hover:text-white transition-colors group relative">
+<span class="material-symbols-outlined">finance</span>
+<div class="absolute left-14 top-2 bg-navy-card border border-navy-border px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">Economy</div>
+</button>
+<button class="p-3 rounded-lg hover:bg-navy-card text-slate-400 hover:text-white transition-colors group relative">
+<span class="material-symbols-outlined">heat</span>
+<div class="absolute left-14 top-2 bg-navy-card border border-navy-border px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">Heat Map</div>
+</button>
+<div class="w-full h-px bg-navy-border my-2"></div>
+<button class="p-3 rounded-lg hover:bg-navy-card text-hazard hover:text-yellow-200 transition-colors group relative animate-pulse">
+<span class="material-symbols-outlined">warning</span>
+<div class="absolute left-14 top-2 bg-navy-card border border-hazard px-2 py-1 rounded text-xs text-hazard opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">Alerts (3)</div>
+</button>
+</nav>
+<div class="mt-auto flex flex-col gap-3 w-full px-2">
+<div class="size-10 rounded-full bg-cover bg-center border border-amber-glow/50 mx-auto" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALNJsT8XoIBYdadK8crI0fku6BxGdAdmmLdyLhnS18gJHZXdTVZB3tMbvT0MclRiQNrOolHyd-s68_WNionTUXcZw09Crn2RCzYfh0qT3-V1lw7YKTJAshhU6BTuk8FAvk9306d79Ww7XIuGEF6720UIJK8Z9GsDK8ubRvRwxO9s_kPcSWykO3OJKP47U_A9HxExWb7Yvx0hfCvKfLM6icQZxlc71b_zTcqFiykrkJ7laCyq5bN7uk3P0glkgkOuooDBUa7LRkRIA');"></div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative z-10 h-full">
+<header class="h-14 bg-navy-surface/90 backdrop-blur border-b border-navy-border flex items-center justify-between px-6 z-30 shadow-lg">
+<div class="flex items-center gap-2">
+<h1 class="text-xl font-display font-bold text-white tracking-widest">VENUS_OS <span class="text-amber-glow">TOWER_04</span></h1>
+<span class="px-2 py-0.5 rounded bg-amber-glow/20 text-amber-glow text-[10px] font-bold border border-amber-glow/30">SIMULATION RUNNING</span>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-slate-400 tracking-wider">POPULATION DENSITY</span>
+<div class="flex items-center gap-2 text-white font-mono">
+<span class="material-symbols-outlined text-sm text-amber-glow">groups</span>
+<span>14,203</span>
+<span class="text-[10px] text-green-400 flex items-center">▲ 12/hr</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-slate-400 tracking-wider">ENERGY GRID</span>
+<div class="flex items-center gap-2 text-white font-mono">
+<span class="material-symbols-outlined text-sm text-hazard">bolt</span>
+<span>890 MW</span>
+<span class="text-[10px] text-hazard animate-pulse">HIGH LOAD</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-slate-400 tracking-wider">CREDITS</span>
+<div class="flex items-center gap-2 text-white font-mono">
+<span class="material-symbols-outlined text-sm text-amber-glow">currency_yen</span>
+<span class="text-amber-glow text-lg font-bold">42.8M</span>
+</div>
+</div>
+<div class="h-8 w-px bg-navy-border mx-2"></div>
+<div class="flex bg-navy-deep rounded border border-navy-border p-1">
+<button class="px-3 py-1 text-xs font-bold bg-amber-glow text-navy-deep rounded shadow-sm">PHYSICAL</button>
+<button class="px-3 py-1 text-xs font-bold text-slate-400 hover:text-white transition-colors">THERMAL</button>
+<button class="px-3 py-1 text-xs font-bold text-slate-400 hover:text-white transition-colors">POWER</button>
+</div>
+</div>
+</header>
+<div class="flex-1 relative overflow-hidden bg-navy-deep grid-lines flex flex-col">
+<div class="absolute left-0 top-0 bottom-0 w-8 bg-navy-surface border-r border-navy-border z-20 flex flex-col items-center pt-4 text-[10px] font-mono text-slate-500">
+<div class="h-10"></div>
+<div class="mb-[140px]">L50</div>
+<div class="mb-[140px]">L49</div>
+<div class="mb-[140px]">L48</div>
+<div class="mb-[140px]">L47</div>
+</div>
+<div class="flex-1 overflow-auto p-8 pl-16 pr-[22rem] scrollbar-hide relative">
+<div class="w-full max-w-6xl mx-auto flex flex-col gap-1 pb-40">
+<div class="relative h-40 w-full border border-navy-border bg-navy-card rounded-t-lg overflow-hidden group hover:border-amber-glow/50 transition-colors">
+<div class="absolute inset-0 bg-cover bg-center opacity-60" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8tTi7giyIKAkYZ2azxbEUhA8607bp2Umj2AbNzg6Qfxwt70CRFK9PGCT-wx_lXV4BLN6jlUogss_IRkmhc5yxRoXTUj-I9ueoNJQbGd9g2MWp_5xRBPjj09f-gk-AkCT1AEvpVrVhlpUX4hueXm-UAILUfw4hqzc-w605PCiC1sx6553Yo78WZZzbxdOSFRanxY8nEEl1GLOWpUrhpA-jjHLoytXsSTXvc66xQB7Bh0gpi1loQdrgQJ5jAGDhs1C8ytMud7arj4o');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-navy-deep via-transparent to-transparent"></div>
+<div class="absolute top-2 left-2 flex gap-2">
+<span class="bg-navy-deep/80 text-amber-glow text-xs px-2 py-0.5 border border-amber-glow/30 font-mono">SKYPORT ALPHA</span>
+<span class="bg-hazard/20 text-hazard text-xs px-2 py-0.5 border border-hazard/30 font-mono animate-pulse">INCOMING: HEAVY</span>
+</div>
+<div class="absolute bottom-4 left-10 flex gap-4">
+<div class="w-8 h-2 bg-slate-400 rounded-full animate-[pulse_2s_infinite]"></div>
+<div class="w-8 h-2 bg-amber-glow rounded-full animate-[pulse_2s_infinite_0.5s]"></div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-1 h-32">
+<div class="relative border border-navy-border bg-navy-surface overflow-hidden group hover:border-amber-glow/30 transition-all">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity group-hover:mix-blend-normal transition-all" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');"></div>
+<div class="absolute inset-0 heatmap-overlay opacity-30"></div> 
+<div class="absolute bottom-1 right-2 text-[9px] font-mono text-amber-glow bg-navy-deep/80 px-1">POP: 4</div>
+<div class="absolute bottom-2 left-2 w-0.5 h-1.5 bg-amber-glow rounded-full animate-walk"></div>
+</div>
+<div class="relative border border-navy-border bg-navy-surface overflow-hidden group hover:border-amber-glow/30 transition-all">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity group-hover:mix-blend-normal transition-all" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE'); filter:  hue-rotate(45deg);"></div>
+<div class="absolute bottom-1 right-2 text-[9px] font-mono text-amber-glow bg-navy-deep/80 px-1">POP: 2</div>
+<div class="absolute bottom-2 left-8 w-0.5 h-1.5 bg-white rounded-full animate-[walk_15s_linear_infinite_reverse]"></div>
+</div>
+<div class="relative border border-navy-border bg-navy-surface overflow-hidden group hover:border-amber-glow/30 transition-all">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity group-hover:mix-blend-normal transition-all" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');"></div>
+<div class="absolute bottom-1 right-2 text-[9px] font-mono text-amber-glow bg-navy-deep/80 px-1">POP: 5</div>
+<div class="absolute bottom-2 left-4 w-0.5 h-1.5 bg-amber-glow rounded-full animate-[walk_12s_linear_infinite]"></div>
+</div>
+<div class="relative border-l border-r border-navy-border bg-navy-deep/50 flex flex-col items-center justify-between py-2">
+<div class="w-px h-full bg-navy-border/50 absolute top-0 left-1/2 -translate-x-1/2"></div>
+<div class="w-8 h-10 bg-amber-glow/20 border border-amber-glow/50 rounded-sm relative z-10 shadow-[0_0_15px_rgba(255,179,0,0.3)] animate-[bounce_10s_infinite]">
+<div class="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-amber-glow">ELV-1</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-6 gap-1 h-24">
+<div class="col-span-1 relative border border-navy-border bg-navy-surface overflow-hidden hover:border-slate-500">
+<div class="absolute inset-0 bg-gradient-to-br from-navy-light to-navy-deep"></div>
+<div class="absolute bottom-2 left-1 w-0.5 h-1 bg-slate-400 rounded-full animate-pulse"></div>
+</div>
+<div class="col-span-1 relative border border-navy-border bg-navy-surface overflow-hidden hover:border-slate-500">
+<div class="absolute inset-0 bg-gradient-to-br from-navy-light to-navy-deep"></div>
+<div class="absolute top-2 right-1 w-0.5 h-1 bg-slate-400 rounded-full animate-pulse"></div>
+</div>
+<div class="col-span-2 relative border border-navy-border bg-navy-surface overflow-hidden hover:border-slate-500">
+<div class="absolute inset-0 bg-cover bg-center opacity-30 grayscale" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');"></div>
+<div class="absolute inset-0 heatmap-overlay opacity-60"></div> 
+<div class="absolute top-1 left-1 bg-hazard text-navy-deep text-[8px] font-bold px-1">OVERCROWDED</div>
+</div>
+<div class="col-span-1 relative border-l border-r border-navy-border bg-navy-deep/50 flex justify-center">
+<div class="w-px h-full bg-navy-border/50"></div>
+</div>
+<div class="col-span-1 relative border border-navy-border bg-navy-surface overflow-hidden hover:border-slate-500">
+<div class="absolute inset-0 bg-gradient-to-br from-navy-light to-navy-deep"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-1 h-40">
+<div class="col-span-2 relative border border-navy-border bg-navy-surface overflow-hidden group hover:border-amber-glow">
+<div class="absolute inset-0 bg-cover bg-center opacity-50" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBU6nkMwVS3E6olcqa78HpA7YN7A0DerAvxxOPbhWFFv-JkhVtUvf7abm3pkiRGragQtUqbOJOgR9Fd-eoxPkr4d-GULs8fnRBVSXZ4fOFuRNIzl5vW4PK7cVy-JlNRgQvnjmSIoRbG5nRfDu-6TWk37LEr6x4k94Di_0AXLogvhZ7sfSWHVkEdhV5AStr-pXY-0ZPNgIeeN_G-4XFbherLMATDlqgw3JGjZ8vE4O6ZMaGfnUbIJTIVs3AKYSOBc9UX-JuO-swMV58'); mix-blend-mode: luminosity;"></div>
+<div class="absolute top-4 left-8 text-amber-glow font-display font-bold text-lg tracking-widest opacity-80" style="text-shadow: 0 0 10px #FFB300">MARKET</div>
+<div class="absolute bottom-2 left-0 right-0 h-4 flex justify-around px-4">
+<div class="w-0.5 h-1.5 bg-white animate-bounce" style="animation-delay: 0.1s"></div>
+<div class="w-0.5 h-1.5 bg-amber-glow animate-bounce" style="animation-delay: 0.3s"></div>
+<div class="w-0.5 h-1.5 bg-white animate-bounce" style="animation-delay: 0.5s"></div>
+<div class="w-0.5 h-1.5 bg-slate-400 animate-bounce" style="animation-delay: 0.2s"></div>
+<div class="w-0.5 h-1.5 bg-white animate-bounce" style="animation-delay: 0.7s"></div>
+</div>
+</div>
+<div class="col-span-1 relative border border-hazard/50 bg-navy-deep overflow-hidden group">
+<div class="absolute inset-0 bg-cover bg-center opacity-60" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8pMD3s5ZoIwK-VV8ztxPeJH7hft2YHZ2DWibpbPtx4B57RYcGMT1UyWChgQJRokkW0fER6QmiG-Mgdo1bu5Tfz5r1ZxpXNo3sAaYPIwguaE-autIUF8NtjQv64PAUJwSFeQsdo6bq2hNH5pDh5hbi0DzlDh-JJRJUGFqAlhBCwrsN_MzHEbdX2Mw69sJ_vTvimb2yYlK0FVv41DnuPOAqJQETrjp6bfO0lrwu36yGzziJ_13sirWeV3QsfPnLEbZMVGmCYGay_0k'); filter: hue-rotate(-20deg);"></div>
+<div class="absolute inset-0 bg-hazard/10 mix-blend-overlay animate-pulse"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-hazard text-sm">warning</span>
+</div>
+<div class="absolute bottom-2 left-2 text-[10px] font-mono text-hazard">TEMP: CRITICAL</div>
+</div>
+</div>
+<div class="h-32 w-full border border-navy-border bg-navy-card relative overflow-hidden flex">
+<div class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDth7sHUGpZwwu81s75oCLnT100wyfwBkF6Hi7ziOAo7iYaj3J6KlRm05JhG7O70K-ihQkvVRzRaIMmOprvSMtxI9oIgjxZLPVbf3ZPBJf-K3RBzTdRs8HVYFuLSpoO2LJ9ixU9yeKHy-HweACrhos0qcYRUVN48B1c-L7s_43chFGjgLWovvUtZdPSdqRAnrjtdkK3A2F5pEUadqtQdbhJQ4iC_aCNWeKlYvBobGUjPrEHNtSlemThuj2icvY9zggrd_kL1ayv614');"></div>
+<div class="flex-1 border-r border-navy-border/30 relative">
+<svg class="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+<path d="M0,20 H100 V50 H200" fill="none" stroke="#FFB300" stroke-width="2"></path>
+<path d="M50,80 H300" fill="none" stroke="#FFEA00" stroke-dasharray="4" stroke-width="1"></path>
+</svg>
+</div>
+<div class="w-1/3 bg-black/50 backdrop-blur-sm p-4 border-l border-navy-border flex flex-col justify-center">
+<h3 class="text-amber-glow font-mono text-sm mb-1">FUSION RELAY</h3>
+<div class="w-full h-1.5 bg-navy-deep rounded-full overflow-hidden">
+<div class="h-full w-[85%] bg-gradient-to-r from-amber-glow to-hazard animate-[pulse_1s_infinite]"></div>
+</div>
+<div class="flex justify-between mt-1 text-[9px] text-slate-400 font-mono">
+<span>OUTPUT</span>
+<span class="text-white">1.2 GW</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-navy-card/90 backdrop-blur border border-navy-border px-6 py-3 rounded-full shadow-2xl flex items-center gap-6 pointer-events-none z-40">
+<div class="flex flex-col items-center">
+<span class="text-[9px] text-slate-400 font-bold tracking-wider">CURRENT SELECTION</span>
+<span class="text-sm text-white font-mono">LEVEL 47 - SECTOR B</span>
+</div>
+<div class="h-8 w-px bg-navy-border"></div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="size-2 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-xs text-slate-300">Habitable</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-amber-glow">thermostat</span>
+<span class="text-xs text-amber-glow">32°C</span>
+</div>
+</div>
+</div>
+</div>
+<aside class="absolute top-14 bottom-0 right-0 w-[22rem] bg-navy-surface/95 backdrop-blur-md border-l border-navy-border z-30 flex flex-col shadow-2xl">
+<div class="p-5 border-b border-navy-border">
+<h2 class="text-amber-glow font-display font-bold text-lg mb-1">ZONE ANALYTICS</h2>
+<div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+<span class="w-2 h-2 rounded-full bg-hazard"></span>
+<span>REAL-TIME MONITORING</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-hide">
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="text-xs font-bold text-slate-300 tracking-wider">DENSITY DISTRIBUTION</span>
+<button class="text-[10px] text-amber-glow hover:text-white underline">EXPAND</button>
+</div>
+<div class="h-32 bg-navy-deep border border-navy-border rounded p-2 relative">
+<div class="flex items-end justify-between h-full gap-1">
+<div class="w-full bg-navy-light rounded-t-sm h-[30%] hover:bg-amber-glow/50 transition-colors"></div>
+<div class="w-full bg-navy-light rounded-t-sm h-[50%] hover:bg-amber-glow/50 transition-colors"></div>
+<div class="w-full bg-amber-glow rounded-t-sm h-[80%] relative shadow-[0_0_10px_#FFB300]"></div> 
+<div class="w-full bg-navy-light rounded-t-sm h-[60%] hover:bg-amber-glow/50 transition-colors"></div>
+<div class="w-full bg-hazard rounded-t-sm h-[90%] animate-pulse relative"></div> 
+<div class="w-full bg-navy-light rounded-t-sm h-[40%] hover:bg-amber-glow/50 transition-colors"></div>
+</div>
+</div>
+<div class="flex justify-between text-[9px] text-slate-500 font-mono">
+<span>LOW INCOME</span>
+<span>LUXURY</span>
+<span>IND</span>
+</div>
+</div>
+<div class="bg-navy-card border border-navy-border rounded-lg p-4 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 text-navy-border/20">
+<span class="material-symbols-outlined text-8xl">bolt</span>
+</div>
+<h3 class="text-xs font-bold text-slate-300 mb-4 relative z-10">GRID LOAD BALANCING</h3>
+<div class="grid grid-cols-2 gap-4 relative z-10">
+<div>
+<span class="text-[10px] text-slate-500 block mb-1">RESIDENTIAL</span>
+<div class="text-lg font-mono text-white">45%</div>
+<div class="w-full h-1 bg-navy-deep mt-1 rounded-full"><div class="w-[45%] h-full bg-green-500"></div></div>
+</div>
+<div>
+<span class="text-[10px] text-slate-500 block mb-1">INDUSTRIAL</span>
+<div class="text-lg font-mono text-hazard">82%</div>
+<div class="w-full h-1 bg-navy-deep mt-1 rounded-full"><div class="w-[82%] h-full bg-hazard"></div></div>
+</div>
+</div>
+<div class="mt-4 p-2 bg-hazard/10 border border-hazard/30 rounded text-xs text-hazard font-mono flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span>Substation B Overload Risk</span>
+</div>
+</div>
+<div class="space-y-3">
+<span class="text-xs font-bold text-slate-300 tracking-wider">RESIDENT SENTIMENT</span>
+<div class="flex items-center gap-3 p-2 rounded bg-navy-deep border-l-2 border-green-500">
+<div class="bg-navy-surface rounded-full p-1"><span class="material-symbols-outlined text-xs text-green-500">sentiment_satisfied</span></div>
+<div class="flex-1">
+<div class="text-[10px] text-slate-300 font-bold">UPPER SECTOR</div>
+<div class="text-[9px] text-slate-500">"The view from the skyport is amazing..."</div>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded bg-navy-deep border-l-2 border-hazard">
+<div class="bg-navy-surface rounded-full p-1"><span class="material-symbols-outlined text-xs text-hazard">sentiment_dissatisfied</span></div>
+<div class="flex-1">
+<div class="text-[10px] text-slate-300 font-bold">LOWER SECTOR</div>
+<div class="text-[9px] text-slate-500">"Too much noise from the reactors..."</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-4 border-t border-navy-border mt-auto">
+<button class="bg-navy-deep hover:bg-amber-glow hover:text-navy-deep text-amber-glow border border-amber-glow/50 py-2 rounded text-xs font-bold transition-all">
+                    MANAGE POLICIES
+                </button>
+<button class="bg-hazard text-navy-deep hover:bg-yellow-300 py-2 rounded text-xs font-bold transition-colors shadow-[0_0_15px_rgba(255,234,0,0.3)]">
+                    EMERGENCY OVERRIDE
+                </button>
+</div>
+</div>
+</aside>
+</main>
+<script>
+    // Just a placeholder script to prevent errors if user adds js later
+    console.log("Venus OS: Systems Online");
+</script>
+
+</body></html>

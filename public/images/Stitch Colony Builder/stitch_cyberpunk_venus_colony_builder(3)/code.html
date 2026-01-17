@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Venus OS: Liminal &amp; Cyberpunk UI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00f0ff","secondary": "#ff0099","accent": "#fcee0a","background-dark": "#050505",
+                        "surface-dark": "#0a0f14",
+                        "surface-darker": "#000000",
+                        "glass-border": "rgba(0, 240, 255, 0.3)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                        "mono": ["Courier New", "monospace"], // More retro OS feel
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: #00f0ff;
+            text-shadow: 2px 0 #ff0099, -2px 0 #fcee0a;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 3px;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .glass-panel {
+            background: rgba(5, 8, 10, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }.cyber-corner {
+            position: relative;
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 15px), 
+                calc(100% - 15px) 100%, 
+                0 100%
+            );
+        }
+        .cyber-corner::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 1px;
+            background: var(--primary-color, #00f0ff);
+            transform: rotate(45deg);
+            transform-origin: bottom right;
+        }
+        .sepia-liminal {
+            filter: sepia(0.8) contrast(1.2) brightness(0.7) hue-rotate(-10deg);
+        }
+        .neon-glow-text {
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.8), 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        .neon-glow-pink {
+            text-shadow: 0 0 5px rgba(255, 0, 153, 0.8), 0 0 10px rgba(255, 0, 153, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen w-screen flex selection:bg-secondary selection:text-white">
+<div class="fixed inset-0 z-0 bg-cover bg-center opacity-30 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoWpkxBTcpMTnacuvkXbNPKkGbZt1qHbrjwu5Y_EMwXMMDX-azUTPHi4CtpLK2GJAjjxzgak09JCTQjpo9zgPBtAnZeUpP9JKb8nIhGbCB7U_jjupJpKqSxxww_7DEWbdnsgwlmnfpjFdIkiGkgJv_-Hjs8dZZr25z6urUmcD7MLVaSlURkZzSJBEyf4TZBUvFm1gBmjwuvN0UeYNwujU_KBX65MIHiPvWJT1kGFg0apPUFcWXadP4DvtB7SHEgDMD0uwrl9JsjlU'); filter: contrast(1.2) hue-rotate(180deg) saturate(1.5);"></div>
+<div class="fixed inset-0 z-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgNDBoNDBNNDAgMHY0MCIgc3Ryb2tlPSJyZ2JhKDAsIDI0MCwgMjU1LCAwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+Cjwvc3ZnPg==')] opacity-40 pointer-events-none"></div>
+<div class="fixed inset-0 z-50 pointer-events-none scanline opacity-30"></div>
+<aside class="w-20 lg:w-72 bg-black/90 border-r border-primary/20 flex flex-col justify-between z-30 shadow-[10px_0_30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+<div class="p-6 border-b border-primary/20 flex items-center gap-4 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary animate-pulse"></div>
+<div class="size-10 flex items-center justify-center border border-primary text-primary shadow-[0_0_10px_rgba(0,240,255,0.3)]">
+<span class="material-symbols-outlined text-3xl">token</span>
+</div>
+<div class="hidden lg:flex flex-col">
+<h1 class="text-xl font-bold tracking-[0.2em] text-white neon-glow-text">VENUS_OS</h1>
+<div class="flex items-center gap-2">
+<span class="size-1.5 bg-secondary rounded-full animate-ping"></span>
+<span class="text-[9px] text-primary/80 font-mono">SYS.ONLINE // V.2.77</span>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1 p-3 overflow-y-auto scrollbar-hide">
+<div class="flex flex-col gap-1">
+<p class="hidden lg:block px-3 py-2 text-[10px] font-mono text-primary/50 tracking-widest border-b border-white/5 mb-2">MAIN_MODULES</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm bg-primary/10 border-l-2 border-primary text-white hover:bg-primary/20 transition-all duration-200">
+<span class="material-symbols-outlined group-hover:animate-pulse text-primary">grid_view</span>
+<span class="hidden lg:block text-sm font-bold tracking-wide">NET_DASHBOARD</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm border-l-2 border-transparent hover:border-secondary hover:bg-secondary/10 text-gray-400 hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">construction</span>
+<span class="hidden lg:block text-sm font-medium tracking-wide">MEGA_BUILD</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm border-l-2 border-transparent hover:border-secondary hover:bg-secondary/10 text-gray-400 hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">bolt</span>
+<span class="hidden lg:block text-sm font-medium tracking-wide">POWER_GRID</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm border-l-2 border-transparent hover:border-secondary hover:bg-secondary/10 text-gray-400 hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">domain</span>
+<span class="hidden lg:block text-sm font-medium tracking-wide">DISTRICTS</span>
+</button>
+</div>
+<div class="mt-6 flex flex-col gap-1">
+<p class="hidden lg:block px-3 py-2 text-[10px] font-mono text-primary/50 tracking-widest border-b border-white/5 mb-2">OPERATIONS</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm border-l-2 border-transparent hover:border-secondary hover:bg-secondary/10 text-gray-400 hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">public</span>
+<span class="hidden lg:block text-sm font-medium tracking-wide">TERRA_OPS</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-sm border-l-2 border-transparent hover:border-secondary hover:bg-secondary/10 text-gray-400 hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">security</span>
+<span class="hidden lg:block text-sm font-medium tracking-wide">NET_SEC</span>
+</button>
+</div>
+</nav>
+<div class="p-4 bg-black border-t border-primary/20 relative">
+<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+<div class="flex items-center justify-between mb-2 relative z-10">
+<span class="text-[10px] text-accent font-bold tracking-wider font-mono">ATMOSPHERE.XY</span>
+<span class="text-[10px] text-primary font-mono animate-pulse">PROCESSING...</span>
+</div>
+<div class="h-2 w-full bg-gray-900 rounded-none border border-gray-700 overflow-hidden relative z-10">
+<div class="h-full bg-gradient-to-r from-secondary to-primary w-[34%] shadow-[0_0_10px_rgba(255,0,153,0.6)]"></div>
+</div>
+<div class="mt-2 flex justify-between text-[9px] text-gray-500 font-mono relative z-10">
+<span>ACIDITY: CRITICAL</span>
+<span>34%</span>
+</div>
+</div>
+<div class="p-4 border-t border-primary/20 flex items-center gap-3 bg-[#080808]">
+<div class="relative">
+<div class="size-10 bg-cover bg-center grayscale contrast-125 border border-primary/50" data-alt="Portrait of a female cyberpunk commander with neon glowing visor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALNJsT8XoIBYdadK8crI0fku6BxGdAdmmLdyLhnS18gJHZXdTVZB3tMbvT0MclRiQNrOolHyd-s68_WNionTUXcZw09Crn2RCzYfh0qT3-V1lw7YKTJAshhU6BTuk8FAvk9306d79Ww7XIuGEF6720UIJK8Z9GsDK8ubRvRwxO9s_kPcSWykO3OJKP47U_A9HxExWb7Yvx0hfCvKfLM6icQZxlc71b_zTcqFiykrkJ7laCyq5bN7uk3P0glkgkOuooDBUa7LRkRIA');"></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-primary border-2 border-black rounded-sm"></div>
+</div>
+<div class="hidden lg:flex flex-col">
+<span class="text-sm font-bold text-white leading-none tracking-wide">CMDR. VANCE</span>
+<span class="text-[10px] text-primary/70 font-mono mt-0.5">AUTH_LEVEL_04</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative z-10 h-full overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
+<header class="h-16 bg-black/80 backdrop-blur-md border-b border-primary/20 flex items-center justify-between px-6 shrink-0 z-20">
+<div class="flex items-center gap-8 overflow-x-auto scrollbar-hide">
+<div class="flex items-center gap-3 pr-6 border-r border-white/10">
+<span class="material-symbols-outlined text-secondary text-lg animate-pulse">wifi_tethering</span>
+<div class="flex flex-col">
+<p class="text-[9px] text-gray-400 font-mono tracking-widest">NET_POPULATION</p>
+<p class="text-sm font-mono font-bold text-white neon-glow-text">4,208</p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-white/10">
+<span class="material-symbols-outlined text-primary text-lg">bolt</span>
+<div class="flex flex-col">
+<p class="text-[9px] text-gray-400 font-mono tracking-widest">GRID_LOAD</p>
+<p class="text-sm font-mono font-bold text-white">84% <span class="text-primary text-[9px]">STABLE</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-white/10">
+<span class="material-symbols-outlined text-accent text-lg">warning</span>
+<div class="flex flex-col">
+<p class="text-[9px] text-gray-400 font-mono tracking-widest">PRESSURE</p>
+<p class="text-sm font-mono font-bold text-white">92 BAR <span class="text-accent text-[9px] animate-pulse">CRITICAL</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-400 text-lg">currency_bitcoin</span>
+<div class="flex flex-col">
+<p class="text-[9px] text-gray-400 font-mono tracking-widest">CRYPTO</p>
+<p class="text-sm font-mono font-bold text-white">¥ 14.2M</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 pl-4">
+<div class="px-2 py-1 border border-primary/30 bg-primary/5 rounded text-[10px] text-primary font-mono">
+                    VENUS_NET // CONNECTED
+                </div>
+<button class="p-2 text-gray-400 hover:text-white hover:bg-white/5 transition-colors rounded"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-gray-400 hover:text-white hover:bg-white/5 transition-colors rounded"><span class="material-symbols-outlined">settings</span></button>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden relative">
+<div class="flex-1 overflow-y-auto overflow-x-hidden relative p-4 lg:p-10 scrollbar-hide flex flex-col items-center">
+<div class="fixed top-1/3 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-1/4 right-1/3 w-64 h-64 bg-secondary/5 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="w-full max-w-4xl flex flex-col gap-6 pb-20 perspective-1000">
+<div class="group relative flex items-stretch min-h-[220px] transition-all duration-300 hover:scale-[1.01]">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-[10px] font-mono text-secondary tracking-widest">SEC</span>
+<span class="text-3xl font-bold font-mono text-white neon-glow-pink">09</span>
+</div>
+<div class="absolute -left-4 top-12 w-4 h-[1px] bg-secondary/50"></div>
+<div class="flex-1 glass-panel cyber-corner p-0 overflow-hidden bg-black relative border-t-2 border-secondary/50">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Futuristic landing pad with rain and neon lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8tTi7giyIKAkYZ2azxbEUhA8607bp2Umj2AbNzg6Qfxwt70CRFK9PGCT-wx_lXV4BLN6jlUogss_IRkmhc5yxRoXTUj-I9ueoNJQbGd9g2MWp_5xRBPjj09f-gk-AkCT1AEvpVrVhlpUX4hueXm-UAILUfw4hqzc-w605PCiC1sx6553Yo78WZZzbxdOSFRanxY8nEEl1GLOWpUrhpA-jjHLoytXsSTXvc66xQB7Bh0gpi1loQdrgQJ5jAGDhs1C8ytMud7arj4o'); filter: brightness(0.8) contrast(1.2);">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+<div class="absolute top-4 left-4 z-10 flex gap-2">
+<span class="px-2 py-0.5 bg-secondary text-black text-[10px] font-bold tracking-widest uppercase">High Traffic</span>
+<span class="px-2 py-0.5 bg-black/60 border border-primary/40 text-primary text-[10px] font-mono backdrop-blur-sm">NEON_MARKET</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-6 z-10">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-2xl font-bold text-white tracking-tight neon-glow-text">The Sprawl: Level 50</h3>
+<p class="text-xs text-gray-300 max-w-md mt-1 font-light border-l-2 border-primary pl-2">
+                                            Rain-slicked neon street level. Illegal tech vendors, noodle bars, and heavy drone traffic. 
+                                            <span class="text-primary block mt-1 font-mono text-[10px]">&gt; POLLUTION: HIGH // VISIBILITY: LOW</span>
+</p>
+</div>
+<div class="text-right hidden sm:block">
+<div class="text-[10px] text-gray-400 font-mono">ACTIVE ENTITIES</div>
+<div class="text-xl font-mono text-white">1,240</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[180px] transition-all duration-300 hover:scale-[1.01]">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-60 group-hover:opacity-100 transition-opacity">
+<span class="text-[10px] font-mono text-accent tracking-widest">SEC</span>
+<span class="text-3xl font-bold font-mono text-white" style="text-shadow: 0 0 10px #fcee0a;">04</span>
+</div>
+<div class="absolute -left-4 top-12 w-4 h-[1px] bg-accent/50"></div>
+<div class="flex-1 glass-panel cyber-corner p-0 overflow-hidden bg-[#1a1810] relative border-t-2 border-accent/30">
+<div class="absolute inset-0 bg-cover bg-center sepia-liminal transition-transform duration-1000 group-hover:scale-110" data-alt="Empty, eerie concrete industrial corridor with flickering lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBU6nkMwVS3E6olcqa78HpA7YN7A0DerAvxxOPbhWFFv-JkhVtUvf7abm3pkiRGragQtUqbOJOgR9Fd-eoxPkr4d-GULs8fnRBVSXZ4fOFuRNIzl5vW4PK7cVy-JlNRgQvnjmSIoRbG5nRfDu-6TWk37LEr6x4k94Di_0AXLogvhZ7sfSWHVkEdhV5AStr-pXY-0ZPNgIeeN_G-4XFbherLMATDlqgw3JGjZ8vE4O6ZMaGfnUbIJTIVs3AKYSOBc9UX-JuO-swMV58');">
+</div>
+<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/noise.png')] opacity-20 mix-blend-overlay"></div>
+<div class="absolute top-4 left-4 z-10">
+<span class="px-2 py-0.5 bg-accent/80 text-black text-[10px] font-bold tracking-widest uppercase border border-black">LIMINAL ZONE</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-5 z-10 bg-gradient-to-t from-black/90 to-transparent">
+<h3 class="text-xl font-bold text-[#fcee0a] tracking-widest uppercase opacity-90">The Backrooms</h3>
+<p class="text-xs text-[#e8e6b5] mt-1 font-serif italic tracking-wide">
+                                    "Vast, empty office space. Yellowed lights. The hum of fluorescence. Endless cubicles."
+                                </p>
+<div class="mt-2 text-[10px] font-mono text-gray-400 flex gap-4">
+<span>OCCUPANCY: 0</span>
+<span>REALITY_ANCHOR: UNSTABLE</span>
+</div>
+</div>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[160px] transition-all duration-300 opacity-80 hover:opacity-100">
+<div class="absolute -left-14 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-40 group-hover:opacity-100">
+<span class="text-[10px] font-mono text-primary">SEC</span>
+<span class="text-2xl font-bold font-mono text-white">03</span>
+</div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-end p-4 relative overflow-hidden border border-white/5" data-alt="Luxurious cyberpunk apartment interior with neon blue lighting" style="background-image: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');">
+<h3 class="text-lg font-bold text-white relative z-10">Executive Suites</h3>
+<p class="text-xs text-primary relative z-10 font-mono">RESIDENTIAL // CLASS A</p>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[200px] transition-all duration-300 ring-1 ring-secondary/30 shadow-[0_0_20px_rgba(255,0,153,0.1)]">
+<div class="absolute -left-14 top-8 flex flex-col items-end opacity-100 transition-opacity">
+<span class="text-[10px] font-mono text-secondary">SEC</span>
+<span class="text-3xl font-bold font-mono text-white neon-glow-pink">02</span>
+</div>
+<div class="flex-1 glass-panel cyber-corner p-0 overflow-hidden relative">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Cyberpunk hydroponics bay with intense pink grow lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8pMD3s5ZoIwK-VV8ztxPeJH7hft2YHZ2DWibpbPtx4B57RYcGMT1UyWChgQJRokkW0fER6QmiG-Mgdo1bu5Tfz5r1ZxpXNo3sAaYPIwguaE-autIUF8NtjQv64PAUJwSFeQsdo6bq2hNH5pDh5hbi0DzlDh-JJRJUGFqAlhBCwrsN_MzHEbdX2Mw69sJ_vTvimb2yYlK0FVv41DnuPOAqJQETrjp6bfO0lrwu36yGzziJ_13sirWeV3QsfPnLEbZMVGmCYGay_0k'); filter: hue-rotate(15deg) contrast(1.1);"></div>
+<div class="absolute inset-0 bg-secondary/10 mix-blend-overlay"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
+<div class="absolute top-0 right-0 p-4">
+<div class="px-2 py-1 bg-black/80 border border-secondary text-secondary text-xs font-mono rounded animate-pulse">
+                                    ⚠ BIO-HAZARD LEAK
+                                </div>
+</div>
+<div class="absolute bottom-0 left-0 p-6 z-10">
+<h3 class="text-2xl font-bold text-white">Hydro-Lab 42</h3>
+<div class="flex gap-4 mt-2 text-xs font-mono text-secondary">
+<span class="flex items-center gap-1 bg-black/50 px-2 py-1 rounded border border-secondary/30">
+<span class="material-symbols-outlined text-[12px]">spa</span> SYNTH_FLORA
+                                     </span>
+<span class="flex items-center gap-1 bg-black/50 px-2 py-1 rounded border border-secondary/30">
+<span class="material-symbols-outlined text-[12px]">water_drop</span> HUMIDITY: 99%
+                                     </span>
+</div>
+</div>
+</div>
+</div>
+<div class="group relative flex items-stretch min-h-[140px] border-l-2 border-r-2 border-primary/20 hover:border-primary transition-colors duration-300 mt-4">
+<div class="absolute -left-14 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100">
+<span class="text-[10px] font-mono text-primary">SEC</span>
+<span class="text-2xl font-bold font-mono text-white">00</span>
+</div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-center items-center p-4 relative overflow-hidden" data-alt="Dark server room with blue glowing lights" style="background-image: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.6)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDth7sHUGpZwwu81s75oCLnT100wyfwBkF6Hi7ziOAo7iYaj3J6KlRm05JhG7O70K-ihQkvVRzRaIMmOprvSMtxI9oIgjxZLPVbf3ZPBJf-K3RBzTdRs8HVYFuLSpoO2LJ9ixU9yeKHy-HweACrhos0qcYRUVN48B1c-L7s_43chFGjgLWovvUtZdPSdqRAnrjtdkK3A2F5pEUadqtQdbhJQ4iC_aCNWeKlYvBobGUjPrEHNtSlemThuj2icvY9zggrd_kL1ayv614');">
+<div class="text-center relative z-10">
+<h3 class="text-lg font-bold text-white tracking-[0.2em] neon-glow-text">CORE_SYSTEMS</h3>
+<p class="text-xs text-primary font-mono mt-1">FUSION_RELAY // 1.2 GW</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<aside class="w-80 bg-black/95 border-l border-primary/20 flex flex-col shadow-[-10px_0_40px_rgba(0,0,0,0.5)] z-20 backdrop-blur-md">
+<div class="p-4 border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent">
+<h2 class="text-[10px] font-bold text-primary tracking-[0.2em] mb-1">DATA_INSPECTOR_V1</h2>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm animate-spin">data_usage</span>
+<span class="text-sm font-bold text-white font-mono">SEC_02: HYDROPONICS</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-hide">
+<div class="bg-[#050505] rounded-sm p-3 border border-primary/30 font-mono text-[10px] text-primary/80 h-32 overflow-hidden relative">
+<div class="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
+<p>&gt; SCANNING SECTOR...</p>
+<p>&gt; BIO-SIGNS DETECTED: 442</p>
+<p>&gt; WARNING: SPORE COUNT ELEVATED</p>
+<p class="text-secondary">&gt; ALERT: PRESSURE LEAK IN VALVE 4B</p>
+<p>&gt; REROUTING POWER...</p>
+<p class="animate-pulse">_</p>
+</div>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between text-[9px] text-gray-400 font-mono mb-1">
+<span>STRUCTURAL_INTEGRITY</span>
+<span class="text-white">88%</span>
+</div>
+<div class="w-full bg-gray-900 h-1.5">
+<div class="bg-primary h-full w-[88%] shadow-[0_0_5px_rgba(0,240,255,0.5)]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[9px] text-gray-400 font-mono mb-1">
+<span>TOXICITY_LEVELS</span>
+<span class="text-secondary animate-pulse">CRITICAL</span>
+</div>
+<div class="w-full bg-gray-900 h-1.5">
+<div class="bg-secondary h-full w-[92%] shadow-[0_0_5px_rgba(255,0,153,0.5)]"></div>
+</div>
+</div>
+</div>
+<div class="bg-[#0a0f12] border border-white/10 p-3 relative">
+<span class="text-[9px] text-gray-500 font-mono absolute top-2 left-2">YIELD_OUTPUT</span>
+<div class="flex items-end justify-between h-20 pt-4 gap-1">
+<div class="w-1/5 bg-primary/20 h-[30%]"></div>
+<div class="w-1/5 bg-primary/40 h-[50%]"></div>
+<div class="w-1/5 bg-primary/60 h-[40%]"></div>
+<div class="w-1/5 bg-primary h-[80%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-secondary text-black text-[9px] px-1 font-bold opacity-0 group-hover:opacity-100 transition-opacity">MAX</div>
+</div>
+<div class="w-1/5 bg-primary/30 h-[45%]"></div>
+</div>
+</div>
+<div>
+<span class="text-[9px] text-primary/70 font-mono tracking-widest block mb-2">ASSIGNED_UNITS</span>
+<div class="grid grid-cols-4 gap-2">
+<div class="aspect-square bg-gray-900 border border-primary/30 flex items-center justify-center hover:bg-primary/20 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-primary text-sm">android</span>
+</div>
+<div class="aspect-square bg-gray-900 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-600 text-sm">face</span>
+</div>
+<div class="aspect-square bg-gray-900 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-600 text-sm">face</span>
+</div>
+<div class="aspect-square border border-dashed border-gray-700 flex items-center justify-center text-gray-700 hover:text-white hover:border-white transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-auto">
+<button class="py-3 bg-secondary/10 border border-secondary/50 text-secondary text-[10px] font-bold hover:bg-secondary hover:text-black transition-all uppercase tracking-wider flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-sm">lock</span> LOCKDOWN
+                        </button>
+<button class="py-3 bg-white/5 border border-white/10 text-white text-[10px] font-bold hover:bg-white hover:text-black transition-all uppercase tracking-wider">
+                            SYS_LOGS
+                        </button>
+</div>
+</div>
+</aside>
+<div class="absolute bottom-8 right-[24rem] z-30 flex flex-col items-end pointer-events-none">
+<div class="bg-black/90 backdrop-blur border-r-4 border-secondary p-4 max-w-sm mb-2 shadow-[0_0_20px_rgba(0,0,0,0.5)] transform translate-x-4 animate-[slideIn_0.5s_ease-out_forwards]">
+<div class="flex items-center gap-2 text-secondary mb-1">
+<span class="material-symbols-outlined text-sm animate-pulse">warning</span>
+<span class="text-[10px] font-bold tracking-[0.2em] font-mono">WEATHER_ALERT</span>
+</div>
+<p class="text-xs text-gray-300 font-mono">Acid rain storm approaching Sector 09. Corrosion sensors at 85%.</p>
+</div>
+</div>
+</div>
+</main>
+<style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+
+</body></html>

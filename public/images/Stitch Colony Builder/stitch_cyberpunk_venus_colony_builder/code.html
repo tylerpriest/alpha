@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Venusian Tower Management Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00ccaa",
+                        "secondary": "#FF00AA",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#101817",
+                        "surface-dark": "#182422",
+                        "surface-darker": "#0b1211",
+                        "venus-orange": "#dba618",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'venus-haze': "linear-gradient(to right, rgba(16, 24, 23, 0.95), rgba(16, 24, 23, 0.8)), url('https://images.unsplash.com/photo-1541873676-a18131494184?q=80&w=2518&auto=format&fit=crop')",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: #00ccaa;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .glass-panel {
+            background: rgba(24, 36, 34, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(39, 58, 55, 0.8);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-[#050808] text-white font-display overflow-hidden h-screen w-screen flex selection:bg-primary selection:text-black">
+<!-- Global Background / Atmosphere -->
+<div class="fixed inset-0 z-0 bg-cover bg-center opacity-40 pointer-events-none" data-alt="Abstract orange hazy atmosphere of Venus with swirling dust clouds" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoWpkxBTcpMTnacuvkXbNPKkGbZt1qHbrjwu5Y_EMwXMMDX-azUTPHi4CtpLK2GJAjjxzgak09JCTQjpo9zgPBtAnZeUpP9JKb8nIhGbCB7U_jjupJpKqSxxww_7DEWbdnsgwlmnfpjFdIkiGkgJv_-Hjs8dZZr25z6urUmcD7MLVaSlURkZzSJBEyf4TZBUvFm1gBmjwuvN0UeYNwujU_KBX65MIHiPvWJT1kGFg0apPUFcWXadP4DvtB7SHEgDMD0uwrl9JsjlU');"></div>
+<div class="fixed inset-0 z-0 bg-gradient-to-t from-orange-900/20 via-transparent to-[#050808] pointer-events-none"></div>
+<div class="fixed inset-0 z-50 pointer-events-none scanline opacity-20"></div>
+<!-- LEFT SIDEBAR: Command Center -->
+<aside class="w-20 lg:w-72 bg-surface-darker/95 border-r border-[#273a37] flex flex-col justify-between z-30 shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-all duration-300">
+<!-- Brand -->
+<div class="p-5 border-b border-[#273a37] flex items-center gap-3">
+<div class="size-8 text-primary animate-pulse">
+<span class="material-symbols-outlined text-3xl">token</span>
+</div>
+<div class="hidden lg:flex flex-col">
+<h1 class="text-lg font-bold tracking-widest leading-none text-white">VENUS_OS</h1>
+<span class="text-[10px] text-primary/60 tracking-[0.2em]">TOWER_04 // ALPHA</span>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex-1 flex flex-col gap-2 p-3 overflow-y-auto scrollbar-hide">
+<div class="flex flex-col gap-1">
+<p class="hidden lg:block px-3 py-2 text-xs font-bold text-[#5c706b] tracking-wider">COMMAND</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg bg-primary/10 border border-primary/30 text-white hover:bg-primary hover:text-black transition-all duration-200">
+<span class="material-symbols-outlined group-hover:animate-spin">grid_view</span>
+<span class="hidden lg:block text-sm font-medium">Dashboard</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">construction</span>
+<span class="hidden lg:block text-sm font-medium">Construct</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">bolt</span>
+<span class="hidden lg:block text-sm font-medium">Utilities</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">domain</span>
+<span class="hidden lg:block text-sm font-medium">Zoning</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">security</span>
+<span class="hidden lg:block text-sm font-medium">Security</span>
+</button>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<p class="hidden lg:block px-3 py-2 text-xs font-bold text-[#5c706b] tracking-wider">SCIENCE</p>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">public</span>
+<span class="hidden lg:block text-sm font-medium">Terraform</span>
+</button>
+<button class="group flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-[#273a37] text-[#9abcb6] hover:text-white transition-all duration-200 glitch-hover">
+<span class="material-symbols-outlined">science</span>
+<span class="hidden lg:block text-sm font-medium">Research</span>
+</button>
+</div>
+</nav>
+<!-- Terraform Status Widget -->
+<div class="p-4 bg-gradient-to-t from-[#1b1505] to-transparent border-t border-[#273a37]">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] text-venus-orange font-bold tracking-wider">TERRAFORMING</span>
+<span class="text-[10px] text-white font-mono">12.4%</span>
+</div>
+<div class="h-1.5 w-full bg-[#273a37] rounded-full overflow-hidden">
+<div class="h-full bg-venus-orange w-[12.4%] shadow-[0_0_10px_rgba(219,166,24,0.6)]"></div>
+</div>
+<p class="mt-2 text-[10px] text-[#5c706b] truncate">Next: Acid Rain Neutralization</p>
+</div>
+<!-- User Profile -->
+<div class="p-4 border-t border-[#273a37] flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center border border-[#5c706b]" data-alt="Portrait of a female cyberpunk commander with neon glowing visor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALNJsT8XoIBYdadK8crI0fku6BxGdAdmmLdyLhnS18gJHZXdTVZB3tMbvT0MclRiQNrOolHyd-s68_WNionTUXcZw09Crn2RCzYfh0qT3-V1lw7YKTJAshhU6BTuk8FAvk9306d79Ww7XIuGEF6720UIJK8Z9GsDK8ubRvRwxO9s_kPcSWykO3OJKP47U_A9HxExWb7Yvx0hfCvKfLM6icQZxlc71b_zTcqFiykrkJ7laCyq5bN7uk3P0glkgkOuooDBUa7LRkRIA');"></div>
+<div class="hidden lg:flex flex-col">
+<span class="text-sm font-bold text-white leading-none">Cmdr. Vance</span>
+<span class="text-xs text-[#5c706b]">Level 4 Clearance</span>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
+<!-- TOP HEADER: Stats & Global Status -->
+<header class="h-16 bg-surface-darker/90 backdrop-blur-md border-b border-[#273a37] flex items-center justify-between px-6 shrink-0 z-20">
+<!-- Left: Stats Ticker -->
+<div class="flex items-center gap-8 overflow-x-auto scrollbar-hide">
+<div class="flex items-center gap-3 pr-6 border-r border-[#273a37]/50">
+<div class="p-1.5 rounded bg-[#273a37]">
+<span class="material-symbols-outlined text-white text-sm">groups</span>
+</div>
+<div>
+<p class="text-[10px] text-[#9abcb6] font-bold tracking-wider">POPULATION</p>
+<p class="text-sm font-mono font-bold text-white">4,208 <span class="text-[#5c706b]">/ 5,000</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-[#273a37]/50">
+<div class="p-1.5 rounded bg-[#273a37]">
+<span class="material-symbols-outlined text-primary text-sm">bolt</span>
+</div>
+<div>
+<p class="text-[10px] text-[#9abcb6] font-bold tracking-wider">GRID LOAD</p>
+<p class="text-sm font-mono font-bold text-white">84% <span class="text-primary text-[10px]">STABLE</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-[#273a37]/50">
+<div class="p-1.5 rounded bg-[#3a2727]">
+<span class="material-symbols-outlined text-venus-orange text-sm">compress</span>
+</div>
+<div>
+<p class="text-[10px] text-[#9abcb6] font-bold tracking-wider">PRESSURE</p>
+<p class="text-sm font-mono font-bold text-white">92 BAR <span class="text-venus-orange text-[10px] animate-pulse">WARNING</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="p-1.5 rounded bg-[#273a37]">
+<span class="material-symbols-outlined text-secondary text-sm">currency_yen</span>
+</div>
+<div>
+<p class="text-[10px] text-[#9abcb6] font-bold tracking-wider">CREDITS</p>
+<p class="text-sm font-mono font-bold text-white">¥ 14.2M</p>
+</div>
+</div>
+</div>
+<!-- Right: System Controls -->
+<div class="flex items-center gap-3 pl-4 border-l border-[#273a37]/50">
+<button class="p-2 text-[#9abcb6] hover:text-white transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-[#9abcb6] hover:text-white transition-colors"><span class="material-symbols-outlined">settings</span></button>
+</div>
+</header>
+<!-- CENTRAL VIEWPORT WRAPPER -->
+<div class="flex-1 flex overflow-hidden relative">
+<!-- THE TOWER (Scrollable Center) -->
+<div class="flex-1 overflow-y-auto overflow-x-hidden relative p-4 lg:p-10 scrollbar-hide flex flex-col items-center">
+<!-- Atmospheric Background Elements inside the scroll view for parallax feel -->
+<div class="absolute top-20 left-10 w-64 h-64 bg-venus-orange/10 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- Tower Cross Section Container -->
+<div class="w-full max-w-3xl flex flex-col gap-1 pb-20">
+<!-- Floor Level: Skyport (Top) -->
+<div class="group relative flex items-stretch min-h-[140px] border-l-2 border-r-2 border-[#273a37] hover:border-primary transition-colors duration-300">
+<!-- Floor Label -->
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-primary">LVL</span>
+<span class="text-2xl font-bold font-mono text-white">50</span>
+</div>
+<!-- Room Content -->
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-end p-4 relative overflow-hidden" data-alt="Futuristic landing pad with rain and neon lights" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), transparent), url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8tTi7giyIKAkYZ2azxbEUhA8607bp2Umj2AbNzg6Qfxwt70CRFK9PGCT-wx_lXV4BLN6jlUogss_IRkmhc5yxRoXTUj-I9ueoNJQbGd9g2MWp_5xRBPjj09f-gk-AkCT1AEvpVrVhlpUX4hueXm-UAILUfw4hqzc-w605PCiC1sx6553Yo78WZZzbxdOSFRanxY8nEEl1GLOWpUrhpA-jjHLoytXsSTXvc66xQB7Bh0gpi1loQdrgQJ5jAGDhs1C8ytMud7arj4o');">
+<div class="absolute top-2 right-2 flex gap-1">
+<span class="px-1.5 py-0.5 bg-black/50 text-[10px] font-bold text-primary border border-primary/30 rounded">DOCKED</span>
+</div>
+<h3 class="text-lg font-bold text-white relative z-10">Skyport Alpha</h3>
+<p class="text-xs text-gray-300 relative z-10">Atmospheric Shuttle Logistics</p>
+</div>
+</div>
+<!-- Floor Level: Upper Class Apartments -->
+<div class="group relative flex items-stretch min-h-[180px] border-l-2 border-r-2 border-[#273a37] hover:border-primary transition-colors duration-300">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-primary">LVL</span>
+<span class="text-2xl font-bold font-mono text-white">49</span>
+</div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-end p-4 relative overflow-hidden" data-alt="Luxurious cyberpunk apartment interior with neon blue lighting" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), transparent), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrYKkZRKiVlqJ0iHE-50giHo74ddlydnzy29lhP-5eaoB4ilNtYrfjn9hwGLCVMpy2m6CWURr0wX8SI9cF554rW2DiTU6UD0NRJLy8U6hE38LOYzbD-zkEDgnH_2-HQOLFTzJlT3wSuwbcg_YmVYmFrtIOjT7d4JZQnSAYsLvFlfHDcCdi215Zky9A-3GT1ZF9oZuyLGxoIixpU7jc6dzvy74GLIHbVSMpumF-G7AeUFGwl5QeHaxbOLh9hpCBFSmdG0lmwW-82jE');">
+<div class="absolute top-2 right-2 flex gap-1">
+<span class="px-1.5 py-0.5 bg-black/50 text-[10px] font-bold text-white border border-white/30 rounded">98% SATISFACTION</span>
+</div>
+<h3 class="text-lg font-bold text-white relative z-10">Executive Suites</h3>
+<p class="text-xs text-gray-300 relative z-10">High-Density Luxury Living</p>
+</div>
+</div>
+<!-- Floor Level: Hydroponics (Warning) -->
+<div class="group relative flex items-stretch min-h-[200px] border-l-2 border-r-2 border-secondary hover:border-secondary transition-colors duration-300 ring-1 ring-secondary/20 shadow-[0_0_30px_rgba(255,0,170,0.1)]">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-100 transition-opacity">
+<span class="text-xs font-mono text-secondary">LVL</span>
+<span class="text-2xl font-bold font-mono text-white text-shadow-neon-pink">42</span>
+</div>
+<!-- Connector Pipe graphic -->
+<div class="absolute -right-8 top-10 h-32 w-4 border-r-2 border-t-2 border-b-2 border-secondary/50 rounded-r-lg"></div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-between p-4 relative overflow-hidden" data-alt="Cyberpunk hydroponics bay with intense pink grow lights and overgrown plants" style="background-image: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8pMD3s5ZoIwK-VV8ztxPeJH7hft2YHZ2DWibpbPtx4B57RYcGMT1UyWChgQJRokkW0fER6QmiG-Mgdo1bu5Tfz5r1ZxpXNo3sAaYPIwguaE-autIUF8NtjQv64PAUJwSFeQsdo6bq2hNH5pDh5hbi0DzlDh-JJRJUGFqAlhBCwrsN_MzHEbdX2Mw69sJ_vTvimb2yYlK0FVv41DnuPOAqJQETrjp6bfO0lrwu36yGzziJ_13sirWeV3QsfPnLEbZMVGmCYGay_0k');">
+<!-- Overlay Image for specific look -->
+<div class="absolute inset-0 bg-secondary/10 mix-blend-overlay"></div>
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="Close up of pink led grow lights on plants" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4BynnUCD-YukhNvNxtiZWWRuuWL09GMyh8gidV69tqx7ED53B2oJV7X_ADxpPOJ1h9552mQYDZ2WzSl86zmw_U6ZErhq-ITyb7QKfigmq4KAqQ9rIoI3n1RwaIl5IyUD_N13521xlgkL9odABsL6eQdgr1TUWtfnrcth_dz3PnTjCnEGbHeudk3YX60L-8nSYGsVS1PJ206DOMJt368RKmAs3CrVr_HJE5fK6tTfgua_IC5uH3erNcHtOvwf192exx8yWIzc3v6I');"></div>
+<div class="flex justify-between items-start relative z-10">
+<div class="px-2 py-1 bg-secondary text-black text-xs font-bold rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                                     PRESSURE LEAK
+                                 </div>
+<button class="size-8 rounded bg-black/50 backdrop-blur text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+<div class="relative z-10">
+<h3 class="text-2xl font-bold text-white tracking-tight">Hydroponics Bay Alpha</h3>
+<div class="flex gap-4 mt-1 text-xs font-mono text-secondary">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">eco</span> YIELD: HIGH</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">water_drop</span> HUMIDITY: 98%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floor Level: Maintenance Corridor (Liminal) -->
+<div class="group relative flex items-stretch min-h-[100px] border-l-2 border-r-2 border-[#273a37] hover:border-primary transition-colors duration-300">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-primary">LVL</span>
+<span class="text-2xl font-bold font-mono text-white">41</span>
+</div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-center p-4 relative overflow-hidden grayscale hover:grayscale-0 transition-all duration-500" data-alt="Empty, eerie concrete industrial corridor with flickering lights" style="background-image: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.5)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBU6nkMwVS3E6olcqa78HpA7YN7A0DerAvxxOPbhWFFv-JkhVtUvf7abm3pkiRGragQtUqbOJOgR9Fd-eoxPkr4d-GULs8fnRBVSXZ4fOFuRNIzl5vW4PK7cVy-JlNRgQvnjmSIoRbG5nRfDu-6TWk37LEr6x4k94Di_0AXLogvhZ7sfSWHVkEdhV5AStr-pXY-0ZPNgIeeN_G-4XFbherLMATDlqgw3JGjZ8vE4O6ZMaGfnUbIJTIVs3AKYSOBc9UX-JuO-swMV58');">
+<div class="flex items-center gap-4 relative z-10">
+<h3 class="text-sm font-bold text-[#5c706b] tracking-widest">MAINTENANCE CORRIDOR</h3>
+<div class="h-px bg-[#5c706b] flex-1"></div>
+<span class="text-[10px] text-[#5c706b]">NO ACCESS</span>
+</div>
+</div>
+</div>
+<!-- Floor Level: Reactor Core -->
+<div class="group relative flex items-stretch min-h-[160px] border-l-2 border-r-2 border-[#273a37] hover:border-primary transition-colors duration-300">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-50 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-mono text-primary">LVL</span>
+<span class="text-2xl font-bold font-mono text-white">10</span>
+</div>
+<div class="flex-1 glass-panel m-1 rounded bg-cover bg-center flex flex-col justify-end p-4 relative overflow-hidden" data-alt="Dark server room with blue glowing lights" style="background-image: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDth7sHUGpZwwu81s75oCLnT100wyfwBkF6Hi7ziOAo7iYaj3J6KlRm05JhG7O70K-ihQkvVRzRaIMmOprvSMtxI9oIgjxZLPVbf3ZPBJf-K3RBzTdRs8HVYFuLSpoO2LJ9ixU9yeKHy-HweACrhos0qcYRUVN48B1c-L7s_43chFGjgLWovvUtZdPSdqRAnrjtdkK3A2F5pEUadqtQdbhJQ4iC_aCNWeKlYvBobGUjPrEHNtSlemThuj2icvY9zggrd_kL1ayv614');">
+<h3 class="text-lg font-bold text-white relative z-10">Fusion Reactor Relay</h3>
+<p class="text-xs text-primary relative z-10">Output: 1.2 GW // Stable</p>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: Context Inspector (Bento Box) -->
+<aside class="w-80 bg-surface-darker/95 border-l border-[#273a37] flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
+<div class="p-4 border-b border-[#273a37]">
+<h2 class="text-sm font-bold text-[#9abcb6] tracking-wider mb-1">INSPECTOR</h2>
+<div class="flex items-center gap-2">
+<span class="size-2 bg-secondary rounded-full animate-pulse"></span>
+<span class="text-lg font-bold text-white">LVL 42: HYDROPONICS</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-hide">
+<!-- Status Card -->
+<div class="bg-[#1b2826] rounded-lg p-4 border border-[#273a37]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-[#5c706b] font-bold">OPERATIONAL STATUS</span>
+<span class="text-xs text-venus-orange font-bold border border-venus-orange/30 px-1 rounded bg-venus-orange/10">WARNING</span>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-[#9abcb6]">STRUCTURAL INTEGRITY</span>
+<span class="text-xl font-mono font-bold text-white">88%</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-[#9abcb6]">ATMOSPHERE SEAL</span>
+<span class="text-xl font-mono font-bold text-secondary">FAILING</span>
+</div>
+</div>
+</div>
+<!-- Yield Chart (Visual Mockup) -->
+<div class="bg-[#1b2826] rounded-lg p-4 border border-[#273a37] flex flex-col gap-2">
+<span class="text-xs text-[#5c706b] font-bold">CROP YIELD ESTIMATE</span>
+<div class="flex items-end gap-1 h-24 border-b border-[#273a37] pb-1 px-1">
+<div class="w-1/6 bg-primary/20 h-[40%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary/30 h-[55%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary/50 h-[45%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary/70 h-[70%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[85%] rounded-t-sm relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-xs text-primary px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">+400</div>
+</div>
+<div class="w-1/6 bg-primary/40 h-[60%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between text-[10px] text-[#5c706b] font-mono">
+<span>CYCLE 01</span>
+<span>CYCLE 06</span>
+</div>
+</div>
+<!-- Power Draw -->
+<div class="bg-[#1b2826] rounded-lg p-4 border border-[#273a37] relative overflow-hidden">
+<div class="absolute right-0 top-0 p-4 opacity-10 text-primary">
+<span class="material-symbols-outlined text-6xl">bolt</span>
+</div>
+<span class="text-xs text-[#5c706b] font-bold">POWER CONSUMPTION</span>
+<div class="mt-2 text-2xl font-mono font-bold text-white">-50 MW</div>
+<div class="w-full bg-[#273a37] h-1 mt-2 rounded-full">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+<!-- Tenants / Crew -->
+<div class="flex flex-col gap-2">
+<span class="text-xs text-[#5c706b] font-bold">ASSIGNED CREW (3)</span>
+<div class="flex gap-2">
+<div class="size-10 bg-[#273a37] rounded-lg flex items-center justify-center border border-[#5c706b]/30">
+<span class="material-symbols-outlined text-[#9abcb6]">person</span>
+</div>
+<div class="size-10 bg-[#273a37] rounded-lg flex items-center justify-center border border-[#5c706b]/30">
+<span class="material-symbols-outlined text-[#9abcb6]">person</span>
+</div>
+<div class="size-10 bg-[#273a37] rounded-lg flex items-center justify-center border border-[#5c706b]/30">
+<span class="material-symbols-outlined text-[#9abcb6]">smart_toy</span>
+</div>
+<div class="size-10 border border-dashed border-[#5c706b] rounded-lg flex items-center justify-center text-[#5c706b] hover:border-primary hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="grid grid-cols-2 gap-2 mt-auto">
+<button class="py-2 rounded bg-secondary/10 border border-secondary/50 text-secondary text-xs font-bold hover:bg-secondary hover:text-black transition-colors">INITIATE LOCKDOWN</button>
+<button class="py-2 rounded bg-[#273a37] text-white text-xs font-bold hover:bg-white hover:text-black transition-colors">VIEW LOGS</button>
+</div>
+</div>
+</aside>
+<!-- Bottom Ticker / Alert (Floating) -->
+<div class="absolute bottom-6 right-[22rem] z-30 flex flex-col items-end pointer-events-none">
+<div class="bg-black/80 backdrop-blur border-l-4 border-venus-orange p-3 rounded-r-lg max-w-sm mb-2 shadow-lg transform translate-x-4 animate-[slideIn_0.5s_ease-out_forwards]">
+<div class="flex items-center gap-2 text-venus-orange mb-1">
+<span class="material-symbols-outlined text-sm animate-pulse">warning</span>
+<span class="text-xs font-bold tracking-widest">EXTERNAL ALERT</span>
+</div>
+<p class="text-sm text-gray-200">Acid rain storm approaching Sector 4. Corrosion sensors activated.</p>
+</div>
+<div class="bg-black/80 backdrop-blur border-l-4 border-primary p-3 rounded-r-lg max-w-sm shadow-lg transform translate-x-4 animate-[slideIn_0.5s_ease-out_0.2s_forwards]">
+<div class="flex items-center gap-2 text-primary mb-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-xs font-bold tracking-widest">CONSTRUCTION COMPLETE</span>
+</div>
+<p class="text-sm text-gray-200">Solar Array Beta is now online. Grid capacity increased by 12%.</p>
+</div>
+</div>
+</div>
+</main>
+<style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .text-shadow-neon-pink {
+            text-shadow: 0 0 10px rgba(255, 0, 170, 0.7), 0 0 20px rgba(255, 0, 170, 0.5);
+        }
+    </style>
+</body></html>

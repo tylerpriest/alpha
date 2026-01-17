@@ -4,7 +4,8 @@
 # Usage:
 #   ./loop.sh              # Build mode with Claude (default)
 #   ./loop.sh plan         # Plan mode with Claude
-#   ./loop.sh --agent      # Build mode with Cursor Agent
+#   ./loop.sh --agent      # Build mode with Cursor Agent (auto-run)
+#   ./loop.sh --agent -i   # Build mode with Cursor Agent (interactive)
 #   ./loop.sh plan --agent # Plan mode with Cursor Agent
 #   ./loop.sh 20 --agent   # Build mode, 20 iterations, Cursor Agent
 
@@ -14,6 +15,7 @@ set -e
 MODE="build"
 MAX_ITERATIONS=0
 USE_AGENT=false
+INTERACTIVE=false
 
 for arg in "$@"; do
     case $arg in
@@ -22,6 +24,9 @@ for arg in "$@"; do
             ;;
         --agent)
             USE_AGENT=true
+            ;;
+        -i|--interactive)
+            INTERACTIVE=true
             ;;
         [0-9]*)
             MAX_ITERATIONS=$arg
@@ -46,7 +51,11 @@ fi
 echo "========================================"
 echo "Ralph Loop - $MODE mode"
 if [[ "$USE_AGENT" == "true" ]]; then
-    echo "Agent: Cursor (interactive - may prompt for approval)"
+    if [[ "$INTERACTIVE" == "true" ]]; then
+        echo "Agent: Cursor (interactive - can type input)"
+    else
+        echo "Agent: Cursor (auto-run mode)"
+    fi
 else
     echo "Agent: Claude (auto-approve enabled)"
 fi
@@ -57,7 +66,7 @@ else
     echo "Iterations: unlimited (Ctrl+C to stop)"
 fi
 echo "========================================"
-if [[ "$USE_AGENT" == "true" ]]; then
+if [[ "$USE_AGENT" == "true" ]] && [[ "$INTERACTIVE" == "true" ]]; then
     echo ""
     echo "TIP: Type '/auto-run on' in agent to enable auto-approval."
 fi
@@ -75,10 +84,20 @@ while true; do
     # Run the agent with the prompt
     if [[ "$USE_AGENT" == "true" ]]; then
         # Cursor Agent CLI
-        if [[ "$MODE" == "plan" ]]; then
-            agent --print --plan --output-format text "$(cat "$PROMPT_FILE")"
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            # Interactive mode - allows typing input
+            if [[ "$MODE" == "plan" ]]; then
+                agent --plan "$(cat "$PROMPT_FILE")"
+            else
+                agent "$(cat "$PROMPT_FILE")"
+            fi
         else
-            agent --print --output-format text "$(cat "$PROMPT_FILE")"
+            # Auto-run mode - non-interactive
+            if [[ "$MODE" == "plan" ]]; then
+                agent --print --plan --output-format text "$(cat "$PROMPT_FILE")"
+            else
+                agent --print --output-format text "$(cat "$PROMPT_FILE")"
+            fi
         fi
     else
         # Claude CLI (default)
