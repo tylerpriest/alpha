@@ -7,8 +7,9 @@ import { ResourceSystem } from '../systems/ResourceSystem';
 import { VenusAtmosphere } from '../graphics/VenusAtmosphere';
 import { DayNightOverlay } from '../graphics/DayNightOverlay';
 import { AtmosphericEffects } from '../graphics/AtmosphericEffects';
+import { VolcanicGround } from '../graphics/VolcanicGround';
 import { UIManager } from '../ui/UIManager';
-import { INITIAL_MONEY, GRID_SIZE } from '../utils/constants';
+import { INITIAL_MONEY, GRID_SIZE, ROOM_SPECS, RoomType, UI_COLORS } from '../utils/constants';
 
 export class GameScene extends Phaser.Scene {
   public building!: Building;
@@ -20,12 +21,15 @@ export class GameScene extends Phaser.Scene {
   private venusAtmosphere!: VenusAtmosphere;
   private dayNightOverlay!: DayNightOverlay;
   private atmosphericEffects!: AtmosphericEffects;
+  private volcanicGround!: VolcanicGround;
 
   private isDragging = false;
   private dragStartX = 0;
   private dragStartY = 0;
   private cameraStartX = 0;
   private cameraStartY = 0;
+  private ghostPreview: Phaser.GameObjects.Graphics | null = null;
+  private selectedRoomId: string | null = null;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -46,17 +50,8 @@ export class GameScene extends Phaser.Scene {
     // Create Venus atmosphere background (behind everything)
     this.venusAtmosphere = new VenusAtmosphere(this);
 
-    // Draw ground with dark gradient
-    const groundY = 500;
-    const groundLine = this.add.graphics();
-    groundLine.setDepth(5);
-    groundLine.lineStyle(4, 0x3a3a4a, 1);
-    groundLine.lineBetween(-1000, groundY, 2280, groundY);
-    // Ground gradient
-    groundLine.fillStyle(0x1a1a2e, 1);
-    groundLine.fillRect(-1000, groundY, 3280, 200);
-    groundLine.fillStyle(0x0a0a1e, 1);
-    groundLine.fillRect(-1000, groundY + 200, 3280, 800);
+    // Create volcanic ground with lava and alien flora
+    this.volcanicGround = new VolcanicGround(this);
 
     // Draw grid lines for reference
     this.drawGrid();
@@ -74,10 +69,22 @@ export class GameScene extends Phaser.Scene {
     this.scene.launch('UIScene');
 
     // Create DOM UI Manager
-    this._uiManager = new UIManager(this.registry);
+    new UIManager(this.registry);
 
     // Set up input handlers
     this.setupInput();
+
+    // Listen to registry changes for room selection
+    this.registry.events.on('changedata-selectedRoom', (_: Phaser.Game, value: string | undefined) => {
+      // Clear ghost preview when selection changes
+      if (this.ghostPreview) {
+        this.ghostPreview.clear();
+      }
+      // Clear room selection when placing a new room type
+      if (value && this.selectedRoomId) {
+        this.selectRoom(null);
+      }
+    });
 
     // Share data with UI
     this.updateRegistry();
@@ -121,6 +128,9 @@ export class GameScene extends Phaser.Scene {
         const dy = pointer.y - this.dragStartY;
         this.cameras.main.scrollX = this.cameraStartX - dx;
         this.cameras.main.scrollY = this.cameraStartY - dy;
+      } else {
+        // Update ghost preview
+        this.updateGhostPreview(pointer);
       }
     });
 
@@ -148,20 +158,107 @@ export class GameScene extends Phaser.Scene {
   private handleClick(worldX: number, worldY: number): void {
     // Get selected room type from registry
     const selectedRoom = this.registry.get('selectedRoom') as string | undefined;
-    if (!selectedRoom) return;
-
+    
     // Convert world coordinates to grid position
     const groundY = 500;
     const floor = Math.floor((groundY - worldY) / GRID_SIZE);
     const position = Math.floor(worldX / GRID_SIZE);
 
-    // Try to place room
-    const success = this.building.addRoom(selectedRoom, floor, position);
-    if (success) {
-      const cost = this.building.getRoomCost(selectedRoom);
-      this.economySystem.spend(cost);
-      this.updateRegistry();
+    if (selectedRoom) {
+      // Try to place room
+      const success = this.building.addRoom(selectedRoom, floor, position);
+      if (success) {
+        const cost = this.building.getRoomCost(selectedRoom);
+        this.economySystem.spend(cost);
+        this.updateRegistry();
+      }
+    } else {
+      // No room selected - try to select a room
+      const clickedRoom = this.building.getRoomAt(floor, position);
+      if (clickedRoom) {
+        this.selectRoom(clickedRoom.id);
+      } else {
+        this.selectRoom(null);
+      }
     }
+  }
+
+  private updateGhostPreview(pointer: Phaser.Input.Pointer): void {
+    const selectedRoom = this.registry.get('selectedRoom') as string | undefined;
+    
+    if (!selectedRoom) {
+      // Clear ghost preview if no room selected
+      if (this.ghostPreview) {
+        this.ghostPreview.clear();
+      }
+      return;
+    }
+
+    // Get world position
+    const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    const groundY = 500;
+    const floor = Math.floor((groundY - worldPoint.y) / GRID_SIZE);
+    const position = Math.floor(worldPoint.x / GRID_SIZE);
+
+    const spec = ROOM_SPECS[selectedRoom as RoomType];
+    if (!spec) return;
+
+    // Check if placement is valid
+    const hasOverlap = this.building.hasOverlap(floor, position, spec.width);
+    const validFloor = floor >= spec.minFloor && floor <= spec.maxFloor;
+    const hasEnoughMoney = this.economySystem.getMoney() >= spec.cost;
+    const isValid = !hasOverlap && validFloor && hasEnoughMoney;
+
+    // Create or update ghost preview
+    if (!this.ghostPreview) {
+      this.ghostPreview = this.add.graphics();
+      this.ghostPreview.setDepth(100); // Above everything
+    }
+
+    this.ghostPreview.clear();
+
+    const x = position * GRID_SIZE;
+    const y = groundY - (floor + 1) * GRID_SIZE;
+    const w = spec.width * GRID_SIZE;
+    const h = GRID_SIZE;
+
+    // Draw ghost preview
+    const color = isValid ? UI_COLORS.validPlacement : UI_COLORS.invalidPlacement;
+    const alpha = isValid ? 0.4 : 0.3;
+
+    this.ghostPreview.fillStyle(color, alpha);
+    this.ghostPreview.fillRect(x + 2, y + 2, w - 4, h - 4);
+
+    this.ghostPreview.lineStyle(2, color, 0.8);
+    this.ghostPreview.strokeRect(x + 2, y + 2, w - 4, h - 4);
+
+    // Add pulse effect for invalid
+    if (!isValid) {
+      this.ghostPreview.lineStyle(1, color, 0.5);
+      this.ghostPreview.strokeRect(x, y, w, h);
+    }
+  }
+
+  private selectRoom(roomId: string | null): void {
+    // Deselect previous room
+    if (this.selectedRoomId) {
+      const prevRoom = this.building.getRoomById(this.selectedRoomId);
+      if (prevRoom) {
+        prevRoom.setSelected(false);
+      }
+    }
+
+    // Select new room
+    this.selectedRoomId = roomId;
+    if (roomId) {
+      const room = this.building.getRoomById(roomId);
+      if (room) {
+        room.setSelected(true);
+      }
+    }
+
+    // Update registry
+    this.registry.set('selectedRoomId', roomId);
   }
 
   update(_time: number, delta: number): void {
@@ -175,6 +272,9 @@ export class GameScene extends Phaser.Scene {
 
     // Update atmospheric particles
     this.atmosphericEffects.update(delta);
+
+    // Update volcanic ground (lava animation)
+    this.volcanicGround.update(_time);
 
     // Update residents
     this.residentSystem.update(delta);
@@ -198,5 +298,10 @@ export class GameScene extends Phaser.Scene {
     this.registry.set('hour', this.timeSystem.getHour());
     this.registry.set('food', this.resourceSystem.getFood());
     this.registry.set('population', this.residentSystem.getPopulation());
+    
+    // Calculate star rating (1 star at 100 pop, 2 stars at 300 pop)
+    const population = this.residentSystem.getPopulation();
+    const starRating = population >= 300 ? 2 : population >= 100 ? 1 : 0;
+    this.registry.set('starRating', starRating);
   }
 }

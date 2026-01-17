@@ -1,11 +1,18 @@
 import Phaser from 'phaser';
 
-// Sky gradient colors by time period
+// Sky gradient colors by time period - Volcanic Venus palette
 const SKY_COLORS = {
-  dawn: { top: 0xf4d4c8, bottom: 0xe8a87c },
-  day: { top: 0xe8a87c, bottom: 0xd4726a },
-  dusk: { top: 0xd4726a, bottom: 0x8a6a8a },
-  night: { top: 0x4a3a5a, bottom: 0x1a1a2a },
+  dawn: { top: 0xd45a2a, bottom: 0xff6a1a },   // Deep orange to bright orange
+  day: { top: 0xc84a1a, bottom: 0xe85a0a },    // Volcanic orange
+  dusk: { top: 0x8a3a2a, bottom: 0xc84a1a },   // Deep red-orange
+  night: { top: 0x2a1a1a, bottom: 0x4a2a1a },  // Dark volcanic red-brown
+};
+
+// Lava glow colors for ground
+const LAVA_COLORS = {
+  bright: 0xff4a0a,
+  medium: 0xd43a0a,
+  dark: 0x8a2a0a,
 };
 
 // Cloud layer configuration
@@ -88,8 +95,8 @@ export class VenusAtmosphere {
   }
 
   private getCloudColor(variation: number): number {
-    // Cloud colors in the amber-pink range
-    const colors = [0xf4d4c8, 0xe8a87c, 0xd4a08a, 0xe4b89a];
+    // Cloud colors - volcanic orange/brown smoke
+    const colors = [0x8a4a2a, 0x6a3a1a, 0x5a2a1a, 0x7a3a2a];
     return colors[Math.floor(variation * colors.length)];
   }
 

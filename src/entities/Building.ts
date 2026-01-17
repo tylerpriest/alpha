@@ -71,7 +71,7 @@ export class Building {
     return true;
   }
 
-  private hasOverlap(floor: number, position: number, width: number): boolean {
+  hasOverlap(floor: number, position: number, width: number): boolean {
     const floorObj = this.floors.get(floor);
     if (!floorObj) return false;
 

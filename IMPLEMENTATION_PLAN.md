@@ -112,11 +112,11 @@
   - Day (7 AM-6 PM): No overlay, full brightness
   - Dusk (6-8 PM): Orange/purple gradient
   - Use Phaser.GameObjects.Rectangle with blend mode (already implemented, verify)
-- [ ] Add scanline overlay
+- [x] Add scanline overlay
   - Create scanline CSS class (already in ui.css)
   - Apply to UI overlay container
   - Opacity: 20-30%
-- [ ] Add grid pattern overlay
+- [x] Add grid pattern overlay
   - Subtle dot grid: rgba(0, 204, 170, 0.05)
   - Size: 24px × 24px
   - Optional line grid for build mode
@@ -131,7 +131,7 @@
 ### Phase 1 - UI/UX Complete Redesign (HIGHEST PRIORITY)
 
 **Left Sidebar Navigation:**
-- [ ] Create Sidebar component (`src/ui/components/Sidebar.ts`)
+- [x] Create Sidebar component (`src/ui/components/Sidebar.ts`)
   - Collapsible (72px expanded, 20px collapsed)
   - Brand header: "VENUS_OS" with version badge "TOWER_04 // ALPHA"
   - Section header: "COMMAND" or "TOWER OPS"
@@ -140,18 +140,18 @@
   - Hover: Glitch animation effect
   - Collapse toggle button
   - Overseer profile at bottom
-- [ ] Integrate sidebar into UIManager
+- [x] Integrate sidebar into UIManager
   - Add to UI overlay
   - Handle collapse/expand state
   - Wire up navigation actions
 
 **Top Bar Redesign:**
-- [ ] Update TopBar component terminology
+- [x] Update TopBar component terminology
   - Money → Credits (display as "12,500 CR")
   - Food → Rations (display as "Rations: 450")
   - Population → Residents (display as "Residents: 45")
   - Day → Cycle or Sol (display as "Cycle 5" or "Sol 5")
-- [ ] Add VENUS_OS branding
+- [x] Add VENUS_OS branding
   - Brand text: "VENUS_OS v4.2" or "TOWER_04 // ALPHA"
   - Version badge styling
 - [ ] Add additional top bar elements
@@ -159,13 +159,13 @@
   - System Override button
   - Settings icon button
   - Alerts icon with badge count
-- [ ] Update styling to match glass panel spec
+- [x] Update styling to match glass panel spec
   - Backdrop blur: 12px
   - Border: rgba(39, 58, 55, 0.8)
   - Box shadow: 0 4px 30px rgba(0, 0, 0, 0.5)
 
 **Build Zone Menu Polish:**
-- [ ] Update BuildMenu component
+- [x] Update BuildMenu component
   - Rename to "Build Zone" in UI
   - Update room button styling with neon accents
   - Add glitch hover effects
@@ -178,36 +178,36 @@
   - Tooltips on hover
 
 **UI Visual Effects:**
-- [ ] Apply glass panel styling to all UI elements
+- [x] Apply glass panel styling to all UI elements
   - Background: rgba(24, 36, 34, 0.85)
   - Backdrop filter: blur(12px)
   - Border: 1px solid rgba(39, 58, 55, 0.8)
   - Box shadow: 0 4px 30px rgba(0, 0, 0, 0.5)
-- [ ] Implement glitch hover effects
+- [x] Implement glitch hover effects
   - CSS animation for button hovers
   - Color shift: cyan → magenta → yellow
   - Duration: 0.3s cubic-bezier
-- [ ] Add neon glow effects
+- [x] Add neon glow effects
   - Primary cyan: 0 0 15px rgba(0, 204, 170, 0.3)
   - Secondary magenta: 0 0 15px rgba(255, 0, 170, 0.3)
   - Text glow: text-shadow: 0 0 10px currentColor
-- [ ] Update typography
+- [x] Update typography
   - Ensure Space Grotesk is loaded
   - Material Symbols for icons
   - Monospace for technical displays
 
 **Ghost Preview & Selection:**
-- [ ] Implement ghost preview for placement
+- [x] Implement ghost preview for placement
   - Add `pointermove` handler in GameScene
   - Draw semi-transparent rectangle at grid-snapped cursor position
   - Cyan (#4ae4e4) = valid, Magenta (#e44a8a) = invalid
   - Use `Building.hasOverlap()` for validation
   - Hide when no room type selected
-- [ ] Room selection & info panel
+- [x] Room selection & info panel
   - Click on room when no placement active → select room
   - Store `selectedRoomId` in registry
   - Draw yellow border on selected room
-  - Show info panel: type, residents/workers, income/expenses
+  - Show info panel: type, residents/workers, income/expenses (basic selection implemented, info panel pending)
 
 ### Phase 2 - Quick Wins (No Dependencies)
 

@@ -42,7 +42,7 @@ export class BuildMenu {
     button.innerHTML = `
       <div class="room-icon"></div>
       <div class="room-name">${this.capitalize(roomType)}</div>
-      <div class="room-cost">${cost === 0 ? 'Free' : `$${cost.toLocaleString()}`}</div>
+      <div class="room-cost">${cost === 0 ? 'Free' : `${cost.toLocaleString()} CR`}</div>
     `;
 
     button.addEventListener('click', () => {
