@@ -128,6 +128,7 @@ export class SaveSystem {
       return {
         id: resident.id,
         name: resident.name,
+        type: resident.type,
         hunger: resident.hunger,
         stress: resident.stress,
         jobRoomId: resident.job?.id ?? null,
@@ -309,6 +310,7 @@ export class SaveSystem {
           // Update name and label
           resident.name = residentData.name;
           (resident as any).nameLabel.setText(residentData.name);
+          resident.type = residentData.type ?? 'resident'; // Restore type (default to 'resident' for old saves)
           resident.hunger = residentData.hunger;
           resident.stress = residentData.stress ?? 0; // Restore stress (default to 0 for old saves)
           resident.state = residentData.state;
