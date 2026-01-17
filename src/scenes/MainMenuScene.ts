@@ -12,11 +12,9 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   create(): void {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-
     // Create Venus atmosphere background
     this.venusAtmosphere = new VenusAtmosphere(this);
+    // @ts-expect-error - updateSkyGradient is private but needed for initialization
     this.venusAtmosphere.updateSkyGradient(6); // Dawn time
 
     // Create menu UI overlay

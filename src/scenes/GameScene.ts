@@ -62,14 +62,6 @@ export class GameScene extends Phaser.Scene {
     // Set game state
     this.registry.set('gameState', GameState.PLAYING);
 
-    // Check if we need to load a save
-    const loadSaveSlot = this.registry.get('loadSaveSlot') as number | undefined;
-    if (loadSaveSlot !== undefined) {
-      // TODO: Implement save/load system
-      console.log('Load save slot:', loadSaveSlot);
-      this.registry.set('loadSaveSlot', undefined);
-    }
-
     // Initialize systems
     this.timeSystem = new TimeSystem();
     this.economySystem = new EconomySystem(INITIAL_MONEY);
@@ -470,7 +462,7 @@ export class GameScene extends Phaser.Scene {
         // Calculate room income/expenses
         const spec = ROOM_SPECS[room.type];
         let income = 0;
-        let expenses = spec.expenses || 0;
+        const expenses = spec.expenses || 0;
 
         // Calculate income based on room type
         if ('income' in spec) {
@@ -807,7 +799,6 @@ export class GameScene extends Phaser.Scene {
       this.elevatorGraphics.strokeRect(carX, carY - carHeight, carWidth, carHeight);
 
       // Floor number display
-      const floorText = car.currentFloor.toString();
       const textX = carX + carWidth / 2;
       const textY = carY - carHeight / 2;
       this.elevatorGraphics.fillStyle(0xffffff, 1);

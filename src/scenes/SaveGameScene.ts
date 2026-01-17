@@ -5,7 +5,6 @@ import type { GameScene } from './GameScene';
 
 export class SaveGameScene extends Phaser.Scene {
   private overlayContainer!: HTMLDivElement;
-  private gameScene!: GameScene;
   private saveSystem!: SaveSystem;
 
   constructor() {

@@ -1,11 +1,8 @@
 import Phaser from 'phaser';
-import { SaveSystem } from '../systems/SaveSystem';
 import { SaveSlotMeta } from '../utils/types';
-import type { GameScene } from './GameScene';
 
 export class LoadGameScene extends Phaser.Scene {
   private overlayContainer!: HTMLDivElement;
-  private saveSystem!: SaveSystem;
 
   constructor() {
     super({ key: 'LoadGameScene' });
@@ -139,7 +136,7 @@ export class LoadGameScene extends Phaser.Scene {
             population: saveData.residents.length,
             money: saveData.economy.money,
           });
-        } catch (error) {
+        } catch {
           slots.push({
             slot,
             isEmpty: true,
