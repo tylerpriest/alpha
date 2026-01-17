@@ -201,3 +201,12 @@ Before considering anything "done":
 - [ ] Build succeeds (`npm run build`)
 - [ ] Visual verification in browser
 - [ ] Edge cases tested manually
+
+## Sources
+
+- [BYO (Build Your Own)](https://github.com/tylerpriest/byo/) - AI development methodology
+- AlphaOS - Local branch `claude/minimal-os-macbook-hCCbL` in this repo
+- [Geoffrey Huntley's Ralph](https://ghuntley.com/ralph/) - Original technique
+- [Ralph Playbook](https://github.com/ClaytonFarr/ralph-playbook) - Original Ralph methodology
+- [Ralph Claude Code Plugin](https://github.com/frankbria/ralph-claude-code) - External Ralph orchestrator
+- [Official Ralph Wiggum Plugin](https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md) - Built-in Claude Code plugin
