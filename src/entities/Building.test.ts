@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { Building } from './Building';
-import { MAX_FLOORS_MVP, SKY_LOBBY_FLOORS, getSkyLobbyZone } from '../utils/constants';
+import { MAX_FLOORS_MVP, SKY_LOBBY_FLOORS } from '../utils/constants';
 import Phaser from 'phaser';
 
 // Mock Phaser Scene

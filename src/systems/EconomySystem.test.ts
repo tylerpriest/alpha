@@ -7,10 +7,43 @@ import { Resident } from '../entities/Resident';
 import Phaser from 'phaser';
 
 // Mock GameScene for ResidentSystem
-const createMockGameScene = () => {
+const createMockGameScene = (): any => {
+  const mockPhaserScene = {
+    add: {
+      graphics: () => ({
+        fillStyle: () => {},
+        fillRect: () => {},
+        clear: () => {},
+        lineStyle: () => {},
+        lineBetween: () => {},
+        destroy: () => {},
+        setDepth: () => {},
+        setBlendMode: () => {},
+      }),
+      text: () => ({
+        setDepth: () => {},
+        setText: () => {},
+        setPosition: () => {},
+        setStyle: () => {},
+        destroy: () => {},
+      }),
+    },
+    registry: {
+      get: () => 12,
+      set: () => {},
+    },
+    on: () => {},
+  } as unknown as Phaser.Scene;
+  
+  const building = new Building(mockPhaserScene);
   const mockScene = {
-    building: new Building({} as Phaser.Scene),
-  } as any;
+    building,
+    timeSystem: {
+      on: () => {},
+      getHour: () => 12,
+      getMinute: () => 0,
+    },
+  };
   return mockScene;
 };
 
@@ -23,9 +56,10 @@ describe('EconomySystem', () => {
 
   beforeEach(() => {
     economy = new EconomySystem(10000);
-    mockScene = createMockGameScene();
+    const mockGameScene = createMockGameScene();
+    mockScene = mockGameScene as unknown as Phaser.Scene;
     building = new Building(mockScene);
-    residentSystem = new ResidentSystem(mockScene);
+    residentSystem = new ResidentSystem(mockGameScene);
     resourceSystem = new ResourceSystem();
   });
 
@@ -77,7 +111,8 @@ describe('EconomySystem', () => {
   describe('Satisfaction-based rent tiers', () => {
     test('calculates Tier 1 rent ($50) for satisfaction < 40', () => {
       // Create apartment and resident with low satisfaction
-      const apartment = building.addRoom('apartment', 1, 0);
+      building.addRoom('apartment', 1, 0);
+      const apartment = building.getRoomAt(1, 0)!;
       const resident = new Resident(mockScene, 'test_1', 0, 0);
       resident.hunger = 20; // Low hunger = high penalty
       resident.stress = 60; // High stress
@@ -98,7 +133,8 @@ describe('EconomySystem', () => {
     });
 
     test('calculates Tier 2 rent ($100) for satisfaction 40-60', () => {
-      const apartment = building.addRoom('apartment', 1, 0);
+      building.addRoom('apartment', 1, 0);
+      const apartment = building.getRoomAt(1, 0)!;
       const resident = new Resident(mockScene, 'test_2', 0, 0);
       resident.hunger = 60; // Moderate hunger
       resident.stress = 40; // Moderate stress
@@ -120,7 +156,8 @@ describe('EconomySystem', () => {
     });
 
     test('calculates Tier 3 rent ($150) for satisfaction 60-80', () => {
-      const apartment = building.addRoom('apartment', 1, 0);
+      building.addRoom('apartment', 1, 0);
+      const apartment = building.getRoomAt(1, 0)!;
       const resident = new Resident(mockScene, 'test_3', 0, 0);
       resident.hunger = 80; // Good hunger
       resident.stress = 20; // Low stress
@@ -142,8 +179,10 @@ describe('EconomySystem', () => {
     });
 
     test('calculates Tier 4 rent ($200) for satisfaction >= 80', () => {
-      const apartment = building.addRoom('apartment', 1, 0);
-      const office = building.addRoom('office', 1, 5);
+      building.addRoom('apartment', 1, 0);
+      const apartment = building.getRoomAt(1, 0)!;
+      building.addRoom('office', 1, 5);
+      const office = building.getRoomAt(1, 5)!;
       const resident = new Resident(mockScene, 'test_4', 0, 0);
       resident.hunger = 90; // Very good hunger
       resident.stress = 10; // Very low stress
@@ -165,7 +204,8 @@ describe('EconomySystem', () => {
     });
 
     test('calculates average satisfaction for multiple residents in apartment', () => {
-      const apartment = building.addRoom('apartment', 1, 0);
+      building.addRoom('apartment', 1, 0);
+      const apartment = building.getRoomAt(1, 0)!;
       
       // Resident 1: Low satisfaction (stress 60, hunger 20, no food, no job)
       const resident1 = new Resident(mockScene, 'test_5a', 0, 0);
@@ -203,7 +243,7 @@ describe('EconomySystem', () => {
     });
 
     test('no rent for empty apartments', () => {
-      const apartment = building.addRoom('apartment', 1, 0);
+      building.addRoom('apartment', 1, 0);
       // No residents
 
       const initialMoney = economy.getMoney();
@@ -219,7 +259,8 @@ describe('EconomySystem', () => {
       const resident = new Resident(mockScene, 'test_sat_1', 0, 0);
       resident.hunger = 80; // Good hunger
       resident.stress = 20; // Low stress
-      const office = building.addRoom('office', 1, 0);
+      building.addRoom('office', 1, 0);
+      const office = building.getRoomAt(1, 0)!;
       resident.setJob(office);
 
       // Food available, has job

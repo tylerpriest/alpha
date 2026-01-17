@@ -107,7 +107,6 @@ describe('ResidentSystem - Tenant Type System', () => {
 
     test('office workers do not spawn on weekends', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Set time to 8:59 AM on Saturday
       mockScene.timeSystem.setTime(6, 8.99, DayOfWeek.Saturday);
@@ -124,7 +123,6 @@ describe('ResidentSystem - Tenant Type System', () => {
 
     test('office workers leave at 5 PM on weekdays', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Spawn office workers first
       mockScene.timeSystem.setTime(1, 8.99, DayOfWeek.Monday);
@@ -147,7 +145,6 @@ describe('ResidentSystem - Tenant Type System', () => {
 
     test('office workers do not leave on weekends', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Spawn office workers on Friday
       mockScene.timeSystem.setTime(5, 8.99, DayOfWeek.Friday);
@@ -170,7 +167,7 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers fill available job slots', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
       
       // Office has 6 job slots (from ROOM_SPECS)
       mockScene.timeSystem.setTime(1, 8.99, DayOfWeek.Monday);
@@ -184,9 +181,7 @@ describe('ResidentSystem - Tenant Type System', () => {
   describe('Office worker lunch behavior', () => {
     test('office workers seek Fast Food at 12 PM', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       mockScene.building.addRoom('fastfood', 1, 10);
-      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add some food to resource system
       mockScene.resourceSystem.addFood(100);
@@ -213,14 +208,13 @@ describe('ResidentSystem - Tenant Type System', () => {
       expect(officeWorkers.length).toBeGreaterThan(0);
       const worker = officeWorkers[0];
       expect(worker.type).toBe('office_worker');
+      const office = mockScene.building.getRoomAt(1, 0)!;
       expect(worker.job).toBe(office);
     });
 
     test('office workers consume food at Fast Food restaurants', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       mockScene.building.addRoom('fastfood', 1, 10);
-      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add food to resource system
       const initialFood = 100;
@@ -238,7 +232,6 @@ describe('ResidentSystem - Tenant Type System', () => {
       mockScene.timeSystem.emit('schedule:lunch-start');
       
       // Simulate resident arriving at restaurant and eating
-      const worker = officeWorkers[0];
       // Manually trigger the lunch behavior by calling the private method
       // Since we can't access private methods, we'll test via the public interface
       // by checking food consumption after lunch time
@@ -259,9 +252,7 @@ describe('ResidentSystem - Tenant Type System', () => {
 
     test('office workers return to office after lunch', () => {
       mockScene.building.addRoom('office', 1, 0);
-      const office = mockScene.building.getRoomAt(1, 0)!;
       mockScene.building.addRoom('fastfood', 1, 10);
-      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add food
       mockScene.resourceSystem.addFood(100);
@@ -287,6 +278,7 @@ describe('ResidentSystem - Tenant Type System', () => {
       
       // Worker should still have the same job (returned to office)
       expect(worker.job).toBe(initialJob);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       expect(worker.job).toBe(office);
     });
 
@@ -315,8 +307,9 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('residential tenants do not seek Fast Food at lunch', () => {
-      const apartment = mockScene.building.addRoom('apartment', 1, 0);
-      const fastFood = mockScene.building.addRoom('fastfood', 1, 10);
+      mockScene.building.addRoom('apartment', 1, 0);
+      const apartment = mockScene.building.getRoomAt(1, 0)!;
+      mockScene.building.addRoom('fastfood', 1, 10);
       
       // Spawn a residential tenant
       const resident = residentSystem.spawnResident(apartment);
@@ -415,14 +408,15 @@ describe('ResidentSystem - Core Functionality', () => {
       // Mock hasStarvedTooLong to return true
       vi.spyOn(resident, 'hasStarvedTooLong').mockReturnValue(true);
       
-      residentSystem.update(100, 12);
+      residentSystem.update(100);
       
       expect(residentSystem.getPopulation()).toBe(0);
       expect(residentSystem.getResidents()).not.toContain(resident);
     });
 
     test('removes resident with high stress for too long', () => {
-      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      mockScene.building.addRoom('apartment', 1, 0);
+      const apartment = mockScene.building.getRoomAt(1, 0)!;
       const resident = residentSystem.spawnResident(apartment);
       
       // Set resident to high stress state (>80 for 48+ hours)
@@ -430,14 +424,15 @@ describe('ResidentSystem - Core Functionality', () => {
       // Mock hasHighStressTooLong to return true
       vi.spyOn(resident, 'hasHighStressTooLong').mockReturnValue(true);
       
-      residentSystem.update(100, 12);
+      residentSystem.update(100);
       
       expect(residentSystem.getPopulation()).toBe(0);
       expect(residentSystem.getResidents()).not.toContain(resident);
     });
 
     test('does not remove resident who is healthy', () => {
-      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      mockScene.building.addRoom('apartment', 1, 0);
+      const apartment = mockScene.building.getRoomAt(1, 0)!;
       const resident = residentSystem.spawnResident(apartment);
       
       // Resident is healthy (hunger > 0, stress < 80)
@@ -446,7 +441,7 @@ describe('ResidentSystem - Core Functionality', () => {
       vi.spyOn(resident, 'hasStarvedTooLong').mockReturnValue(false);
       vi.spyOn(resident, 'hasHighStressTooLong').mockReturnValue(false);
       
-      residentSystem.update(100, 12);
+      residentSystem.update(100);
       
       expect(residentSystem.getPopulation()).toBe(1);
       expect(residentSystem.getResidents()).toContain(resident);
