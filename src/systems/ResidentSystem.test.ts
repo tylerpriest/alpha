@@ -86,7 +86,8 @@ describe('ResidentSystem - Tenant Type System', () => {
 
   describe('Office worker behavior', () => {
     test('office workers spawn at 9 AM on weekdays', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Set time to 8:59 AM on Monday
       mockScene.timeSystem.setTime(1, 8.99, DayOfWeek.Monday);
@@ -105,7 +106,8 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers do not spawn on weekends', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Set time to 8:59 AM on Saturday
       mockScene.timeSystem.setTime(6, 8.99, DayOfWeek.Saturday);
@@ -121,7 +123,8 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers leave at 5 PM on weekdays', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Spawn office workers first
       mockScene.timeSystem.setTime(1, 8.99, DayOfWeek.Monday);
@@ -143,7 +146,8 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers do not leave on weekends', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       
       // Spawn office workers on Friday
       mockScene.timeSystem.setTime(5, 8.99, DayOfWeek.Friday);
@@ -179,8 +183,10 @@ describe('ResidentSystem - Tenant Type System', () => {
 
   describe('Office worker lunch behavior', () => {
     test('office workers seek Fast Food at 12 PM', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
-      const fastFood = mockScene.building.addRoom('fastfood', 1, 10);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
+      mockScene.building.addRoom('fastfood', 1, 10);
+      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add some food to resource system
       mockScene.resourceSystem.addFood(100);
@@ -199,19 +205,22 @@ describe('ResidentSystem - Tenant Type System', () => {
       mockScene.timeSystem.emit('schedule:lunch-start');
       
       // Update residents to process the event
-      residentSystem.update(100, mockScene.timeSystem.getHour());
+      residentSystem.update(100);
       
       // Office workers should be seeking lunch (checking state via update)
       // We can't directly check private properties, but we can verify behavior
       // by checking if they're in a non-IDLE state or if they have a target
+      expect(officeWorkers.length).toBeGreaterThan(0);
       const worker = officeWorkers[0];
       expect(worker.type).toBe('office_worker');
       expect(worker.job).toBe(office);
     });
 
     test('office workers consume food at Fast Food restaurants', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
-      const fastFood = mockScene.building.addRoom('fastfood', 1, 10);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
+      mockScene.building.addRoom('fastfood', 1, 10);
+      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add food to resource system
       const initialFood = 100;
@@ -236,7 +245,7 @@ describe('ResidentSystem - Tenant Type System', () => {
       
       // Update the system multiple times to allow pathfinding and eating
       for (let i = 0; i < 100; i++) {
-        residentSystem.update(100, mockScene.timeSystem.getHour());
+        residentSystem.update(100);
       }
       
       // Food should be consumed (at least 1 unit per office worker who ate)
@@ -249,8 +258,10 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers return to office after lunch', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
-      const fastFood = mockScene.building.addRoom('fastfood', 1, 10);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
+      mockScene.building.addRoom('fastfood', 1, 10);
+      const fastFood = mockScene.building.getRoomAt(1, 10)!;
       
       // Add food
       mockScene.resourceSystem.addFood(100);
@@ -271,7 +282,7 @@ describe('ResidentSystem - Tenant Type System', () => {
       
       // Update multiple times to simulate lunch and return
       for (let i = 0; i < 200; i++) {
-        residentSystem.update(100, mockScene.timeSystem.getHour());
+        residentSystem.update(100);
       }
       
       // Worker should still have the same job (returned to office)
@@ -280,7 +291,8 @@ describe('ResidentSystem - Tenant Type System', () => {
     });
 
     test('office workers do not seek lunch if no Fast Food restaurants exist', () => {
-      const office = mockScene.building.addRoom('office', 1, 0);
+      mockScene.building.addRoom('office', 1, 0);
+      const office = mockScene.building.getRoomAt(1, 0)!;
       // No Fast Food restaurant
       
       // Spawn office workers
@@ -295,7 +307,7 @@ describe('ResidentSystem - Tenant Type System', () => {
       mockScene.timeSystem.emit('schedule:lunch-start');
       
       // Update residents
-      residentSystem.update(100, mockScene.timeSystem.getHour());
+      residentSystem.update(100);
       
       // Workers should still be at their jobs (no lunch seeking)
       const worker = officeWorkers[0];
@@ -315,7 +327,7 @@ describe('ResidentSystem - Tenant Type System', () => {
       mockScene.timeSystem.emit('schedule:lunch-start');
       
       // Update residents
-      residentSystem.update(100, mockScene.timeSystem.getHour());
+      residentSystem.update(100);
       
       // Residential tenant should not be seeking Fast Food
       // They should continue with normal behavior (seeking kitchens if hungry)
@@ -337,6 +349,237 @@ describe('ResidentSystem - Tenant Type System', () => {
       restored.type = serialized.type ?? 'resident';
       
       expect(restored.type).toBe('resident');
+    });
+  });
+});
+
+describe('ResidentSystem - Core Functionality', () => {
+  let residentSystem: ResidentSystem;
+  let mockScene: any;
+
+  beforeEach(() => {
+    mockScene = createMockGameScene();
+    residentSystem = new ResidentSystem(mockScene);
+  });
+
+  describe('Resident spawning', () => {
+    test('spawns resident in apartment with available capacity', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(resident).toBeDefined();
+      expect(resident.type).toBe('resident');
+      expect(resident.home).toBe(apartment);
+      expect(residentSystem.getPopulation()).toBe(1);
+      expect(residentSystem.getResidentialTenants()).toContain(resident);
+    });
+
+    test('spawned resident is added to residents list', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(residentSystem.getResidents()).toContain(resident);
+      expect(residentSystem.getPopulation()).toBe(1);
+    });
+
+    test('spawned resident gets job if office available', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const office = mockScene.building.addRoom('office', 1, 5);
+      
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(resident.job).toBe(office);
+      expect(residentSystem.getEmployed()).toContain(resident);
+    });
+
+    test('spawned resident has no job if no offices available', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      // No offices
+      
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(resident.job).toBeNull();
+      expect(residentSystem.getUnemployed()).toContain(resident);
+    });
+  });
+
+  describe('Move-out conditions', () => {
+    test('removes resident who has starved too long', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      // Set resident to starved state (hunger 0 for 24+ hours)
+      resident.hunger = 0;
+      // Mock hasStarvedTooLong to return true
+      vi.spyOn(resident, 'hasStarvedTooLong').mockReturnValue(true);
+      
+      residentSystem.update(100, 12);
+      
+      expect(residentSystem.getPopulation()).toBe(0);
+      expect(residentSystem.getResidents()).not.toContain(resident);
+    });
+
+    test('removes resident with high stress for too long', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      // Set resident to high stress state (>80 for 48+ hours)
+      resident.stress = 85;
+      // Mock hasHighStressTooLong to return true
+      vi.spyOn(resident, 'hasHighStressTooLong').mockReturnValue(true);
+      
+      residentSystem.update(100, 12);
+      
+      expect(residentSystem.getPopulation()).toBe(0);
+      expect(residentSystem.getResidents()).not.toContain(resident);
+    });
+
+    test('does not remove resident who is healthy', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      // Resident is healthy (hunger > 0, stress < 80)
+      resident.hunger = 50;
+      resident.stress = 50;
+      vi.spyOn(resident, 'hasStarvedTooLong').mockReturnValue(false);
+      vi.spyOn(resident, 'hasHighStressTooLong').mockReturnValue(false);
+      
+      residentSystem.update(100, 12);
+      
+      expect(residentSystem.getPopulation()).toBe(1);
+      expect(residentSystem.getResidents()).toContain(resident);
+    });
+  });
+
+  describe('Job assignment', () => {
+    test('assignJobs assigns jobs to unemployed residents', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const office = mockScene.building.addRoom('office', 1, 5);
+      
+      const resident = residentSystem.spawnResident(apartment);
+      // Remove job to make unemployed
+      resident.setJob(null);
+      
+      expect(residentSystem.getUnemployed()).toContain(resident);
+      
+      residentSystem.assignJobs();
+      
+      expect(resident.job).toBe(office);
+      expect(residentSystem.getEmployed()).toContain(resident);
+      expect(residentSystem.getUnemployed()).not.toContain(resident);
+    });
+
+    test('assignJobs does not assign if no offices available', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      // No offices
+      
+      const resident = residentSystem.spawnResident(apartment);
+      resident.setJob(null);
+      
+      residentSystem.assignJobs();
+      
+      expect(resident.job).toBeNull();
+      expect(residentSystem.getUnemployed()).toContain(resident);
+    });
+
+    test('assignJobs fills office capacity correctly', () => {
+      const apartment1 = mockScene.building.addRoom('apartment', 1, 0);
+      const apartment2 = mockScene.building.addRoom('apartment', 1, 5);
+      const office = mockScene.building.addRoom('office', 1, 10);
+      // Office has 6 job slots
+      
+      const resident1 = residentSystem.spawnResident(apartment1);
+      const resident2 = residentSystem.spawnResident(apartment2);
+      resident1.setJob(null);
+      resident2.setJob(null);
+      
+      residentSystem.assignJobs();
+      
+      expect(resident1.job).toBe(office);
+      expect(resident2.job).toBe(office);
+    });
+  });
+
+  describe('Resident queries', () => {
+    test('getPopulation returns correct count', () => {
+      expect(residentSystem.getPopulation()).toBe(0);
+      
+      const apartment1 = mockScene.building.addRoom('apartment', 1, 0);
+      const apartment2 = mockScene.building.addRoom('apartment', 1, 5);
+      
+      residentSystem.spawnResident(apartment1);
+      expect(residentSystem.getPopulation()).toBe(1);
+      
+      residentSystem.spawnResident(apartment2);
+      expect(residentSystem.getPopulation()).toBe(2);
+    });
+
+    test('getHungryResidents returns residents with low hunger', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      // Set resident to hungry state
+      resident.hunger = 30; // Below critical threshold
+      vi.spyOn(resident, 'isHungry').mockReturnValue(true);
+      
+      const hungry = residentSystem.getHungryResidents();
+      expect(hungry).toContain(resident);
+    });
+
+    test('getAverageSatisfaction calculates correctly', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      // Mock satisfaction calculation
+      vi.spyOn(resident, 'calculateSatisfaction').mockReturnValue(75);
+      
+      const avgSatisfaction = residentSystem.getAverageSatisfaction(true);
+      expect(avgSatisfaction).toBe(75);
+    });
+
+    test('getAverageSatisfaction returns 0 for empty building', () => {
+      const avgSatisfaction = residentSystem.getAverageSatisfaction(true);
+      expect(avgSatisfaction).toBe(0);
+    });
+  });
+
+  describe('Resident management', () => {
+    test('removeResident removes resident from system', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(residentSystem.getPopulation()).toBe(1);
+      
+      residentSystem.removeResident(resident);
+      
+      expect(residentSystem.getPopulation()).toBe(0);
+      expect(residentSystem.getResidents()).not.toContain(resident);
+    });
+
+    test('addResident adds resident to system', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = new Resident(mockScene, 'test_1', 0, 0);
+      resident.setHome(apartment);
+      
+      expect(residentSystem.getPopulation()).toBe(0);
+      
+      residentSystem.addResident(resident);
+      
+      expect(residentSystem.getPopulation()).toBe(1);
+      expect(residentSystem.getResidents()).toContain(resident);
+    });
+
+    test('addResident does not add duplicate residents', () => {
+      const apartment = mockScene.building.addRoom('apartment', 1, 0);
+      const resident = residentSystem.spawnResident(apartment);
+      
+      expect(residentSystem.getPopulation()).toBe(1);
+      
+      residentSystem.addResident(resident);
+      
+      expect(residentSystem.getPopulation()).toBe(1);
     });
   });
 });

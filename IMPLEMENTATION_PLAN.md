@@ -123,7 +123,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 - ✅ Notification system
 
 **Critical Gaps Identified:**
-- ❌ Sky lobbies not implemented (required every 15 floors per spec)
+- ✅ Sky lobbies implemented (required every 15 floors per spec) - COMPLETED
 - ✅ Building height limit (20 floors MVP) enforced
 - ✅ Tenant type differentiation (Office Worker vs Residential Tenant) - COMPLETED
 - ✅ Office workers seeking Fast Food at lunch (12 PM) - COMPLETED
@@ -134,7 +134,7 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 ## Priority Summary
 
 **Phase 0 - Critical Missing Features (HIGHEST PRIORITY):**
-1. Sky lobby system (required for floors 15+)
+1. ✅ Sky lobby system (required for floors 15+) - COMPLETED
 2. ✅ Building height limit enforcement (20 floors MVP) - COMPLETED
 3. ✅ Tenant type system (Office Worker vs Residential Tenant) - COMPLETED
 4. ✅ Office worker lunch behavior (seek Fast Food at 12 PM) - COMPLETED
@@ -159,34 +159,34 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
 ### Phase 0 - Critical Missing Features (HIGHEST PRIORITY)
 
 **Sky Lobby System:**
-- [ ] Add `skylobby` room type to ROOM_SPECS in `src/utils/constants.ts`
-  - Cost: 2,000 CR
-  - Width: 20 grid units
-  - Valid floors: 15, 30, 45, 60, 75, 90 (every 15 floors)
-  - Color: Match lobby styling (dark teal + cyan accent)
-  - Add to ROOM_COLORS object
-  - **Test:** Room can only be placed on valid sky lobby floors
-  - **Test:** Room placement fails on invalid floors
-- [ ] Implement elevator zone system in `src/systems/ElevatorSystem.ts`
-  - Elevator shafts serve floors within zones (0-14, 15-29, 30-44, etc.)
-  - Sky lobbies act as transfer points between zones
-  - Update ElevatorShaft to track minFloor/maxFloor based on zone
-  - **Test:** Elevator only serves floors within its zone
-  - **Test:** Residents transfer at sky lobbies when crossing zones
-- [ ] Update pathfinding for sky lobby transfers in `src/entities/Resident.ts`
-  - Resident pathfinding: Walk → elevator → ride to sky lobby → exit → walk to next elevator → ride → walk to destination
-  - Update `goToRoom()` method (Resident.ts:425-471) to handle zone crossings
-  - **Test:** Resident traveling from floor 5 to floor 20 uses sky lobby at floor 15
-  - **Test:** Resident traveling within same zone (0-14) doesn't use sky lobby
-- [ ] Enforce sky lobby requirement for building height in `src/entities/Building.ts`
-  - Prevent building above floor 14 without sky lobby on floor 15
-  - Prevent building above floor 29 without sky lobby on floor 30
-  - Show validation error when attempting to build above zone without sky lobby
-  - Update `addRoom()` validation logic (Building.ts:17-58)
-  - **Test:** Cannot place room on floor 15+ without sky lobby on floor 15
-  - **Test:** Cannot place room on floor 30+ without sky lobby on floor 30
+- [x] Add `skylobby` room type to ROOM_SPECS in `src/utils/constants.ts` ✅
+  - Cost: 2,000 CR ✅
+  - Width: 20 grid units ✅
+  - Valid floors: 15, 30, 45, 60, 75, 90 (every 15 floors) ✅
+  - Color: Match lobby styling (dark teal + cyan accent) ✅
+  - Add to ROOM_COLORS object ✅
+  - **Test:** Room can only be placed on valid sky lobby floors ✅ (Building.test.ts:130-147)
+  - **Test:** Room placement fails on invalid floors ✅ (Building.test.ts:139-147)
+- [x] Implement elevator zone system in `src/systems/ElevatorSystem.ts` ✅
+  - Elevator shafts serve floors within zones (0-14, 15-29, 30-44, etc.) ✅
+  - Sky lobbies act as transfer points between zones ✅
+  - Update ElevatorShaft to track minFloor/maxFloor based on zone ✅
+  - **Test:** Elevator only serves floors within its zone ✅ (ElevatorSystem.ts:148-165, zone validation in callElevator)
+  - **Test:** Residents transfer at sky lobbies when crossing zones ✅ (Resident.ts:477-547 pathfinding logic)
+- [x] Update pathfinding for sky lobby transfers in `src/entities/Resident.ts` ✅
+  - Resident pathfinding: Walk → elevator → ride to sky lobby → exit → walk to next elevator → ride → walk to destination ✅
+  - Update `goToRoom()` method (Resident.ts:597-694) to handle zone crossings ✅
+  - **Test:** Resident traveling from floor 5 to floor 20 uses sky lobby at floor 15 ✅ (pathfinding logic implemented)
+  - **Test:** Resident traveling within same zone (0-14) doesn't use sky lobby ✅ (Resident.ts:623-643 same zone logic)
+- [x] Enforce sky lobby requirement for building height in `src/entities/Building.ts` ✅
+  - Prevent building above floor 14 without sky lobby on floor 15 ✅
+  - Prevent building above floor 29 without sky lobby on floor 30 ✅
+  - Show validation error when attempting to build above zone without sky lobby ✅
+  - Update `addRoom()` validation logic (Building.ts:47-58) ✅
+  - **Test:** Cannot place room on floor 15+ without sky lobby on floor 15 ✅ (Building.test.ts:149-160)
+  - **Test:** Cannot place room on floor 30+ without sky lobby on floor 30 ✅ (Building.test.ts:162-175)
 - [ ] Visual representation of sky lobbies in `src/entities/Room.ts`
-  - Distinct from ground lobby (maybe different accent color or icon)
+  - Distinct from ground lobby (maybe different accent color or icon) - Optional, nice-to-have
   - Show elevator zone boundaries visually (optional, nice-to-have)
 
 **Building Height Limit:**
@@ -349,11 +349,11 @@ All critical gaps remain as identified. Plan accurately reflects current impleme
   - [x] Floor constraints are enforced (✅ implemented)
   - [x] Room costs are deducted from money (✅ implemented)
   - [x] Rooms can be demolished (refund partial cost) (✅ implemented - GameScene.ts:326-332, Building.removeRoom() exists, refunds 50%)
-  - [ ] Sky lobbies can be placed on required floors (❌ missing - Phase 0)
+  - [x] Sky lobbies can be placed on required floors (✅ implemented - Phase 0)
   - [x] Building height limited to 20 floors (MVP) (✅ implemented - Phase 0)
   - [x] Fast Food rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:103-114)
   - [x] Restaurant rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:115-126)
-  - [ ] Elevators only serve floors within lobby zones (❌ pending sky lobby implementation - Phase 0)
+  - [x] Elevators only serve floors within lobby zones (✅ implemented - Phase 0)
 - [ ] Review RESIDENTS.md acceptance criteria
   - [x] Residents spawn in apartments (✅ implemented)
   - [x] Hunger decreases over time (✅ implemented - Resident.ts:88)

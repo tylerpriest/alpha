@@ -4,7 +4,6 @@ import { Building } from '../entities/Building';
 import { ResidentSystem } from './ResidentSystem';
 import { ResourceSystem } from './ResourceSystem';
 import { Resident } from '../entities/Resident';
-import { Room } from '../entities/Room';
 import Phaser from 'phaser';
 
 // Mock GameScene for ResidentSystem
@@ -176,7 +175,8 @@ describe('EconomySystem', () => {
       residentSystem.addResident(resident1);
       
       // Resident 2: High satisfaction (stress 10, hunger 90, food, job)
-      const office = building.addRoom('office', 1, 5);
+      building.addRoom('office', 1, 5);
+      const office = building.getRoomAt(1, 5)!;
       const resident2 = new Resident(mockScene, 'test_5b', 0, 0);
       resident2.hunger = 90;
       resident2.stress = 10;

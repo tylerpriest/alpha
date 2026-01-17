@@ -17,7 +17,6 @@ export class SaveGameScene extends Phaser.Scene {
     // Use scene.manager to get the scene if it exists
     const gameScene = this.scene.manager.getScene('GameScene') as GameScene | undefined;
     if (gameScene && gameScene.building && gameScene.saveSystem) {
-      this.gameScene = gameScene;
       this.saveSystem = gameScene.saveSystem;
       this.createSaveGameUI();
     } else {
