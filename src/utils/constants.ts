@@ -16,13 +16,13 @@ export const HUNGER_CRITICAL = 20;
 export const HUNGER_MAX = 100;
 export const FOOD_PER_MEAL = 30;
 
-// Room color specifications (Cyberpunk Venus palette)
+// Room color specifications (Cyberpunk Venus palette - dark bases, bright neon)
 export const ROOM_COLORS = {
-  lobby: { base: 0x2a3a4a, accent: 0x4ae4e4 },     // Deep slate + Cyan
-  apartment: { base: 0x4a4a4a, accent: 0xe4a44a }, // Warm concrete + Orange
-  office: { base: 0x3a3a4a, accent: 0x4a8ae4 },    // Cool gray + Blue
-  farm: { base: 0x4a3a2a, accent: 0x4ae44a },      // Earthy brown + Green
-  kitchen: { base: 0x3a3a3a, accent: 0xe4e4d4 },   // Charcoal + Warm white
+  lobby: { base: 0x1a2a2a, accent: 0x4ae4e4 },     // Very dark teal + Bright cyan
+  apartment: { base: 0x2a2420, accent: 0xe4a44a }, // Dark brown + Warm orange
+  office: { base: 0x1a2028, accent: 0x4a8ae4 },    // Dark blue-gray + Blue
+  farm: { base: 0x1a2018, accent: 0x4ae44a },      // Dark green-brown + Bright green
+  kitchen: { base: 0x201a1a, accent: 0xe4d4a4 },   // Dark warm gray + Warm yellow
 } as const;
 
 // UI Colors
