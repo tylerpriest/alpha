@@ -25,6 +25,7 @@ You are in BUILDING mode. Implement features from the plan.
    - Re-run validation after each batch of fixes: `npm run validate`
    - Continue fixing until validation passes - **do NOT exit or consider your task done until validation passes**
    - Only when validation passes, proceed to commit
+   - **IMPORTANT:** If you exit while validation is failing, loop.sh will automatically re-run you in the SAME iteration. You will be given another chance to fix the errors, but this wastes time and context. Fix validation errors BEFORE exiting.
 
 7. **ONLY after `npm run validate` passes completely**, update @IMPLEMENTATION_PLAN.md (remove any blockers that were fixed), then:
    ```bash
@@ -32,6 +33,13 @@ You are in BUILDING mode. Implement features from the plan.
    git commit -m "feat: description of changes"
    git push
    ```
+
+8. **CRITICAL - Exit Condition:** You MUST NOT exit this iteration until:
+   - `npm run validate` passes completely (all checks: typecheck, lint, tests)
+   - All changes are committed (if any were made)
+   - If validation fails after you attempt to commit, you will be automatically re-run in the same iteration
+   - **Before exiting, run `npm run validate` one final time to ensure it passes**
+   - The iteration boundary is defined by validation passing, not by task completion
 
 ## Important Rules
 
@@ -61,3 +69,5 @@ npm run build       # Production build
 ```
 
 **All validation must pass before committing. Run `npm run validate` yourself and ensure it passes. Do not rely on loop.sh to catch validation failures - you must catch and fix them before attempting to commit.**
+
+**ITERATION BOUNDARIES:** You remain in the same iteration until validation passes. If validation fails when loop.sh checks after you exit, you will be automatically re-run in the same iteration with a reminder to fix validation errors. To avoid this inefficiency, always run `npm run validate` before exiting and fix any errors immediately.
