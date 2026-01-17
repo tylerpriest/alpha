@@ -14,7 +14,7 @@ export class Building {
     this.scene = scene;
   }
 
-  addRoom(type: string, floor: number, position: number): boolean {
+  addRoom(type: string, floor: number, position: number, id?: string): boolean {
     const roomType = type as RoomType;
     const spec = ROOM_SPECS[roomType];
 
@@ -29,9 +29,9 @@ export class Building {
       return false;
     }
 
-    // Check for overlaps
+    // Check for overlaps (skip during restore)
     const width = spec.width;
-    if (this.hasOverlap(floor, position, width)) {
+    if (!id && this.hasOverlap(floor, position, width)) {
       console.warn(`Room overlaps with existing room`);
       return false;
     }
@@ -41,17 +41,17 @@ export class Building {
       this.floors.set(floor, new Floor(floor));
     }
 
-    // Create room
-    const id = `room_${this.nextRoomId++}`;
+    // Create room with specified ID or generate new one
+    const roomId = id || `room_${this.nextRoomId++}`;
     const room = new Room(this.scene, {
-      id,
+      id: roomId,
       type: roomType,
       floor,
       position,
       width,
     });
 
-    this.rooms.set(id, room);
+    this.rooms.set(roomId, room);
     this.floors.get(floor)!.addRoom(room);
 
     return true;
@@ -121,6 +121,11 @@ export class Building {
     return Array.from(this.floors.values());
   }
 
+  getTopFloor(): number {
+    if (this.floors.size === 0) return 0;
+    return Math.max(...Array.from(this.floors.keys()));
+  }
+
   getApartments(): Room[] {
     return this.getRoomsByType('apartment');
   }
@@ -137,6 +142,14 @@ export class Building {
     return this.getRoomsByType('kitchen');
   }
 
+  getFastFoods(): Room[] {
+    return this.getRoomsByType('fastfood');
+  }
+
+  getRestaurants(): Room[] {
+    return this.getRoomsByType('restaurant');
+  }
+
   getTotalCapacity(): number {
     return this.getApartments().reduce((sum, apt) => {
       const spec = ROOM_SPECS[apt.type];
@@ -149,6 +162,14 @@ export class Building {
       const spec = ROOM_SPECS[office.type];
       return sum + ('jobs' in spec ? spec.jobs : 0);
     }, 0);
+  }
+
+  getNextRoomId(): number {
+    return this.nextRoomId;
+  }
+
+  setNextRoomId(id: number): void {
+    this.nextRoomId = id;
   }
 
   serialize(): RoomData[] {
@@ -165,5 +186,9 @@ export class Building {
     this.rooms.forEach((room) => room.destroy());
     this.rooms.clear();
     this.floors.clear();
+  }
+
+  redrawAllRooms(): void {
+    this.rooms.forEach((room) => room.redraw());
   }
 }

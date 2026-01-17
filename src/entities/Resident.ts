@@ -7,9 +7,12 @@ import {
   FOOD_PER_MEAL,
   MS_PER_GAME_HOUR,
   HUNGER_COLORS,
+  GRID_SIZE,
+  FLOOR_HEIGHT,
 } from '../utils/constants';
-import { ResidentState, ResidentData } from '../utils/types';
+import { ResidentState, ResidentData, ElevatorState } from '../utils/types';
 import type { GameScene } from '../scenes/GameScene';
+import type { ElevatorShaft } from '../systems/ElevatorSystem';
 
 const RESIDENT_NAMES = [
   'Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn', 'Avery',
@@ -20,6 +23,7 @@ export class Resident {
   public readonly id: string;
   public name: string;
   public hunger: number = HUNGER_MAX;
+  public stress: number = 0; // 0-100 stress level
   public state: ResidentState = ResidentState.IDLE;
 
   private scene: Phaser.Scene;
@@ -37,6 +41,14 @@ export class Resident {
   private stateTimer = 0;
   private targetKitchen: Room | null = null;
   private starvationTime = 0; // Tracks time at hunger 0 (in game ms)
+  private highStressTime = 0; // Tracks time at stress >80 (in game ms)
+  private sleepStartHour: number | null = null; // Track when sleep started for stress relief
+  private sleepStressReliefApplied = false; // Track if we've applied sleep stress relief for current sleep cycle
+
+  // Pathfinding properties
+  private targetRoom: Room | null = null;
+  private elevatorShaft: ElevatorShaft | null = null;
+  private elevatorWaitStartTime = 0; // Timestamp when waiting for elevator started
 
   private x: number;
   private y: number;
@@ -82,6 +94,22 @@ export class Resident {
       this.starvationTime = 0;
     }
 
+    // Update stress from elevator wait times
+    this.updateElevatorWaitStress(delta);
+
+    // Update stress from hourly factors
+    this.updateHourlyStress(delta, gameHour);
+
+    // Track high stress time (stress >80)
+    if (this.stress > 80) {
+      this.highStressTime += delta;
+    } else {
+      this.highStressTime = 0;
+    }
+
+    // Clamp stress to 0-100
+    this.stress = Math.max(0, Math.min(100, this.stress));
+
     // Update state timer
     this.stateTimer += delta;
 
@@ -90,6 +118,15 @@ export class Resident {
       case ResidentState.WALKING:
         this.updateWalking(delta);
         break;
+      case ResidentState.WALKING_TO_ELEVATOR:
+        this.updateWalkingToElevator(delta);
+        break;
+      case ResidentState.WAITING_FOR_ELEVATOR:
+        this.updateWaitingForElevator(delta);
+        break;
+      case ResidentState.RIDING_ELEVATOR:
+        this.updateRidingElevator(delta);
+        break;
       case ResidentState.WORKING:
         this.updateWorking(delta);
         break;
@@ -97,7 +134,7 @@ export class Resident {
         this.updateEating(delta);
         break;
       case ResidentState.SLEEPING:
-        this.updateSleeping(delta);
+        this.updateSleeping(delta, gameHour);
         break;
       case ResidentState.IDLE:
         this.updateIdle(gameHour);
@@ -117,7 +154,9 @@ export class Resident {
     this.glowGraphics.clear();
 
     const color = this.getHungerColor();
-    const bobOffset = this.state === ResidentState.WALKING ? Math.sin(this.walkBob) * 2 : 0;
+    const bobOffset = (this.state === ResidentState.WALKING || 
+                       this.state === ResidentState.WALKING_TO_ELEVATOR) 
+                      ? Math.sin(this.walkBob) * 2 : 0;
     const baseY = this.y + bobOffset;
 
     // Silhouette body (24x32px)
@@ -197,6 +236,8 @@ export class Resident {
         this.goToRoom(this.home, () => {
           this.state = ResidentState.SLEEPING;
           this.stateTimer = 0;
+          this.sleepStartHour = gameHour;
+          this.sleepStressReliefApplied = false;
         });
       }
     }
@@ -253,6 +294,93 @@ export class Resident {
     }
   }
 
+  private updateWalkingToElevator(delta: number): void {
+    if (this.targetX === null || this.targetY === null) {
+      this.state = ResidentState.IDLE;
+      return;
+    }
+
+    const speed = 100; // Pixels per second
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Update walk bob animation
+    this.walkBob += delta * 0.015;
+
+    if (dist < 5) {
+      // Arrived at elevator - start waiting
+      this.x = this.targetX;
+      this.y = this.targetY;
+      this.targetX = null;
+      this.targetY = null;
+      this.walkBob = 0;
+      this.state = ResidentState.WAITING_FOR_ELEVATOR;
+      this.elevatorWaitStartTime = Date.now(); // Track when waiting started
+    } else {
+      const moveX = (dx / dist) * speed * (delta / 1000);
+      const moveY = (dy / dist) * speed * (delta / 1000);
+      this.x += moveX;
+      this.y += moveY;
+    }
+  }
+
+  private updateWaitingForElevator(delta: number): void {
+    if (!this.elevatorShaft || !this.targetRoom) {
+      this.state = ResidentState.IDLE;
+      this.elevatorWaitStartTime = 0;
+      return;
+    }
+
+    const currentFloor = this.getCurrentFloor();
+    const targetFloor = this.targetRoom.floor;
+
+    // Check if elevator is at our floor and loading
+    if (this.elevatorShaft.isAtFloor(currentFloor) && 
+        this.elevatorShaft.car.canAcceptPassengers()) {
+      // Board the elevator - check wait time before clearing
+      const waitTime = Date.now() - this.elevatorWaitStartTime;
+      this.applyElevatorWaitStress(waitTime);
+      
+      this.elevatorWaitStartTime = 0;
+      if (this.elevatorShaft.car.addPassenger(this)) {
+        this.state = ResidentState.RIDING_ELEVATOR;
+        this.elevatorShaft.car.setTargetFloor(targetFloor);
+      }
+    }
+  }
+
+  private updateRidingElevator(delta: number): void {
+    if (!this.elevatorShaft || !this.targetRoom) {
+      this.state = ResidentState.IDLE;
+      return;
+    }
+
+    const targetFloor = this.targetRoom.floor;
+    const car = this.elevatorShaft.car;
+
+    // Update resident position to match elevator car position
+    const elevatorX = this.elevatorShaft.position * GRID_SIZE;
+    // getVisualY() returns negative values (floor 0 = 0, floor 1 = -64, etc.)
+    // Ground Y is 500, so we need: 500 + getVisualY() to get the actual Y position
+    const elevatorY = 500 + car.getVisualY();
+    this.setPosition(elevatorX, elevatorY);
+
+    // Check if we've arrived at destination floor and doors are open
+    if (car.currentFloor === targetFloor && 
+        (car.state === ElevatorState.LOADING || car.state === ElevatorState.DOORS_OPENING)) {
+      // Exit elevator
+      this.elevatorShaft.car.removePassenger(this);
+      this.elevatorShaft = null;
+
+      // Walk to final destination
+      const pos = this.targetRoom.getWorldPosition();
+      this.targetX = pos.x;
+      this.targetY = pos.y;
+      this.state = ResidentState.WALKING;
+    }
+  }
+
   private updateWorking(_delta: number): void {
     // Work until 5 PM (handled by idle check)
     // Just stay in working state
@@ -263,21 +391,102 @@ export class Resident {
     if (this.stateTimer > 1800000 / 10) {
       // 30 minutes scaled
       this.hunger = Math.min(HUNGER_MAX, this.hunger + FOOD_PER_MEAL);
+      // Good meal reduces stress by 10
+      this.stress = Math.max(0, this.stress - 10);
       this.state = ResidentState.IDLE;
     }
   }
 
-  private updateSleeping(_delta: number): void {
+  private updateSleeping(delta: number, gameHour: number): void {
     // Sleeping restores a small amount of hunger resistance
     // (actually handled by reduced decay during sleep)
+    
+    // Apply sleep stress relief when waking up (6 AM or later)
+    // If it's 6 AM or later and we haven't applied relief yet, apply it
+    if (gameHour >= 6 && this.sleepStartHour !== null && !this.sleepStressReliefApplied) {
+      // Check if we slept for at least 6 hours (full night)
+      let sleepDuration = 0;
+      if (this.sleepStartHour >= 22) {
+        // Started before midnight
+        sleepDuration = (24 - this.sleepStartHour) + gameHour;
+      } else {
+        // Started after midnight
+        sleepDuration = gameHour - this.sleepStartHour;
+      }
+      
+      // Full night sleep (6+ hours) reduces stress by 20
+      if (sleepDuration >= 6) {
+        this.stress = Math.max(0, this.stress - 20);
+        this.sleepStressReliefApplied = true;
+      }
+    }
   }
 
   goToRoom(room: Room, onArrival?: () => void): void {
-    const pos = room.getWorldPosition();
-    this.targetX = pos.x;
-    this.targetY = pos.y;
-    this.state = ResidentState.WALKING;
+    this.targetRoom = room;
     this.onArrival = onArrival ?? null;
+
+    const currentFloor = this.getCurrentFloor();
+    const targetFloor = room.floor;
+
+    // Same floor - direct walk
+    if (currentFloor === targetFloor) {
+      const pos = room.getWorldPosition();
+      this.targetX = pos.x;
+      this.targetY = pos.y;
+      this.state = ResidentState.WALKING;
+      return;
+    }
+
+    // Different floor - need elevator
+    const gameScene = this.scene as GameScene;
+    const elevatorSystem = gameScene.elevatorSystem;
+
+    // Find nearest elevator shaft
+    const shafts = elevatorSystem.getAllShafts();
+    if (shafts.length === 0) {
+      // No elevators - fallback to teleport (shouldn't happen in normal gameplay)
+      const pos = room.getWorldPosition();
+      this.targetX = pos.x;
+      this.targetY = pos.y;
+      this.state = ResidentState.WALKING;
+      return;
+    }
+
+    // For MVP, use first shaft (nearest shaft logic can be added later)
+    this.elevatorShaft = shafts[0];
+
+    // Determine direction
+    const direction = targetFloor > currentFloor ? 'up' : 'down';
+
+    // Call elevator
+    elevatorSystem.callElevator(currentFloor, direction, this);
+
+    // Walk to elevator position
+    const elevatorX = this.elevatorShaft.position * GRID_SIZE;
+    const elevatorY = this.getFloorY(currentFloor);
+    this.targetX = elevatorX;
+    this.targetY = elevatorY;
+    this.state = ResidentState.WALKING_TO_ELEVATOR;
+  }
+
+  /**
+   * Get the current floor based on Y position
+   */
+  private getCurrentFloor(): number {
+    // Ground Y is 500, each floor is FLOOR_HEIGHT pixels up (negative Y)
+    // Formula: floor = (500 - y) / FLOOR_HEIGHT
+    const groundY = 500;
+    const floor = Math.round((groundY - this.y) / FLOOR_HEIGHT);
+    return Math.max(0, floor); // Ensure non-negative
+  }
+
+  /**
+   * Get the Y position for a given floor
+   */
+  private getFloorY(floor: number): number {
+    const groundY = 500;
+    return groundY - floor * FLOOR_HEIGHT;
   }
 
   setHome(room: Room): void {
@@ -317,6 +526,128 @@ export class Resident {
     return this.starvationTime >= maxStarvationTime;
   }
 
+  hasHighStressTooLong(): boolean {
+    // 48 game hours at stress >80 means resident should leave
+    const maxHighStressTime = 48 * MS_PER_GAME_HOUR;
+    return this.highStressTime >= maxHighStressTime;
+  }
+
+  /**
+   * Update stress from elevator wait times
+   */
+  private updateElevatorWaitStress(delta: number): void {
+    if (this.state === ResidentState.WAITING_FOR_ELEVATOR && this.elevatorWaitStartTime > 0) {
+      const waitTime = Date.now() - this.elevatorWaitStartTime;
+      // Check thresholds and apply stress (only once per threshold)
+      // We'll apply stress when boarding, not continuously
+    }
+  }
+
+  /**
+   * Apply stress based on elevator wait time (called when boarding)
+   */
+  private applyElevatorWaitStress(waitTimeMs: number): void {
+    const waitTimeSeconds = waitTimeMs / 1000;
+    
+    if (waitTimeSeconds > 120) {
+      this.stress += 20;
+    } else if (waitTimeSeconds > 60) {
+      this.stress += 10;
+    } else if (waitTimeSeconds > 30) {
+      this.stress += 5;
+    }
+  }
+
+  /**
+   * Update stress from hourly factors
+   */
+  private updateHourlyStress(delta: number, gameHour: number): void {
+    const hourDelta = delta / 3600000; // Convert ms to hours
+
+    // Unemployed: +3 stress/hour
+    if (!this.job) {
+      this.stress += 3 * hourDelta;
+    }
+
+    // Overcrowded apartment (>4 residents): +5 stress/hour
+    if (this.home) {
+      const residentCount = this.home.getResidentCount();
+      if (residentCount > 4) {
+        this.stress += 5 * hourDelta;
+      }
+
+      // Adjacent to office: +2 stress/hour
+      if (this.isAdjacentToOffice()) {
+        this.stress += 2 * hourDelta;
+      }
+    }
+    // Note: Sleep stress relief is handled in updateSleeping()
+  }
+
+  /**
+   * Check if resident's home apartment is adjacent to an office
+   */
+  private isAdjacentToOffice(): boolean {
+    if (!this.home || this.home.type !== 'apartment') {
+      return false;
+    }
+
+    const gameScene = this.scene as GameScene;
+    const building = gameScene.building;
+    const floor = this.home.floor;
+    const homeStart = this.home.position;
+    const homeEnd = this.home.position + this.home.width;
+
+    // Check all offices on the same floor
+    const offices = building.getOffices();
+    for (const office of offices) {
+      if (office.floor === floor) {
+        const officeStart = office.position;
+        const officeEnd = office.position + office.width;
+        
+        // Adjacent means touching (no gap) or overlapping
+        // For simplicity, we'll check if they're within 1 grid unit
+        const gap = Math.min(
+          Math.abs(homeEnd - officeStart),
+          Math.abs(officeEnd - homeStart)
+        );
+        
+        if (gap <= 1) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Calculate satisfaction (0-100) based on stress, hunger, food availability, and employment
+   * Formula: 100 - Stress - HungerPenalty + FoodBonus + EmploymentBonus
+   * 
+   * @param foodAvailable Whether processed food is available in the building
+   * @returns Satisfaction score from 0-100
+   */
+  calculateSatisfaction(foodAvailable: boolean): number {
+    // Stress penalty (0-100)
+    const stressPenalty = this.stress;
+    
+    // Hunger penalty: (100 - Hunger) / 2 (max 50 penalty when starving)
+    const hungerPenalty = (100 - this.hunger) / 2;
+    
+    // Food bonus: +10 if food available
+    const foodBonus = foodAvailable ? 10 : 0;
+    
+    // Employment bonus: +15 if employed
+    const employmentBonus = this.job !== null ? 15 : 0;
+    
+    // Calculate satisfaction
+    const satisfaction = 100 - stressPenalty - hungerPenalty + foodBonus + employmentBonus;
+    
+    // Clamp to 0-100
+    return Math.max(0, Math.min(100, satisfaction));
+  }
+
   getPosition(): { x: number; y: number } {
     return { x: this.x, y: this.y };
   }
@@ -333,6 +664,7 @@ export class Resident {
       id: this.id,
       name: this.name,
       hunger: this.hunger,
+      stress: this.stress,
       homeId: this.home?.id ?? null,
       jobId: this.job?.id ?? null,
       state: this.state,
@@ -340,6 +672,12 @@ export class Resident {
   }
 
   destroy(): void {
+    // Remove from elevator if riding
+    if (this.elevatorShaft) {
+      this.elevatorShaft.removeResident(this);
+      this.elevatorShaft = null;
+    }
+
     if (this.home) {
       this.home.removeResident(this);
     }

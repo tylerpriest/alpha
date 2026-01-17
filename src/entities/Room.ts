@@ -14,6 +14,7 @@ export class Room {
   private glowGraphics: Phaser.GameObjects.Graphics;
   private interiorGraphics: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
+  private scene: Phaser.Scene;
   private residents: Resident[] = [];
   private workers: Resident[] = [];
   private isSelected = false;
@@ -24,6 +25,7 @@ export class Room {
     this.floor = data.floor;
     this.position = data.position;
     this.width = data.width;
+    this.scene = scene;
 
     // Create graphics layers
     this.graphics = scene.add.graphics();
@@ -63,22 +65,33 @@ export class Room {
     const isOccupied = this.residents.length > 0 || this.workers.length > 0;
     const brightness = isOccupied ? 1 : 0.6;
 
+    // Get current hour from registry for night glow effects
+    const hour = (this.scene.registry.get('hour') as number) ?? 12;
+    const nightIntensity = this.getNightIntensity(hour);
+
     // Room background with dark fill
     const baseColor = this.adjustBrightness(spec.color, brightness);
     this.graphics.fillStyle(baseColor, 1);
     this.graphics.fillRect(x + 2, y + 2, w - 4, h - 4);
 
     // Neon accent border (inner glow effect)
+    // Enhanced during night hours
     const accentColor = spec.accentColor;
-    this.graphics.lineStyle(2, accentColor, 0.9);
+    const borderAlpha = 0.9 + nightIntensity * 0.1; // 0.9 to 1.0
+    this.graphics.lineStyle(2, accentColor, borderAlpha);
     this.graphics.strokeRect(x + 2, y + 2, w - 4, h - 4);
 
     // Outer glow for accent (additive blend)
-    this.glowGraphics.lineStyle(4, accentColor, 0.3);
+    // Empty rooms: 40% base glow (0.4), Occupied: 60% base (0.6)
+    // Enhanced during night: +0.2 to +0.4 intensity
+    const baseGlowAlpha = isOccupied ? 0.6 : 0.4; // Spec: empty = 40%, occupied = full
+    const nightGlowBoost = nightIntensity * 0.3; // Up to 30% additional glow at night
+    const glowAlpha = Math.min(1.0, baseGlowAlpha + nightGlowBoost);
+    this.glowGraphics.lineStyle(4, accentColor, glowAlpha);
     this.glowGraphics.strokeRect(x, y, w, h);
 
     // Draw interior details based on room type
-    this.drawInteriorDetails(x, y, w, h, accentColor, isOccupied);
+    this.drawInteriorDetails(x, y, w, h, accentColor, isOccupied, nightIntensity);
 
     // Selection border (if selected)
     if (this.isSelected) {
@@ -93,60 +106,155 @@ export class Room {
     this.label.setAlpha(0.9);
   }
 
-  private drawInteriorDetails(x: number, y: number, w: number, h: number, accent: number, occupied: boolean): void {
-    const alpha = occupied ? 0.7 : 0.4;
+  /**
+   * Calculate night intensity (0-1) based on hour.
+   * Returns 1.0 during full night (8 PM - 6 AM), with transitions at dawn/dusk.
+   */
+  private getNightIntensity(hour: number): number {
+    // Night hours: 8 PM (20) to 6 AM (6)
+    if (hour >= 20 || hour < 6) {
+      return 1.0;
+    } else if (hour >= 6 && hour < 8) {
+      // Dawn - fading from night to day
+      return 1.0 - (hour - 6) / 2;
+    } else if (hour >= 18 && hour < 20) {
+      // Dusk - fading from day to night
+      return (hour - 18) / 2;
+    }
+    return 0.0;
+  }
+
+  private drawInteriorDetails(x: number, y: number, w: number, h: number, accent: number, occupied: boolean, nightIntensity: number): void {
+    const alpha = occupied ? 0.9 : 0.5;
+    // Base glow: empty = 40% (0.4), occupied = 60% (0.6)
+    // Enhanced during night
+    const baseGlowAlpha = occupied ? 0.6 : 0.4;
+    const nightGlowBoost = nightIntensity * 0.2;
+    const glowAlpha = Math.min(1.0, baseGlowAlpha + nightGlowBoost);
 
     switch (this.type) {
       case 'lobby':
-        // Floor pattern lines
-        this.interiorGraphics.lineStyle(1, accent, alpha * 0.3);
-        for (let i = 0; i < w; i += 20) {
-          this.interiorGraphics.lineBetween(x + i, y + h - 4, x + i + 10, y + h - 4);
+        // Floor tiles
+        this.interiorGraphics.fillStyle(0x1a1a1a, 0.5);
+        for (let i = 0; i < w - 8; i += 24) {
+          this.interiorGraphics.fillRect(x + 4 + i, y + h - 16, 20, 10);
         }
+        // Neon floor strips
+        this.interiorGraphics.fillStyle(accent, glowAlpha);
+        this.interiorGraphics.fillRect(x + 4, y + h - 6, w - 8, 2);
+        // Reception desk
+        this.interiorGraphics.fillStyle(0x2a2a2a, alpha);
+        this.interiorGraphics.fillRect(x + w / 2 - 30, y + h - 30, 60, 24);
+        // Desk screen
+        this.interiorGraphics.fillStyle(accent, glowAlpha);
+        this.interiorGraphics.fillRect(x + w / 2 - 10, y + h - 45, 20, 12);
         break;
 
       case 'apartment':
-        // Bed shape
-        this.interiorGraphics.fillStyle(accent, alpha * 0.4);
-        this.interiorGraphics.fillRect(x + 10, y + h - 20, 30, 14);
-        // Window glow
-        this.interiorGraphics.fillStyle(0x4a6a8a, alpha * 0.5);
-        this.interiorGraphics.fillRect(x + w - 25, y + 10, 15, 20);
+        // Bed frame
+        this.interiorGraphics.fillStyle(0x2a2020, alpha);
+        this.interiorGraphics.fillRect(x + 8, y + h - 24, 45, 18);
+        // Bed glow accent
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.4);
+        this.interiorGraphics.fillRect(x + 8, y + h - 24, 45, 2);
+        // Nightstand
+        this.interiorGraphics.fillStyle(0x2a2020, alpha);
+        this.interiorGraphics.fillRect(x + 56, y + h - 20, 12, 14);
+        // Lamp glow
+        this.interiorGraphics.fillStyle(accent, glowAlpha);
+        this.interiorGraphics.fillCircle(x + 62, y + h - 28, 4);
+        // Wall screen/window
+        this.interiorGraphics.fillStyle(0x1a3a4a, alpha);
+        this.interiorGraphics.fillRect(x + w - 35, y + 8, 25, 30);
+        // Screen glow
+        this.interiorGraphics.fillStyle(0x4a8aca, glowAlpha * 0.5);
+        this.interiorGraphics.fillRect(x + w - 33, y + 10, 21, 26);
+        // Ceiling light strip
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.3);
+        this.interiorGraphics.fillRect(x + 10, y + 4, w - 20, 2);
         break;
 
       case 'office':
-        // Desk shapes
-        this.interiorGraphics.fillStyle(0x5a5a6a, alpha);
-        for (let i = 0; i < 3; i++) {
-          this.interiorGraphics.fillRect(x + 15 + i * 60, y + h - 25, 40, 18);
+        // Multiple workstations
+        const deskCount = Math.floor((w - 20) / 70);
+        for (let i = 0; i < deskCount; i++) {
+          const dx = x + 15 + i * 70;
+          // Desk
+          this.interiorGraphics.fillStyle(0x2a2a30, alpha);
+          this.interiorGraphics.fillRect(dx, y + h - 26, 55, 20);
+          // Monitor
+          this.interiorGraphics.fillStyle(0x1a1a20, alpha);
+          this.interiorGraphics.fillRect(dx + 10, y + h - 44, 30, 18);
+          // Screen glow
+          this.interiorGraphics.fillStyle(accent, glowAlpha);
+          this.interiorGraphics.fillRect(dx + 12, y + h - 42, 26, 14);
+          // Keyboard
+          this.interiorGraphics.fillStyle(0x3a3a3a, alpha * 0.7);
+          this.interiorGraphics.fillRect(dx + 8, y + h - 22, 24, 6);
+          // Chair
+          this.interiorGraphics.fillStyle(0x2a2a3a, alpha);
+          this.interiorGraphics.fillRect(dx + 15, y + h - 14, 20, 8);
         }
-        // Computer screens (glowing)
-        this.interiorGraphics.fillStyle(accent, alpha * 0.6);
-        for (let i = 0; i < 3; i++) {
-          this.interiorGraphics.fillRect(x + 25 + i * 60, y + h - 40, 20, 12);
+        // Ceiling lights
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.4);
+        for (let i = 0; i < deskCount; i++) {
+          this.interiorGraphics.fillRect(x + 25 + i * 70, y + 4, 35, 3);
         }
         break;
 
       case 'farm':
-        // Grow lights
-        this.interiorGraphics.fillStyle(accent, alpha * 0.7);
-        for (let i = 0; i < 4; i++) {
-          this.interiorGraphics.fillRect(x + 20 + i * 55, y + 8, 30, 4);
+        // Hydroponic racks
+        const rackCount = Math.floor((w - 16) / 60);
+        for (let i = 0; i < rackCount; i++) {
+          const fx = x + 8 + i * 60;
+          // Rack frame
+          this.interiorGraphics.fillStyle(0x2a2a2a, alpha);
+          this.interiorGraphics.fillRect(fx, y + 10, 50, h - 16);
+          // Grow light (bright!)
+          this.interiorGraphics.fillStyle(accent, glowAlpha);
+          this.interiorGraphics.fillRect(fx + 2, y + 12, 46, 4);
+          // Plant trays (multiple levels)
+          for (let level = 0; level < 3; level++) {
+            const ly = y + 22 + level * 14;
+            // Tray
+            this.interiorGraphics.fillStyle(0x1a2a1a, alpha);
+            this.interiorGraphics.fillRect(fx + 4, ly, 42, 10);
+            // Plants (small green shapes)
+            this.interiorGraphics.fillStyle(0x2a5a2a, alpha);
+            for (let p = 0; p < 5; p++) {
+              this.interiorGraphics.fillRect(fx + 6 + p * 8, ly + 2, 6, 6);
+            }
+          }
         }
-        // Plant rows
-        this.interiorGraphics.fillStyle(0x2a4a2a, alpha);
-        for (let i = 0; i < 3; i++) {
-          this.interiorGraphics.fillRect(x + 15 + i * 70, y + h - 30, 50, 24);
-        }
+        // Side glow
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.3);
+        this.interiorGraphics.fillRect(x + 2, y + 10, 2, h - 16);
+        this.interiorGraphics.fillRect(x + w - 4, y + 10, 2, h - 16);
         break;
 
       case 'kitchen':
-        // Counter
-        this.interiorGraphics.fillStyle(0x5a5a5a, alpha);
-        this.interiorGraphics.fillRect(x + 10, y + h - 25, w - 20, 18);
-        // Warm light strips
-        this.interiorGraphics.fillStyle(accent, alpha * 0.5);
-        this.interiorGraphics.fillRect(x + 15, y + 15, w - 30, 3);
+        // Counter/prep area
+        this.interiorGraphics.fillStyle(0x3a3a3a, alpha);
+        this.interiorGraphics.fillRect(x + 6, y + h - 28, w - 12, 22);
+        // Counter top
+        this.interiorGraphics.fillStyle(0x4a4a4a, alpha);
+        this.interiorGraphics.fillRect(x + 6, y + h - 28, w - 12, 4);
+        // Stove/cooking elements
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.7);
+        this.interiorGraphics.fillRect(x + 15, y + h - 24, 25, 3);
+        this.interiorGraphics.fillRect(x + 50, y + h - 24, 25, 3);
+        // Hood/vent
+        this.interiorGraphics.fillStyle(0x2a2a2a, alpha);
+        this.interiorGraphics.fillRect(x + 10, y + 8, 60, 12);
+        // Hood light
+        this.interiorGraphics.fillStyle(accent, glowAlpha * 0.5);
+        this.interiorGraphics.fillRect(x + 15, y + 18, 50, 2);
+        // Fridge
+        this.interiorGraphics.fillStyle(0x2a2a30, alpha);
+        this.interiorGraphics.fillRect(x + w - 35, y + 8, 25, h - 14);
+        // Fridge light strip
+        this.interiorGraphics.fillStyle(0x4ae4e4, glowAlpha * 0.4);
+        this.interiorGraphics.fillRect(x + w - 34, y + 10, 2, h - 18);
         break;
     }
   }
