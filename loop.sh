@@ -2,25 +2,32 @@
 
 # Ralph Loop Script
 # Usage:
-#   ./loop.sh              # Build mode, unlimited iterations
-#   ./loop.sh 20           # Build mode, max 20 iterations
-#   ./loop.sh plan         # Planning mode, unlimited
-#   ./loop.sh plan 5       # Planning mode, max 5 iterations
+#   ./loop.sh              # Build mode with Claude (default)
+#   ./loop.sh plan         # Plan mode with Claude
+#   ./loop.sh --cursor     # Build mode with Cursor
+#   ./loop.sh plan --cursor # Plan mode with Cursor
+#   ./loop.sh 20 --cursor  # Build mode, 20 iterations, Cursor
 
 set -e
 
 # Parse arguments
 MODE="build"
 MAX_ITERATIONS=0
+USE_CURSOR=false
 
-if [[ "$1" == "plan" ]]; then
-    MODE="plan"
-    shift
-fi
-
-if [[ -n "$1" ]] && [[ "$1" =~ ^[0-9]+$ ]]; then
-    MAX_ITERATIONS=$1
-fi
+for arg in "$@"; do
+    case $arg in
+        plan)
+            MODE="plan"
+            ;;
+        --cursor)
+            USE_CURSOR=true
+            ;;
+        [0-9]*)
+            MAX_ITERATIONS=$arg
+            ;;
+    esac
+done
 
 # Select prompt file
 if [[ "$MODE" == "plan" ]]; then
@@ -38,6 +45,11 @@ fi
 
 echo "========================================"
 echo "Ralph Loop - $MODE mode"
+if [[ "$USE_CURSOR" == "true" ]]; then
+    echo "Agent: Cursor (interactive - may prompt for approval)"
+else
+    echo "Agent: Claude (auto-approve enabled)"
+fi
 echo "Prompt: $PROMPT_FILE"
 if [[ $MAX_ITERATIONS -gt 0 ]]; then
     echo "Max iterations: $MAX_ITERATIONS"
@@ -45,6 +57,11 @@ else
     echo "Iterations: unlimited (Ctrl+C to stop)"
 fi
 echo "========================================"
+if [[ "$USE_CURSOR" == "true" ]]; then
+    echo ""
+    echo "NOTE: Cursor CLI may prompt for command approval."
+    echo "Enable YOLO mode in Cursor Settings for unattended runs."
+fi
 echo ""
 
 ITERATION=0
@@ -56,17 +73,27 @@ while true; do
     echo "Iteration $ITERATION starting..."
     echo "----------------------------------------"
 
-    # Run Claude with the prompt
-    cat "$PROMPT_FILE" | claude \
-        --dangerously-skip-permissions \
-        --model opus \
-        --verbose \
-        --output-format stream-json
+    # Run the agent with the prompt
+    if [[ "$USE_CURSOR" == "true" ]]; then
+        # Cursor Agent CLI
+        cursor --agent -p "$(cat "$PROMPT_FILE")"
+    else
+        # Claude CLI (default)
+        cat "$PROMPT_FILE" | claude \
+            --dangerously-skip-permissions \
+            --model opus \
+            --verbose \
+            --output-format stream-json
+    fi
 
     EXIT_CODE=$?
 
     if [[ $EXIT_CODE -ne 0 ]]; then
-        echo "Claude exited with code $EXIT_CODE"
+        if [[ "$USE_CURSOR" == "true" ]]; then
+            echo "Cursor exited with code $EXIT_CODE"
+        else
+            echo "Claude exited with code $EXIT_CODE"
+        fi
         echo "Stopping loop."
         exit $EXIT_CODE
     fi
