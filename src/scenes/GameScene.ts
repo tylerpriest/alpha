@@ -139,7 +139,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number, delta: number): void {
+  update(_time: number, delta: number): void {
     // Update time
     this.timeSystem.update(delta);
 

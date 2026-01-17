@@ -44,11 +44,9 @@ export class ResidentSystem {
     const toRemove: Resident[] = [];
 
     for (const resident of this.residents) {
-      if (resident.isStarving()) {
-        // Give starving residents a chance to leave
-        if (Math.random() < 0.0001) {
-          toRemove.push(resident);
-        }
+      // Residents leave after starving (hunger 0) for 24 game hours
+      if (resident.hasStarvedTooLong()) {
+        toRemove.push(resident);
       }
     }
 

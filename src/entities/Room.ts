@@ -10,14 +10,12 @@ export class Room {
   public readonly position: number;
   public readonly width: number;
 
-  private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
   private residents: Resident[] = [];
   private workers: Resident[] = [];
 
   constructor(scene: Phaser.Scene, data: RoomData) {
-    this.scene = scene;
     this.id = data.id;
     this.type = data.type;
     this.floor = data.floor;

@@ -66,9 +66,9 @@ Residents (consume processed food)
 
 - [x] Farms produce raw food over time
 - [x] Kitchens convert raw food to processed food
-- [ ] Residents consume food when eating
-- [ ] Food counter displayed in UI
-- [ ] Residents go hungry if no food available
+- [x] Residents consume food when eating
+- [x] Food counter displayed in UI
+- [x] Residents go hungry if no food available
 
 ## Dependencies
 

@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
 import { Room } from './Room';
 import {
-  GRID_SIZE,
   HUNGER_DECAY_RATE,
   HUNGER_CRITICAL,
   HUNGER_MAX,
   FOOD_PER_MEAL,
+  MS_PER_GAME_HOUR,
 } from '../utils/constants';
 import { ResidentState, ResidentData } from '../utils/types';
+import type { GameScene } from '../scenes/GameScene';
 
 const RESIDENT_NAMES = [
   'Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn', 'Avery',
@@ -32,6 +33,8 @@ export class Resident {
   private onArrival: (() => void) | null = null;
 
   private stateTimer = 0;
+  private targetKitchen: Room | null = null;
+  private starvationTime = 0; // Tracks time at hunger 0 (in game ms)
 
   constructor(scene: Phaser.Scene, id: string, x: number, y: number) {
     this.scene = scene;
@@ -53,6 +56,13 @@ export class Resident {
 
     // Decay hunger
     this.hunger = Math.max(0, this.hunger - HUNGER_DECAY_RATE * hourDelta * 10);
+
+    // Track starvation time (time spent at hunger 0)
+    if (this.hunger === 0) {
+      this.starvationTime += delta;
+    } else {
+      this.starvationTime = 0;
+    }
 
     // Update state timer
     this.stateTimer += delta;
@@ -84,11 +94,21 @@ export class Resident {
   }
 
   private updateIdle(gameHour: number): void {
-    // Check if hungry
-    if (this.hunger < 50) {
-      // TODO: Find kitchen and eat
-      // For now, just satisfy hunger directly
-      this.hunger = Math.min(HUNGER_MAX, this.hunger + FOOD_PER_MEAL);
+    // Check if hungry - find a kitchen and go eat
+    if (this.hunger < 50 && !this.targetKitchen) {
+      const gameScene = this.scene as GameScene;
+      const kitchens = gameScene.building.getKitchens();
+
+      if (kitchens.length > 0) {
+        // Pick nearest kitchen (or random one for simplicity)
+        this.targetKitchen = kitchens[Math.floor(Math.random() * kitchens.length)];
+        this.goToRoom(this.targetKitchen, () => {
+          // Try to eat when arriving at kitchen
+          this.tryToEat();
+        });
+        return;
+      }
+      // No kitchens available - hunger stays unsatisfied
     }
 
     // Check if should go to work (9 AM - 5 PM)
@@ -97,6 +117,7 @@ export class Resident {
         this.state = ResidentState.WORKING;
         this.stateTimer = 0;
       });
+      return;
     }
 
     // Check if should sleep (10 PM - 6 AM)
@@ -108,6 +129,22 @@ export class Resident {
         });
       }
     }
+  }
+
+  private tryToEat(): void {
+    const gameScene = this.scene as GameScene;
+
+    // Try to consume 1 unit of processed food
+    if (gameScene.resourceSystem.consumeFood(1)) {
+      // Food consumed - start eating
+      this.state = ResidentState.EATING;
+      this.stateTimer = 0;
+    } else {
+      // No food available - stay hungry
+      this.state = ResidentState.IDLE;
+    }
+
+    this.targetKitchen = null;
   }
 
   private updateWalking(delta: number): void {
@@ -144,7 +181,7 @@ export class Resident {
     // Just stay in working state
   }
 
-  private updateEating(delta: number): void {
+  private updateEating(_delta: number): void {
     // Eating takes about 30 minutes (in-game)
     if (this.stateTimer > 1800000 / 10) {
       // 30 minutes scaled
@@ -200,6 +237,17 @@ export class Resident {
 
   isStarving(): boolean {
     return this.hunger < HUNGER_CRITICAL;
+  }
+
+  getStarvationTime(): number {
+    return this.starvationTime;
+  }
+
+  hasStarvedTooLong(): boolean {
+    // 24 game hours at hunger 0 means resident should leave
+    // Using MS_PER_GAME_HOUR (10000ms = 1 game hour)
+    const maxStarvationTime = 24 * MS_PER_GAME_HOUR;
+    return this.starvationTime >= maxStarvationTime;
   }
 
   getPosition(): { x: number; y: number } {

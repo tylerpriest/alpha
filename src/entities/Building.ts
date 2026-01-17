@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Room } from './Room';
 import { Floor } from './Floor';
-import { ROOM_SPECS, GRID_SIZE, RoomType } from '../utils/constants';
+import { ROOM_SPECS, RoomType } from '../utils/constants';
 import { RoomData } from '../utils/types';
 
 export class Building {

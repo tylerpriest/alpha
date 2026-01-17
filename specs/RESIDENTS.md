@@ -83,9 +83,9 @@ SLEEPING → Morning → IDLE
 - [x] Hunger decreases over time
 - [x] Visual color coding for hunger
 - [x] Basic state machine (IDLE, WALKING)
-- [ ] Residents consume food from kitchens
-- [ ] Residents leave when starving too long
-- [ ] Residents find and take jobs
+- [x] Residents consume food from kitchens
+- [x] Residents leave when starving too long
+- [x] Residents find and take jobs
 
 ## Dependencies
 

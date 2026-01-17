@@ -4,16 +4,13 @@
 
 ## Current Focus
 
-Phase 1-3 foundation is complete. Focus on completing food system and economy integration.
+Food system integration complete. Residents now walk to kitchens to eat and consume actual food. Focus on save/load and pathfinding.
 
 ## Tasks
 
 ### High Priority
 
-- [ ] Connect food system to residents (residents should consume food when hungry)
-- [ ] Implement food distribution from kitchens to apartments
-- [ ] Add visual feedback for hungry residents (currently color-coded, but no actual food consumption)
-- [ ] Implement resident departure when starving for too long
+(None - all high priority food system tasks complete)
 
 ### Medium Priority
 
@@ -49,6 +46,11 @@ Phase 1-3 foundation is complete. Focus on completing food system and economy in
 - [x] Basic resident AI (idle, walking states)
 - [x] Resource system (farms produce, kitchens process)
 - [x] Unit tests for EconomySystem and TimeSystem
+- [x] Food system integration (residents walk to kitchens and consume food)
+- [x] Resident hunger drives behavior (find kitchen when hungry < 50)
+- [x] Food consumption from ResourceSystem (1 processed food per meal)
+- [x] Resident departure mechanics (leave after 24 game hours at hunger 0)
+- [x] Visual feedback for hunger (color-coded green/orange/red)
 
 ## Discoveries
 

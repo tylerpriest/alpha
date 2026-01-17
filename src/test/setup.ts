@@ -54,7 +54,7 @@ global.HTMLCanvasElement = MockCanvas as unknown as typeof HTMLCanvasElement;
 
 // Mock requestAnimationFrame
 global.requestAnimationFrame = ((cb: FrameRequestCallback) =>
-  setTimeout(() => cb(Date.now()), 16)) as typeof requestAnimationFrame;
+  setTimeout(() => cb(Date.now()), 16)) as unknown as typeof requestAnimationFrame;
 global.cancelAnimationFrame = clearTimeout as unknown as typeof cancelAnimationFrame;
 
 // Mock window properties Phaser expects
