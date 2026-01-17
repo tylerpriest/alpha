@@ -4,24 +4,24 @@
 # Usage:
 #   ./loop.sh              # Build mode with Claude (default)
 #   ./loop.sh plan         # Plan mode with Claude
-#   ./loop.sh --cursor     # Build mode with Cursor
-#   ./loop.sh plan --cursor # Plan mode with Cursor
-#   ./loop.sh 20 --cursor  # Build mode, 20 iterations, Cursor
+#   ./loop.sh --agent      # Build mode with Cursor Agent
+#   ./loop.sh plan --agent # Plan mode with Cursor Agent
+#   ./loop.sh 20 --agent   # Build mode, 20 iterations, Cursor Agent
 
 set -e
 
 # Parse arguments
 MODE="build"
 MAX_ITERATIONS=0
-USE_CURSOR=false
+USE_AGENT=false
 
 for arg in "$@"; do
     case $arg in
         plan)
             MODE="plan"
             ;;
-        --cursor)
-            USE_CURSOR=true
+        --agent)
+            USE_AGENT=true
             ;;
         [0-9]*)
             MAX_ITERATIONS=$arg
@@ -45,7 +45,7 @@ fi
 
 echo "========================================"
 echo "Ralph Loop - $MODE mode"
-if [[ "$USE_CURSOR" == "true" ]]; then
+if [[ "$USE_AGENT" == "true" ]]; then
     echo "Agent: Cursor (interactive - may prompt for approval)"
 else
     echo "Agent: Claude (auto-approve enabled)"
@@ -57,7 +57,7 @@ else
     echo "Iterations: unlimited (Ctrl+C to stop)"
 fi
 echo "========================================"
-if [[ "$USE_CURSOR" == "true" ]]; then
+if [[ "$USE_AGENT" == "true" ]]; then
     echo ""
     echo "NOTE: Cursor CLI may prompt for command approval."
     echo "Enable YOLO mode in Cursor Settings for unattended runs."
@@ -74,7 +74,7 @@ while true; do
     echo "----------------------------------------"
 
     # Run the agent with the prompt
-    if [[ "$USE_CURSOR" == "true" ]]; then
+    if [[ "$USE_AGENT" == "true" ]]; then
         # Cursor Agent CLI
         if [[ "$MODE" == "plan" ]]; then
             agent --print --plan --output-format stream-json "$(cat "$PROMPT_FILE")"
@@ -93,7 +93,7 @@ while true; do
     EXIT_CODE=$?
 
     if [[ $EXIT_CODE -ne 0 ]]; then
-        if [[ "$USE_CURSOR" == "true" ]]; then
+        if [[ "$USE_AGENT" == "true" ]]; then
             echo "Cursor exited with code $EXIT_CODE"
         else
             echo "Claude exited with code $EXIT_CODE"
