@@ -1,4 +1,4 @@
-import { ROOM_SPECS, RoomType } from '../../utils/constants';
+import { ROOM_SPECS, RoomType, MAX_FLOORS_MVP } from '../../utils/constants';
 
 export class BuildMenu {
   private element: HTMLDivElement;
@@ -19,6 +19,17 @@ export class BuildMenu {
       this.element.appendChild(button);
       this.buttons.set(roomType, button);
     });
+
+    // Add building info
+    const buildingInfo = document.createElement('div');
+    buildingInfo.className = 'building-info';
+    buildingInfo.innerHTML = `
+      <div class="building-info-item">
+        <span class="material-symbols-outlined">height</span>
+        <span>Max Floors: ${MAX_FLOORS_MVP} (MVP)</span>
+      </div>
+    `;
+    this.element.appendChild(buildingInfo);
 
     // Add speed controls
     const speedControls = document.createElement('div');

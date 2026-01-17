@@ -11,7 +11,7 @@ import { AtmosphericEffects } from '../graphics/AtmosphericEffects';
 import { VolcanicGround } from '../graphics/VolcanicGround';
 import { BuildingFrame } from '../graphics/BuildingFrame';
 import { UIManager } from '../ui/UIManager';
-import { INITIAL_MONEY, GRID_SIZE, ROOM_SPECS, RoomType, UI_COLORS } from '../utils/constants';
+import { INITIAL_MONEY, GRID_SIZE, ROOM_SPECS, RoomType, UI_COLORS, MAX_FLOORS_MVP } from '../utils/constants';
 import { GameState, ElevatorState } from '../utils/types';
 import { SaveSystem } from '../systems/SaveSystem';
 import { ElevatorSystem } from '../systems/ElevatorSystem';
@@ -112,8 +112,9 @@ export class GameScene extends Phaser.Scene {
     this.building.addRoom('lobby', 0, 0);
     
     // Create elevator shaft for lobby (centered in lobby, which is 20 units wide)
+    // Zone 0: floors 0-14
     const lobbyCenter = 10; // Lobby is at position 0, width 20, so center is at 10
-    this.elevatorSystem.createShaft('shaft_0', lobbyCenter, 0, 0);
+    this.elevatorSystem.createShaft('shaft_0', lobbyCenter, 0);
 
     // Create day/night overlay (above rooms)
     this.dayNightOverlay = new DayNightOverlay(this);
@@ -348,20 +349,40 @@ export class GameScene extends Phaser.Scene {
     const position = Math.floor(worldX / GRID_SIZE);
 
     if (selectedRoom) {
+      // Check building height limit before attempting placement
+      if (floor >= MAX_FLOORS_MVP) {
+        this.uiManager.showError(
+          `Building height limit reached! Maximum ${MAX_FLOORS_MVP} floors (floors 0-${MAX_FLOORS_MVP - 1}) for MVP.`
+        );
+        return;
+      }
+
       // Try to place room
       const success = this.building.addRoom(selectedRoom, floor, position);
       if (success) {
         const cost = this.building.getRoomCost(selectedRoom);
         this.economySystem.spend(cost);
         
-        // If lobby is placed, create elevator shaft
-        if (selectedRoom === 'lobby') {
-          const lobbyCenter = position + (ROOM_SPECS.lobby.width / 2);
+        // If lobby or sky lobby is placed, create elevator shaft for that zone
+        if (selectedRoom === 'lobby' || selectedRoom === 'skylobby') {
+          const lobbyCenter = position + (ROOM_SPECS[selectedRoom].width / 2);
           const shaftId = `shaft_${this.elevatorSystem.getAllShafts().length}`;
-          this.elevatorSystem.createShaft(shaftId, lobbyCenter, floor, floor);
+          // Determine zone: lobby on floor 0 = zone 0, sky lobby on floor 15 = zone 1, etc.
+          const zone = selectedRoom === 'lobby' ? 0 : Math.floor(floor / 15);
+          this.elevatorSystem.createShaft(shaftId, lobbyCenter, zone);
         }
         
         this.updateRegistry();
+      } else {
+        // Room placement failed - show error notification
+        // (Building.addRoom already logs the specific reason)
+        if (floor >= MAX_FLOORS_MVP) {
+          this.uiManager.showError(
+            `Cannot place room: Building height limit is ${MAX_FLOORS_MVP} floors (floors 0-${MAX_FLOORS_MVP - 1})`
+          );
+        } else {
+          this.uiManager.showError('Cannot place room here. Check floor constraints and overlaps.');
+        }
       }
     } else {
       // No room selected - try to select a room
