@@ -180,7 +180,7 @@ export class VolcanicGround {
         }
         break;
 
-      case 'mushroom':
+      case 'mushroom': {
         // Glowing mushroom
         const capRadius = 8 + flora.height * 0.2;
 
@@ -224,6 +224,7 @@ export class VolcanicGround {
           1.5
         );
         break;
+      }
     }
   }
 

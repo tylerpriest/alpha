@@ -31,8 +31,8 @@ export class Building {
 
     // Special validation for sky lobbies: must be on specific floors (15, 30, 45, etc.)
     if (roomType === 'skylobby') {
-      const validFloors = spec.validFloors as readonly number[];
-      if (!validFloors || !validFloors.includes(floor)) {
+      const validFloors = 'validFloors' in spec ? spec.validFloors : undefined;
+      if (!validFloors || !(validFloors as readonly number[]).includes(floor)) {
         console.warn(`Sky lobby can only be placed on floors: ${validFloors?.join(', ')}`);
         return false;
       }

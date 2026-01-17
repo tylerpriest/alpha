@@ -174,7 +174,7 @@ export class Room {
         this.interiorGraphics.fillRect(x + 10, y + 4, w - 20, 2);
         break;
 
-      case 'office':
+      case 'office': {
         // Multiple workstations
         const deskCount = Math.floor((w - 20) / 70);
         for (let i = 0; i < deskCount; i++) {
@@ -201,8 +201,9 @@ export class Room {
           this.interiorGraphics.fillRect(x + 25 + i * 70, y + 4, 35, 3);
         }
         break;
+      }
 
-      case 'farm':
+      case 'farm': {
         // Hydroponic racks
         const rackCount = Math.floor((w - 16) / 60);
         for (let i = 0; i < rackCount; i++) {
@@ -231,6 +232,7 @@ export class Room {
         this.interiorGraphics.fillRect(x + 2, y + 10, 2, h - 16);
         this.interiorGraphics.fillRect(x + w - 4, y + 10, 2, h - 16);
         break;
+      }
 
       case 'kitchen':
         // Counter/prep area

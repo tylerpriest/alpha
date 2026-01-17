@@ -28,7 +28,6 @@ export class TimeSystem extends Phaser.Events.EventEmitter {
   private _isNewDay = false;
   private _isPaused = false;
   private _speed = 1; // 1 = normal, 2 = fast, 4 = very fast, 0 = paused
-  private previousHour = 6;
   private previousDay = 1;
   private previousPhase: DayPhase = DayPhase.Dawn;
 
@@ -71,7 +70,7 @@ export class TimeSystem extends Phaser.Events.EventEmitter {
           previousHour: previousHourInt,
           minute: this.minute,
         });
-        this.previousHour = currentHourInt;
+        // Hour changed - events emitted above
 
         // Check for schedule events
         this.checkScheduleEvents(currentHourInt);
@@ -204,7 +203,7 @@ export class TimeSystem extends Phaser.Events.EventEmitter {
       const calculated = (((day - 1) % 7) + 1) % 7;
       this.dayOfWeek = calculated as DayOfWeek;
     }
-    this.previousHour = Math.floor(hour);
+    // Time set - previous hour tracking not needed
     this.previousDay = day;
     this.previousPhase = this.getDayPhase();
   }

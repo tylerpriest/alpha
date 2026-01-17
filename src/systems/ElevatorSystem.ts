@@ -1,15 +1,13 @@
-import Phaser from 'phaser';
 import { Building } from '../entities/Building';
 import { Resident } from '../entities/Resident';
 import { ElevatorState, ElevatorCall, ElevatorShaftData, ElevatorCarData } from '../utils/types';
-import { GRID_SIZE, FLOOR_HEIGHT, getSkyLobbyZone, getZoneMinFloor, getZoneMaxFloor, SKY_LOBBY_ZONE_SIZE } from '../utils/constants';
+import { FLOOR_HEIGHT, getSkyLobbyZone, getZoneMinFloor, getZoneMaxFloor } from '../utils/constants';
 
 // Constants
 const ELEVATOR_TRAVEL_TIME_PER_FLOOR = 2000; // 2 seconds per floor in ms
 const DOOR_ANIMATION_TIME = 500; // 0.5 seconds
 const LOADING_TIME = 1000; // 1 second for passengers to enter/exit
 const ELEVATOR_CAPACITY = 8;
-const ELEVATOR_SHAFT_WIDTH = 1; // 1 grid unit wide
 
 export class ElevatorCar {
   public currentFloor: number;
@@ -19,14 +17,14 @@ export class ElevatorCar {
   public state: ElevatorState = ElevatorState.IDLE;
   public direction: 'up' | 'down' | 'idle' = 'idle';
   
-  private stateTimer = 0;
+  public stateTimer = 0; // Made public for testing
   private targetY: number = 0; // Visual Y position
 
   constructor(startFloor: number) {
     this.currentFloor = startFloor;
   }
 
-  update(delta: number, topFloor: number): void {
+  update(delta: number, _topFloor: number): void { // topFloor unused but kept for API consistency
     this.stateTimer += delta;
 
     switch (this.state) {
@@ -71,10 +69,11 @@ export class ElevatorCar {
           break;
         }
 
-        const floorsToTravel = Math.abs(this.targetFloor - this.currentFloor);
-        const travelTime = floorsToTravel * ELEVATOR_TRAVEL_TIME_PER_FLOOR;
+        {
+          const floorsToTravel = Math.abs(this.targetFloor - this.currentFloor);
+          const travelTime = floorsToTravel * ELEVATOR_TRAVEL_TIME_PER_FLOOR;
 
-        if (this.stateTimer >= travelTime) {
+          if (this.stateTimer >= travelTime) {
           // Arrived at destination
           this.currentFloor = this.targetFloor;
           this.targetFloor = null;
@@ -83,6 +82,7 @@ export class ElevatorCar {
           // Emit arrival event (for bell sound, etc.)
         } else {
           // Calculate visual position during travel
+          }
           // currentFloor is the starting floor, targetFloor is the destination
           const progress = this.stateTimer / travelTime;
           const startFloorY = this.getFloorY(this.currentFloor);
@@ -152,7 +152,7 @@ export class ElevatorShaft {
   public minFloor: number;
   public maxFloor: number;
   public car: ElevatorCar;
-  private callQueue: ElevatorCall[] = [];
+  public callQueue: ElevatorCall[] = []; // Made public for testing
   private waitingResidents: Map<number, Resident[]> = new Map(); // floor -> residents waiting
 
   constructor(id: string, position: number, zone: number) {
@@ -289,7 +289,7 @@ export class ElevatorShaft {
     }
   }
 
-  private updateWaitingResidents(delta: number): void {
+  private updateWaitingResidents(_delta: number): void {
     // Track wait times for stress system (future implementation)
     // For now, just maintain the waiting lists
   }

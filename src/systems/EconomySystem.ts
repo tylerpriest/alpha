@@ -55,7 +55,7 @@ export class EconomySystem {
 
   processDailyIncome(
     building: Building,
-    residentSystem: ResidentSystem,
+    _residentSystem: ResidentSystem,
     resourceSystem: ResourceSystem,
     restaurantSystem?: RestaurantSystem
   ): void {
@@ -195,7 +195,7 @@ export class EconomySystem {
    */
   getIncomeBreakdown(
     building: Building,
-    residentSystem: ResidentSystem,
+    _residentSystem: ResidentSystem,
     resourceSystem: ResourceSystem,
     restaurantSystem?: RestaurantSystem
   ): {

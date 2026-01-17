@@ -59,7 +59,7 @@ export class RestaurantSystem {
    */
   calculateEvaluationScore(room: Room): number {
     const spec = ROOM_SPECS[room.type];
-    const foodNeeded = spec.foodConsumption || 0;
+    const foodNeeded = 'foodConsumption' in spec ? spec.foodConsumption : 0;
     const availableFood = this.resourceSystem.getFood();
 
     // Food availability: 40 points if stocked, 0 if empty
