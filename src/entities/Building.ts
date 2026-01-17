@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Room } from './Room';
 import { Floor } from './Floor';
-import { ROOM_SPECS, RoomType } from '../utils/constants';
+import { ROOM_SPECS, RoomType, MAX_FLOORS_MVP, getRequiredSkyLobbyFloor, SKY_LOBBY_FLOORS } from '../utils/constants';
 import { RoomData } from '../utils/types';
 
 export class Building {
@@ -27,6 +27,34 @@ export class Building {
     if (floor < spec.minFloor || floor > spec.maxFloor) {
       console.warn(`Cannot place ${type} on floor ${floor}`);
       return false;
+    }
+
+    // Special validation for sky lobbies: must be on specific floors (15, 30, 45, etc.)
+    if (roomType === 'skylobby') {
+      const validFloors = spec.validFloors as readonly number[];
+      if (!validFloors || !validFloors.includes(floor)) {
+        console.warn(`Sky lobby can only be placed on floors: ${validFloors?.join(', ')}`);
+        return false;
+      }
+    }
+
+    // Validate building height limit (MVP: 20 floors, floors 0-19)
+    if (floor >= MAX_FLOORS_MVP) {
+      console.warn(`Cannot place room on floor ${floor}: Building height limit is ${MAX_FLOORS_MVP} floors (floors 0-${MAX_FLOORS_MVP - 1})`);
+      return false;
+    }
+
+    // Enforce sky lobby requirement: cannot build above floor 14 without sky lobby on floor 15
+    // Cannot build above floor 29 without sky lobby on floor 30, etc.
+    if (roomType !== 'skylobby') {
+      const requiredSkyLobbyFloor = getRequiredSkyLobbyFloor(floor);
+      if (requiredSkyLobbyFloor !== null) {
+        // Check if required sky lobby exists
+        if (!this.hasSkyLobbyOnFloor(requiredSkyLobbyFloor)) {
+          console.warn(`Cannot place room on floor ${floor}: Sky lobby required on floor ${requiredSkyLobbyFloor}`);
+          return false;
+        }
+      }
     }
 
     // Check for overlaps (skip during restore)
@@ -148,6 +176,27 @@ export class Building {
 
   getRestaurants(): Room[] {
     return this.getRoomsByType('restaurant');
+  }
+
+  getSkyLobbies(): Room[] {
+    return this.getRoomsByType('skylobby');
+  }
+
+  hasSkyLobbyOnFloor(floor: number): boolean {
+    const skyLobbies = this.getSkyLobbies();
+    return skyLobbies.some(lobby => lobby.floor === floor);
+  }
+
+  getSkyLobbyForZone(zone: number): Room | undefined {
+    // Zone 0: floors 0-14 (no sky lobby needed)
+    // Zone 1: floors 15-29 (sky lobby on floor 15)
+    // Zone 2: floors 30-44 (sky lobby on floor 30), etc.
+    if (zone === 0) return undefined; // Ground zone doesn't need sky lobby
+    
+    const skyLobbyFloor = SKY_LOBBY_FLOORS[zone - 1];
+    if (skyLobbyFloor === undefined) return undefined;
+    
+    return this.getSkyLobbies().find(lobby => lobby.floor === skyLobbyFloor);
   }
 
   getTotalCapacity(): number {
