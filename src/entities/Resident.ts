@@ -45,7 +45,6 @@ export class Resident {
   private targetKitchen: Room | null = null;
   private targetFastFood: Room | null = null; // Target Fast Food restaurant for lunch
   private isSeekingLunch = false; // Track if office worker is seeking lunch
-  private lunchStartTime: number | null = null; // Track when lunch started (game hour)
   private starvationTime = 0; // Tracks time at hunger 0 (in game ms)
   private highStressTime = 0; // Tracks time at stress >80 (in game ms)
   private sleepStartHour: number | null = null; // Track when sleep started for stress relief
@@ -118,7 +117,7 @@ export class Resident {
         // Pick a random open Fast Food restaurant
         this.targetFastFood = openFastFoods[Math.floor(Math.random() * openFastFoods.length)];
         this.isSeekingLunch = true;
-        this.lunchStartTime = gameScene.timeSystem.getHour();
+        // Track lunch start (no longer needed, but keeping for potential future use)
 
         // Go to the Fast Food restaurant
         this.goToRoom(this.targetFastFood, () => {
@@ -260,7 +259,7 @@ export class Resident {
           this.state = ResidentState.WORKING;
           this.stateTimer = 0;
           this.isSeekingLunch = false;
-          this.lunchStartTime = null;
+          // Lunch completed
         });
         return;
       }
@@ -341,7 +340,6 @@ export class Resident {
         // No food available - return to office
         this.targetFastFood = null;
         this.isSeekingLunch = false;
-        this.lunchStartTime = null;
         if (this.job) {
           this.goToRoom(this.job, () => {
             this.state = ResidentState.WORKING;
@@ -355,7 +353,6 @@ export class Resident {
       // Restaurant closed - return to office
       this.targetFastFood = null;
       this.isSeekingLunch = false;
-      this.lunchStartTime = null;
       if (this.job) {
         this.goToRoom(this.job, () => {
           this.state = ResidentState.WORKING;
@@ -433,7 +430,7 @@ export class Resident {
     }
   }
 
-  private updateWaitingForElevator(delta: number): void {
+  private updateWaitingForElevator(_delta: number): void {
     if (!this.elevatorShaft || !this.targetRoom) {
       this.state = ResidentState.IDLE;
       this.elevatorWaitStartTime = 0;
@@ -458,7 +455,7 @@ export class Resident {
     }
   }
 
-  private updateRidingElevator(delta: number): void {
+  private updateRidingElevator(_delta: number): void {
     if (!this.elevatorShaft || !this.targetRoom) {
       this.state = ResidentState.IDLE;
       return;
@@ -569,7 +566,7 @@ export class Resident {
     }
   }
 
-  private updateSleeping(delta: number, gameHour: number): void {
+  private updateSleeping(_delta: number, gameHour: number): void {
     // Sleeping restores a small amount of hunger resistance
     // (actually handled by reduced decay during sleep)
     
@@ -764,9 +761,9 @@ export class Resident {
   /**
    * Update stress from elevator wait times
    */
-  private updateElevatorWaitStress(delta: number): void {
+  private updateElevatorWaitStress(_delta: number): void {
     if (this.state === ResidentState.WAITING_FOR_ELEVATOR && this.elevatorWaitStartTime > 0) {
-      const waitTime = Date.now() - this.elevatorWaitStartTime;
+      // Wait time stress is applied when boarding, not continuously
       // Check thresholds and apply stress (only once per threshold)
       // We'll apply stress when boarding, not continuously
     }
@@ -790,7 +787,7 @@ export class Resident {
   /**
    * Update stress from hourly factors
    */
-  private updateHourlyStress(delta: number, gameHour: number): void {
+  private updateHourlyStress(delta: number, _gameHour: number): void {
     const hourDelta = delta / 3600000; // Convert ms to hours
 
     // Unemployed: +3 stress/hour

@@ -34,7 +34,7 @@ export interface ReviewConfig {
  * @returns Promise resolving to pass/fail result with optional feedback
  */
 export async function createReview(config: ReviewConfig): Promise<ReviewResult> {
-  const { criteria, artifact, intelligence = 'fast' } = config;
+  const { artifact } = config;
   
   // Detect artifact type (text vs visual)
   const isVisual = /\.(png|jpg|jpeg)$/i.test(artifact);

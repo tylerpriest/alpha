@@ -1,10 +1,4 @@
-import { Building } from '../entities/Building';
-import { Room } from '../entities/Room';
 import { Resident } from '../entities/Resident';
-import { TimeSystem } from './TimeSystem';
-import { EconomySystem } from './EconomySystem';
-import { ResourceSystem } from './ResourceSystem';
-import { ResidentSystem } from './ResidentSystem';
 import {
   SaveData,
   BuildingSaveData,
@@ -241,7 +235,7 @@ export class SaveSystem {
       let saveData: SaveData;
       try {
         saveData = JSON.parse(json);
-      } catch (error) {
+      } catch {
         return { success: false, error: 'Corrupted save file: Invalid JSON' };
       }
 
@@ -394,7 +388,7 @@ export class SaveSystem {
             population: saveData.residents.length,
             money: saveData.economy.money,
           });
-        } catch (error) {
+        } catch {
           // Corrupted save
           slots.push({
             slot,
@@ -445,7 +439,7 @@ export class SaveSystem {
         checksum: '',
         building: { floors: [], rooms: [], nextRoomId: 1 },
         residents: [],
-        economy: { money: 0, dailyIncome: 0, dailyExpenses: 0 },
+        economy: { money: 0, dailyIncome: 0, dailyExpenses: 0, lastQuarterDay: 0, quarterlyRevenue: 0 },
         time: { day: 0, hour: 0, minute: 0, dayOfWeek: 0, speed: 1, lastAutoSaveDay: 0 },
         resources: { rawFood: 0, processedFood: 0 },
         settings: { masterVolume: 80, uiVolume: 100, ambientVolume: 50, defaultGameSpeed: 1 },
