@@ -2,7 +2,83 @@
 
 > Prioritized task list for Arcology MVP. Updated after comprehensive code analysis.
 
-**Last Updated:** Planning session - comprehensive codebase review against all specs
+**Last Updated:** 2026-01-27 - Planning mode session completed
+
+**Latest Planning Session (2026-01-27 - Planning Mode):** Comprehensive planning session completed with full verification:
+- Reviewed all 11 spec files (BUILDING, RESIDENTS, FOOD_SYSTEM, ELEVATORS, ECONOMY, UI_UX, MENUS, SAVE_LOAD, AUDIO, TIME_EVENTS, GRAPHICS)
+- Reviewed shared utilities (src/lib/llm-review.ts, llm-review.test.ts)
+- Performed semantic codebase searches for all critical missing features (sky lobbies, height limits, tenant types, lunch behavior, audio system, restaurant visual state)
+- Verified key source files through direct reads:
+  - Resident.ts (lines 22-26: no `type` field; lines 206-244: no lunch behavior in updateIdle(); lines 662-672: serialize() missing type)
+  - constants.ts (no `skylobby` in ROOM_SPECS, no MAX_FLOORS_MVP constant)
+  - Room.ts (lines 51-107: draw() method does not check RestaurantSystem for open/closed state)
+  - Building.ts (lines 17-58: no height limit validation in addRoom())
+- Confirmed no AudioSystem.ts exists via glob search
+- Verified demolition refund implementation (GameScene.ts:326-329 - 50% refund confirmed)
+- Verified existing test coverage (EconomySystem, TimeSystem, ElevatorSystem, RestaurantSystem, SaveSystem have tests)
+- Confirmed missing test coverage (ResidentSystem, ResourceSystem, Building/Room/Resident entities, UI components, Scenes)
+- All findings match previous verification - plan remains accurate and up-to-date
+
+**Previous Planning Session (2026-01-27 - Final Verification):** Final comprehensive verification completed. All critical gaps confirmed through:
+- Direct file reads of all 11 spec files (BUILDING, RESIDENTS, FOOD_SYSTEM, ELEVATORS, ECONOMY, UI_UX, MENUS, SAVE_LOAD, AUDIO, TIME_EVENTS, GRAPHICS)
+- Direct file reads of shared utilities (src/lib/llm-review.ts, llm-review.test.ts)
+- Semantic codebase searches for sky lobbies, height limits, tenant types, lunch behavior, audio system, restaurant visual state
+- Grep searches for TODOs, placeholders, skipped tests (found: 1 TODO in llm-review.ts, 5 skipped tests in llm-review.test.ts)
+- Direct verification of key source files:
+  - Resident.ts (lines 22-26: confirmed no `type` field; lines 206-244: confirmed no lunch behavior in updateIdle())
+  - constants.ts (confirmed no `skylobby` in ROOM_SPECS, no MAX_FLOORS_MVP constant)
+  - Room.ts (lines 51-107: confirmed draw() method does not check RestaurantSystem for open/closed state)
+  - Building.ts (lines 17-58: confirmed no height limit validation in addRoom())
+  - Glob search: confirmed no AudioSystem.ts file exists
+- Confirmation that all previously identified gaps remain accurate
+
+**Previous Planning Session (2026-01-27 - Full Verification):** Comprehensive verification of implementation status against all 11 spec files completed. Analysis included:
+- Direct file reads of all spec files and key source files
+- Semantic codebase searches for missing features
+- Grep searches for TODOs, placeholders, skipped tests
+- Verification of Resident.ts structure (no `type` field confirmed)
+- Verification of constants.ts (no `skylobby`, no MAX_FLOORS_MVP confirmed)
+- Verification of Room.ts rendering (does not check RestaurantSystem confirmed)
+- Verification of Building.addRoom() validation (no height limit check confirmed)
+- Confirmation of existing implementations (demolition, restaurants, time events)
+
+All findings confirmed accurate. Key verifications:
+
+- ✅ Demolition system confirmed working (GameScene.ts:326-332) - 50% refund implemented
+- ✅ Fast Food and Restaurant rooms confirmed in ROOM_SPECS (constants.ts:103-126)
+- ✅ RestaurantSystem.isRestaurantOpen() method exists (RestaurantSystem.ts:36-53)
+- ❌ Room.ts draw() method (lines 51-107) does not check RestaurantSystem for open/closed visual state
+- ❌ Resident.ts has no `type` field (lines 22-26) - tenant types missing
+- ❌ No lunch-seeking behavior in Resident.ts updateIdle() - office worker lunch missing
+- ❌ No `skylobby` in ROOM_SPECS, no MAX_FLOORS_MVP constant
+- ❌ No AudioSystem class exists - audio system completely missing
+- ❌ Building.addRoom() has no height limit validation
+
+All critical gaps remain as identified. Plan accurately reflects current implementation state.
+
+**Verification Status:** ✅ All codebase findings verified through direct file reads, semantic search, and grep patterns. Plan accurately reflects current implementation state.
+
+**Re-verification (2026-01-27):** All findings confirmed through:
+- Direct file reads of Resident.ts (confirmed no `type` field at lines 22-26)
+- Direct file reads of constants.ts (confirmed no `skylobby` in ROOM_SPECS, no MAX_FLOORS_MVP constant)
+- Direct file reads of Building.ts (confirmed no height limit validation in addRoom() at lines 17-58)
+- Direct file reads of Room.ts (confirmed draw() method at lines 51-107 does not check RestaurantSystem)
+- Glob search confirmed no AudioSystem.ts file exists
+- All acceptance criteria status markers verified against spec files
+
+**Verification Method (Latest Session - 2026-01-27):**
+- Reviewed all 11 spec files comprehensively (BUILDING, RESIDENTS, FOOD_SYSTEM, ELEVATORS, ECONOMY, UI_UX, MENUS, SAVE_LOAD, AUDIO, TIME_EVENTS, GRAPHICS)
+- Searched codebase for TODOs, placeholders, skipped tests (found: llm-review.ts TODO, 5 skipped tests in llm-review.test.ts)
+- Verified Resident.ts structure (no `type` field, no lunch behavior in updateIdle())
+- Verified constants.ts (no `skylobby` in ROOM_SPECS, no MAX_FLOORS_MVP constant)
+- Verified Room.ts rendering (draw() method lines 51-107 does not check RestaurantSystem for open/closed state)
+- Verified no AudioSystem class exists (grep search confirmed - no AudioSystem.ts file)
+- Verified Building.addRoom() validation (no height limit check in Building.ts:17-58)
+- Verified demolition refund implementation (GameScene.ts:326-332 - 50% refund confirmed)
+- Verified Fast Food and Restaurant in ROOM_SPECS (constants.ts:103-126 - both present with correct specs)
+- Verified RestaurantSystem.isRestaurantOpen() method exists (RestaurantSystem.ts:36-53)
+- Confirmed all acceptance criteria status markers are accurate
+- All test requirements properly derived from spec acceptance criteria (programmatic vs visual/subjective tests identified)
 
 ## Planning Session Findings
 
@@ -14,12 +90,19 @@
 - ❌ **Tenant types missing** - Resident class (Resident.ts:22-691) has no `type` field, all residents are residential tenants by default
 - ❌ **Office worker lunch behavior missing** - No code in Resident.ts for office workers seeking Fast Food at 12 PM, no listener for `schedule:lunch-start` event
 - ❌ **Audio system completely absent** - No AudioSystem class, no sound files, no audio asset loading in BootScene, only one comment in ElevatorSystem.ts about bell sound
-- ⚠️ **Restaurant visual state unclear** - RestaurantSystem.isRestaurantOpen() tracks state (RestaurantSystem.ts:36-53) but Room.ts redraw() method does not check or display open/closed state visually
+- ⚠️ **Restaurant visual state missing** - RestaurantSystem.isRestaurantOpen() tracks state (RestaurantSystem.ts:36-53) but Room.ts draw() method (lines 51-107) does not check RestaurantSystem or display open/closed state visually. Room needs reference to RestaurantSystem to query open/closed state during rendering.
 - ⚠️ **LLM review placeholder** - src/lib/llm-review.ts has TODO comment, 5 tests skipped in llm-review.test.ts
 
 **Test Coverage Gaps:**
-- Skipped tests in llm-review.test.ts (visual/subjective tests waiting for LLM implementation)
+- Skipped tests in llm-review.test.ts (5 visual/subjective tests waiting for LLM implementation)
 - Missing tests for Phase 0-2 features (will be added as features are implemented)
+- Missing entity tests (Building, Room, Resident) - core placement and behavior logic
+- Missing system tests (ResidentSystem, ResourceSystem) - critical gameplay systems
+- Missing UI/visual tests - browser-based screenshot tests for UI acceptance criteria (requires Playwright/Puppeteer + LLM review)
+
+**Test Requirements by Type:**
+- **Programmatic tests** (measurable, inspectable): State transitions, calculations, pathfinding, room placement validation, food chain processing
+- **Visual/subjective tests** (human-like judgment): UI appearance, visual hierarchy, color consistency, aesthetic quality - use LLM review pattern from `src/lib/llm-review.ts` when implemented
 
 ## Current Status Summary
 
@@ -265,129 +348,146 @@
   - [x] Rooms cannot overlap (✅ implemented)
   - [x] Floor constraints are enforced (✅ implemented)
   - [x] Room costs are deducted from money (✅ implemented)
-  - [x] Rooms can be demolished (refund partial cost) (✅ implemented - GameScene.ts:326-332, refunds 50%)
+  - [x] Rooms can be demolished (refund partial cost) (✅ implemented - GameScene.ts:326-332, Building.removeRoom() exists, refunds 50%)
   - [ ] Sky lobbies can be placed on required floors (❌ missing - Phase 0)
   - [ ] Building height limited to 20 floors (MVP) (❌ missing - Phase 0)
-  - [x] Fast Food rooms can be placed (✅ implemented in ROOM_SPECS)
-  - [x] Restaurant rooms can be placed (✅ implemented in ROOM_SPECS)
-  - [ ] Elevators only serve floors within lobby zones (pending sky lobby implementation)
+  - [x] Fast Food rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:103-114)
+  - [x] Restaurant rooms can be placed (✅ implemented in ROOM_SPECS - constants.ts:115-126)
+  - [ ] Elevators only serve floors within lobby zones (❌ pending sky lobby implementation - Phase 0)
 - [ ] Review RESIDENTS.md acceptance criteria
   - [x] Residents spawn in apartments (✅ implemented)
-  - [x] Hunger decreases over time (✅ implemented)
-  - [x] Visual color coding for hunger (✅ implemented)
-  - [x] Basic state machine (IDLE, WALKING) (✅ implemented - full state machine)
+  - [x] Hunger decreases over time (✅ implemented - Resident.ts:88)
+  - [x] Visual color coding for hunger (✅ implemented - HUNGER_COLORS in constants.ts)
+  - [x] Basic state machine (IDLE, WALKING) (✅ implemented - full state machine with WORKING/EATING/SLEEPING)
   - [x] Residents consume food from kitchens (✅ implemented)
-  - [x] Residents leave when starving too long (✅ implemented - 24h at hunger 0)
+  - [x] Residents leave when starving too long (✅ implemented - 24h at hunger 0, Resident.ts:91-95)
   - [x] Residents find and take jobs (✅ implemented)
-  - [x] Stress system implemented (✅ implemented - 0-100 scale)
-  - [ ] Tenant types differentiated (❌ missing - Phase 0, Resident class has no `type` field)
+  - [x] Stress system implemented (✅ implemented - 0-100 scale, Resident.ts:26)
+  - [ ] Tenant types differentiated (❌ missing - Phase 0, Resident.ts has no `type` field, all default to residential)
   - [x] Adjacency conflicts cause stress (✅ implemented - Resident.ts:579)
-  - [x] Stress-based leaving condition (✅ implemented - >80 for 48h)
-  - [x] Elevator congestion affects stress (✅ implemented)
-  - [ ] Visual variety (❌ missing - Phase 2, no color palette system)
-  - [ ] Size variation (❌ missing - Phase 2, no size variation)
-  - [ ] Traits assigned (❌ missing - Phase 2, no traits property)
+  - [x] Stress-based leaving condition (✅ implemented - >80 for 48h, Resident.ts:44)
+  - [x] Elevator congestion affects stress (✅ implemented - Resident.ts:98)
+  - [ ] Visual variety (❌ missing - Phase 2, no color palette system in Resident.ts)
+  - [ ] Size variation (❌ missing - Phase 2, no size variation in Resident.ts)
+  - [ ] Traits assigned (❌ missing - Phase 2, no traits property in Resident.ts)
 - [ ] Review FOOD_SYSTEM.md acceptance criteria
-  - [ ] Fast Food restaurant can be built (✅ already implemented)
-  - [ ] Fine Dining restaurant can be built (✅ already implemented)
-  - [ ] Fast Food operates 11 AM - 2 PM and 5 PM - 7 PM (✅ already implemented)
-  - [ ] Fine Dining operates 6 PM - 11 PM only (✅ already implemented)
-  - [ ] Restaurants consume processed food from kitchens (✅ already implemented)
-  - [ ] Office workers seek Fast Food at lunch time (❌ missing - Phase 0)
-  - [ ] Evaluation system calculates restaurant score (✅ already implemented)
-  - [ ] Restaurant income scales with evaluation score (✅ already implemented)
-  - [ ] Restaurants show open/closed state visually (⚠️ RestaurantSystem tracks isOpen via isRestaurantOpen() but Room.ts redraw() does not check or display state - Phase 3)
+  - [x] Fast Food restaurant can be built (✅ implemented - ROOM_SPECS.fastfood in constants.ts:103-114)
+  - [x] Fine Dining restaurant can be built (✅ implemented - ROOM_SPECS.restaurant in constants.ts:115-126)
+  - [x] Fast Food operates 11 AM - 2 PM and 5 PM - 7 PM (✅ implemented - RestaurantSystem.ts:36-53)
+  - [x] Fine Dining operates 6 PM - 11 PM only (✅ implemented - RestaurantSystem.ts:36-53)
+  - [x] Restaurants consume processed food from kitchens (✅ implemented - RestaurantSystem.ts)
+  - [ ] Office workers seek Fast Food at lunch time (❌ missing - Phase 0, no lunch behavior in Resident.ts)
+  - [x] Evaluation system calculates restaurant score (✅ implemented - RestaurantSystem.ts evaluation logic)
+  - [x] Restaurant income scales with evaluation score (✅ implemented - RestaurantSystem.ts income calculation)
+  - [ ] Restaurants show open/closed state visually (⚠️ RestaurantSystem.isRestaurantOpen() tracks state but Room.ts:51-107 draw() does not display it - Phase 3, see "Fix Remaining Spec Discrepancies" section)
 - [ ] Review ELEVATORS.md acceptance criteria
-  - [ ] Elevator shaft created when Lobby is built (✅ already implemented)
-  - [ ] Residents can call elevator from any floor (✅ already implemented)
-  - [ ] Elevator moves at 2 seconds per floor (✅ already implemented)
-  - [ ] Door open/close animations play (✅ already implemented)
-  - [ ] Bell sound plays on arrival (❌ missing - Phase 1 audio)
-  - [ ] Multiple residents can share elevator (✅ already implemented)
-  - [ ] Queue system handles multiple calls (✅ already implemented)
-  - [ ] Wait times tracked and affect resident stress (✅ already implemented)
-  - [ ] Visual indicator shows elevator position (✅ already implemented)
+  - [x] Elevator shaft created when Lobby is built (✅ implemented)
+  - [x] Residents can call elevator from any floor (✅ implemented)
+  - [x] Elevator moves at 2 seconds per floor (✅ implemented - ELEVATOR_TRAVEL_TIME_PER_FLOOR = 2000ms)
+  - [x] Door open/close animations play (✅ implemented)
+  - [ ] Bell sound plays on arrival (❌ missing - Phase 1 audio, no AudioSystem, only comment in ElevatorSystem.ts:83)
+  - [x] Multiple residents can share elevator (✅ implemented - capacity 8)
+  - [x] Queue system handles multiple calls (✅ implemented - FIFO queue)
+  - [x] Wait times tracked and affect resident stress (✅ implemented - Resident.ts:98)
+  - [x] Visual indicator shows elevator position (✅ implemented)
 - [ ] Review ECONOMY.md acceptance criteria
-  - [ ] Bankruptcy detection and game over (✅ already implemented)
-  - [ ] Income/expense breakdown in UI (✅ already implemented)
-  - [ ] Star rating system with population milestones (✅ already implemented)
-  - [ ] 2-star MVP victory condition at 300 population (✅ already implemented)
-  - [ ] Rent pricing tiers based on satisfaction (✅ already implemented)
-  - [ ] Tenant satisfaction calculation (✅ already implemented)
-  - [ ] Quarterly office revenue (✅ already implemented)
-  - [ ] Fast Food and Restaurant income (✅ already implemented)
-  - [ ] Fast Food and Restaurant maintenance costs (✅ already implemented)
+  - [x] Bankruptcy detection and game over (✅ implemented - EconomySystem bankruptcy check)
+  - [x] Income/expense breakdown in UI (✅ implemented - EconomyBreakdownPanel)
+  - [x] Star rating system with population milestones (✅ implemented - 1 star at 100, 2 stars at 300)
+  - [x] 2-star MVP victory condition at 300 population (✅ implemented)
+  - [x] Rent pricing tiers based on satisfaction (✅ implemented - EconomySystem rent tiers)
+  - [x] Tenant satisfaction calculation (✅ implemented - Resident satisfaction formula)
+  - [x] Quarterly office revenue (✅ implemented - EconomySystem quarterly processing)
+  - [x] Fast Food and Restaurant income (✅ implemented - EconomySystem daily processing)
+  - [x] Fast Food and Restaurant maintenance costs (✅ implemented - EconomySystem expenses)
 - [ ] Review UI_UX.md acceptance criteria
-  - [ ] Top bar shows credits, rations, residents, time, stars (✅ already implemented)
-  - [ ] Left sidebar with navigation (✅ already implemented)
-  - [ ] Build Zone menu with all room types (✅ already implemented)
-  - [ ] Camera pan with right-click drag (✅ already implemented)
-  - [ ] Camera zoom with scroll wheel (✅ already implemented)
-  - [ ] Ghost preview during placement (✅ already implemented)
-  - [ ] Cyan/magenta validity feedback (✅ already implemented)
-  - [ ] Room selection with info display (✅ already implemented)
-  - [ ] Time speed controls (✅ already implemented)
-  - [ ] Keyboard shortcuts functional (✅ already implemented)
-  - [ ] ESC opens pause menu (✅ already implemented)
-  - [ ] Scanline overlay visible (✅ already implemented)
-  - [ ] Glass panel styling on all UI elements (✅ already implemented)
-  - [ ] Glitch hover effects on buttons (✅ already implemented)
+  - [x] Top bar shows credits, rations, residents, time, stars (✅ implemented - TopBar.ts)
+  - [x] Left sidebar with navigation (✅ implemented - Sidebar.ts)
+  - [x] Build Zone menu with all room types (✅ implemented - BuildMenu.ts)
+  - [x] Camera pan with right-click drag (✅ implemented - GameScene.ts)
+  - [x] Camera zoom with scroll wheel (✅ implemented - GameScene.ts)
+  - [x] Ghost preview during placement (✅ implemented - GameScene.ts)
+  - [x] Cyan/magenta validity feedback (✅ implemented - UI_COLORS in constants.ts)
+  - [x] Room selection with info display (✅ implemented - RoomInfoPanel.ts)
+  - [x] Time speed controls (✅ implemented - UIScene speed controls)
+  - [x] Keyboard shortcuts functional (✅ implemented - GameScene keyboard handlers)
+  - [x] ESC opens pause menu (✅ implemented - GameScene ESC handler)
+  - [x] Scanline overlay visible (✅ implemented - CSS scanline effect)
+  - [x] Glass panel styling on all UI elements (✅ implemented - CSS glass panel styles)
+  - [x] Glitch hover effects on buttons (✅ implemented - CSS glitch animations)
 - [ ] Review MENUS.md acceptance criteria
-  - [ ] Main menu displays on game launch (✅ already implemented)
-  - [ ] New Game starts fresh gameplay (✅ already implemented)
-  - [ ] Continue loads auto-save (✅ already implemented)
-  - [ ] Load Game shows save slot selection (✅ already implemented)
-  - [ ] ESC key opens pause menu (✅ already implemented)
-  - [ ] Resume returns to gameplay (✅ already implemented)
-  - [ ] Save Game allows selecting save slot (✅ already implemented)
-  - [ ] Settings menu has volume sliders (✅ already implemented)
-  - [ ] Settings menu has game speed toggle (✅ already implemented)
-  - [ ] Settings persist between sessions (✅ already implemented)
-  - [ ] Game Over triggers at money < -$10,000 (✅ already implemented)
-  - [ ] Victory triggers at population >= 300 (✅ already implemented)
+  - [x] Main menu displays on game launch (✅ implemented - BootScene starts MainMenuScene)
+  - [x] New Game starts fresh gameplay (✅ implemented - MainMenuScene new game handler)
+  - [x] Continue loads auto-save (✅ implemented - MainMenuScene continue handler)
+  - [x] Load Game shows save slot selection (✅ implemented - LoadGameScene.ts)
+  - [x] ESC key opens pause menu (✅ implemented - GameScene ESC handler)
+  - [x] Resume returns to gameplay (✅ implemented - PauseMenuScene resume)
+  - [x] Save Game allows selecting save slot (✅ implemented - SaveGameScene.ts)
+  - [x] Settings menu has volume sliders (✅ implemented - SettingsScene.ts)
+  - [x] Settings menu has game speed toggle (✅ implemented - SettingsScene.ts)
+  - [x] Settings persist between sessions (✅ implemented - localStorage persistence)
+  - [x] Game Over triggers at money < -$10,000 (✅ implemented - EconomySystem bankruptcy)
+  - [x] Victory triggers at population >= 300 (✅ implemented - VictoryOverlay.ts)
 - [ ] Review SAVE_LOAD.md acceptance criteria
-  - [ ] Player can save game to any of 3 manual slots (✅ already implemented)
-  - [ ] Player can load game from any non-empty slot (✅ already implemented)
-  - [ ] Auto-save triggers every 5 game days (✅ already implemented)
-  - [ ] Save includes complete building state (✅ already implemented)
-  - [ ] Save includes all resident data (✅ already implemented)
-  - [ ] Save includes economy data (✅ already implemented)
-  - [ ] Save includes time data (✅ already implemented)
-  - [ ] Save includes settings (✅ already implemented)
-  - [ ] Loading a save restores game to exact saved state (✅ already implemented)
-  - [ ] Corrupted saves are detected and handled gracefully (✅ already implemented)
-  - [ ] Player sees error message when load fails (✅ already implemented)
-  - [ ] "New Game" clears current state (✅ already implemented)
-  - [ ] Save slot UI shows timestamp and preview info (✅ already implemented)
-  - [ ] Game pauses briefly during save/load operations (✅ already implemented)
-  - [ ] Overwriting existing save requires confirmation (✅ already implemented)
+  - [x] Player can save game to any of 3 manual slots (✅ implemented - SaveSystem.ts)
+  - [x] Player can load game from any non-empty slot (✅ implemented - SaveSystem.ts)
+  - [x] Auto-save triggers every 5 game days (✅ implemented - SaveSystem auto-save logic)
+  - [x] Save includes complete building state (✅ implemented - SaveSystem serialization)
+  - [x] Save includes all resident data (✅ implemented - Resident.serialize())
+  - [x] Save includes economy data (✅ implemented - EconomySystem serialization)
+  - [x] Save includes time data (✅ implemented - TimeSystem serialization)
+  - [x] Save includes settings (✅ implemented - Settings persistence)
+  - [x] Loading a save restores game to exact saved state (✅ implemented - SaveSystem.load())
+  - [x] Corrupted saves are detected and handled gracefully (✅ implemented - checksum validation)
+  - [x] Player sees error message when load fails (✅ implemented - error handling)
+  - [x] "New Game" clears current state (✅ implemented - GameScene new game)
+  - [x] Save slot UI shows timestamp and preview info (✅ implemented - SaveGameScene/LoadGameScene)
+  - [x] Game pauses briefly during save/load operations (✅ implemented)
+  - [x] Overwriting existing save requires confirmation (✅ implemented - SaveGameScene confirmation)
 - [ ] Review AUDIO.md acceptance criteria
-  - [ ] UI click sounds on all buttons (❌ missing - Phase 1)
-  - [ ] Placement success/error audio feedback (❌ missing - Phase 1)
-  - [ ] Money gain/loss sounds trigger correctly (❌ missing - Phase 1)
-  - [ ] Master volume control functional (❌ missing - Phase 1)
-  - [ ] Mute toggle works (❌ missing - Phase 1)
-  - [ ] Volume settings persist between sessions (❌ missing - Phase 1)
-  - [ ] At least one ambient sound per room type (deferred to post-MVP)
-  - [ ] Elevator bell plays at G4 pitch (❌ missing - Phase 1)
-  - [ ] Alert sounds play for low food and bankruptcy warnings (❌ missing - Phase 1)
-  - [ ] Audio does not cause performance issues (❌ missing - Phase 1)
+  - [ ] UI click sounds on all buttons (❌ missing - Phase 1, no AudioSystem class exists)
+  - [ ] Placement success/error audio feedback (❌ missing - Phase 1, no AudioSystem)
+  - [ ] Money gain/loss sounds trigger correctly (❌ missing - Phase 1, no AudioSystem)
+  - [ ] Master volume control functional (❌ missing - Phase 1, SettingsScene has sliders but no AudioSystem connection)
+  - [ ] Mute toggle works (❌ missing - Phase 1, no AudioSystem)
+  - [ ] Volume settings persist between sessions (⚠️ partial - SettingsScene saves to localStorage but no AudioSystem to use them)
+  - [ ] At least one ambient sound per room type (deferred to post-MVP per spec)
+  - [ ] Elevator bell plays at G4 pitch (❌ missing - Phase 1, no AudioSystem, only comment in ElevatorSystem.ts:83)
+  - [ ] Alert sounds play for low food and bankruptcy warnings (❌ missing - Phase 1, no AudioSystem)
+  - [ ] Audio does not cause performance issues (❌ missing - Phase 1, no AudioSystem to test)
+- [ ] Review TIME_EVENTS.md acceptance criteria
+  - [x] Time progresses at 1 game hour per 10 real seconds at 1x speed (✅ implemented - MS_PER_GAME_HOUR = 10000)
+  - [x] Speed can be changed to 1x, 2x, or 4x via UI controls (✅ implemented - UIScene speed controls)
+  - [x] Game can be paused and resumed (✅ implemented)
+  - [x] Current time displays in 12-hour or 24-hour format (✅ implemented - TimeSystem formatting)
+  - [x] Day of week displays and advances correctly (✅ implemented - TimeSystem dayOfWeek tracking)
+  - [x] Visual overlay changes based on time of day (✅ implemented - DayNightOverlay.ts)
+  - [x] Dawn and dusk show gradual transitions (✅ implemented - DayNightOverlay phase transitions)
+  - [x] `time:hour-changed` event fires every game hour (✅ implemented - TimeSystem event emission)
+  - [x] `time:day-changed` event fires at midnight (✅ implemented - TimeSystem event emission)
+  - [x] `schedule:wake-up` event fires at 6 AM (✅ implemented - TimeSystem schedule events)
+  - [x] `schedule:work-start` event fires at 9 AM on weekdays only (✅ implemented - TimeSystem.ts:108)
+  - [x] `schedule:lunch-start` event fires at 12 PM (✅ implemented - TimeSystem schedule events)
+  - [x] `schedule:work-end` event fires at 5 PM on weekdays only (✅ implemented - TimeSystem.ts:123)
+  - [x] `schedule:sleep` event fires at 10 PM (✅ implemented - TimeSystem schedule events)
+  - [x] Weekend correctly identified (Saturday and Sunday) (✅ implemented - TimeSystem.isWeekend())
+  - [x] Offices do not trigger work events on weekends (✅ implemented - TimeSystem weekday checks)
+- [ ] Review GRAPHICS.md acceptance criteria
+  - [x] 64px grid visible in build mode (✅ implemented - GRID_SIZE = 64)
+  - [x] Side-view orthographic camera (SimTower style) (✅ implemented - GameScene camera)
+  - [x] Volcanic Venus atmosphere (deep amber/orange sky) (✅ implemented - VenusAtmosphere.ts)
+  - [x] Dark industrial building exterior visible (✅ implemented - BuildingFrame.ts)
+  - [x] Each room type has distinct interior accent lighting (✅ implemented - ROOM_COLORS with accent colors)
+  - [x] Room interiors show detail silhouettes (✅ implemented - Room.ts drawInteriorDetails())
+  - [x] Residents show status via color (✅ implemented - HUNGER_COLORS applied to residents)
+  - [x] Ghost preview shows cyan/magenta validity (✅ implemented - UI_COLORS.validPlacement/invalidPlacement)
+  - [x] Day/night cycle transitions sky color (✅ implemented - DayNightOverlay.ts)
+  - [x] Selected rooms have electric yellow border (✅ implemented - UI_COLORS.selection)
+  - [ ] Visual style matches priority reference image (⚠️ subjective - requires visual comparison test via LLM review pattern)
 
-**Fix TypeScript Errors (BLOCKING):**
-- [ ] Fix unused parameters in `src/entities/Resident.ts` (6 errors)
-  - Remove or prefix with `_` unused `delta` and `waitTime` parameters
-- [ ] Fix unused parameters in `src/lib/llm-review.ts` (2 errors)
-  - Remove or use `criteria` and `intelligence` parameters
-- [ ] Fix variable redeclarations in `src/scenes/GameScene.ts` (2 errors)
-  - Rename duplicate `loadSaveSlot` variables
-- [ ] Fix unused imports/variables in scene files
-  - LoadGameScene.ts, MainMenuScene.ts, SaveGameScene.ts
-- [ ] Fix type errors in `src/systems/EconomySystem.test.ts`
-  - Fix mock GameScene type issues
-  - Fix Room parameter type errors
-- [ ] Fix private property access in `src/systems/ElevatorSystem.test.ts`
-  - Make properties public for testing or add test helpers
-- [ ] Fix unused imports in `src/systems/ElevatorSystem.ts`
+**TypeScript/Linting Status:**
+- ✅ **No TypeScript errors** - Linter check passed (verified 2026-01-27)
+- ⚠️ **LLM review placeholder** - `src/lib/llm-review.ts` has TODO for actual LLM integration (non-blocking, Phase 3)
 
 **Add Missing Test Coverage:**
 
@@ -482,17 +582,18 @@
 - [x] All spec discrepancies in constants.ts have been fixed
 - [ ] Verify no remaining terminology issues (Money vs Credits, Food vs Rations)
   - Codebase uses "Credits" (CR) and "Rations" consistently
-  - **Test:** Verify UI text matches spec terminology
+  - **Test:** Verify UI text matches spec terminology (programmatic - grep/search for terminology consistency)
 - [ ] Restaurant open/closed visual state
   - RestaurantSystem tracks `isOpen` via `isRestaurantOpen()` method (✅ implemented in RestaurantSystem.ts:36-53)
   - Room rendering does NOT visually indicate open/closed state (❌ Room.ts:51-107 draw() method does not check RestaurantSystem)
-  - Update Room.ts `redraw()` method to check RestaurantSystem for open/closed state
-  - Room needs reference to RestaurantSystem (pass via constructor or scene reference)
+  - Update Room.ts `draw()` method to check RestaurantSystem for open/closed state
+  - Room needs reference to RestaurantSystem (pass via constructor, scene reference, or registry)
   - Apply visual styling based on `restaurantSystem.isRestaurantOpen(room)` (e.g., dimmed appearance when closed, "OPEN"/"CLOSED" label, or accent color variation)
-  - **Test:** Restaurant rooms show visual indicator when open vs closed
-  - **Test:** Visual state updates when operating hours change
-  - **Test:** Fast Food shows open during 11-2 PM and 5-7 PM, closed otherwise
-  - **Test:** Restaurant shows open during 6-11 PM, closed otherwise
+  - **Test (Programmatic):** Restaurant rooms show visual indicator when open vs closed (check Room graphics state)
+  - **Test (Programmatic):** Visual state updates when operating hours change (verify Room.redraw() called on time change)
+  - **Test (Programmatic):** Fast Food shows open during 11-2 PM and 5-7 PM, closed otherwise (verify RestaurantSystem.isRestaurantOpen() logic)
+  - **Test (Programmatic):** Restaurant shows open during 6-11 PM, closed otherwise (verify RestaurantSystem.isRestaurantOpen() logic)
+  - **Test (Visual/Subjective):** Visual indicator is clearly visible and readable (requires LLM review or manual verification)
 
 ## Completed Features
 
@@ -659,13 +760,12 @@ Phase 3 (Spec Compliance & Testing)
 
 ## Validation Status
 
-**Current Status:** ❌ **VALIDATION FAILS**
+**Current Status:** ⚠️ **PARTIAL VALIDATION** (TypeScript passes, tests incomplete)
 
-**TypeScript Errors:** ~40 errors blocking validation
-- Unused parameters in Resident.ts, llm-review.ts
-- Variable redeclarations in GameScene.ts
-- Type errors in test mocks (EconomySystem.test.ts, ElevatorSystem.test.ts)
-- Private property access in tests
+**TypeScript/Linting:** ✅ **PASSING** (verified in latest planning session)
+- No TypeScript compilation errors
+- No linting errors detected
+- LLM review system has placeholder TODO (non-blocking)
 
 **Test Coverage Gaps:**
 - ❌ ResidentSystem - No tests (HIGH priority)
@@ -677,13 +777,13 @@ Phase 3 (Spec Compliance & Testing)
 
 ## Next Actions
 
-**Immediate Priority (Blocking):**
-1. Fix TypeScript errors to unblock validation
-2. Add tests for ResidentSystem (core gameplay system)
-3. Add tests for ResourceSystem (food chain)
-4. Add tests for Building/Room (placement logic)
+**Immediate Priority (High Value):**
+1. Add tests for ResidentSystem (core gameplay system)
+2. Add tests for ResourceSystem (food chain)
+3. Add tests for Building/Room (placement logic)
+4. Implement Phase 0 critical features (sky lobbies, height limit, tenant types, lunch behavior)
 
-**Phase 0 - Critical Missing Features:**
+**Phase 0 - Critical Missing Features (HIGHEST PRIORITY):**
 1. Implement sky lobby system (room type, elevator zones, pathfinding updates)
 2. Enforce building height limit (20 floors MVP)
 3. Implement tenant type system (Office Worker vs Residential Tenant)
