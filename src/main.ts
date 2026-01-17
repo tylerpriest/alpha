@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
+import { MainMenuScene } from './scenes/MainMenuScene';
+import { PauseMenuScene } from './scenes/PauseMenuScene';
+import { SettingsScene } from './scenes/SettingsScene';
+import { LoadGameScene } from './scenes/LoadGameScene';
+import { SaveGameScene } from './scenes/SaveGameScene';
 import './styles/ui.css';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -17,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, UIScene],
+  scene: [BootScene, MainMenuScene, GameScene, UIScene, PauseMenuScene, SettingsScene, LoadGameScene, SaveGameScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

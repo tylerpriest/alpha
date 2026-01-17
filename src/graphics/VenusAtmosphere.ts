@@ -8,12 +8,6 @@ const SKY_COLORS = {
   night: { top: 0x2a1a1a, bottom: 0x4a2a1a },  // Dark volcanic red-brown
 };
 
-// Lava glow colors for ground
-const LAVA_COLORS = {
-  bright: 0xff4a0a,
-  medium: 0xd43a0a,
-  dark: 0x8a2a0a,
-};
 
 // Cloud layer configuration
 interface CloudLayer {

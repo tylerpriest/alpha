@@ -23,6 +23,8 @@ export const ROOM_COLORS = {
   office: { base: 0x1a2028, accent: 0x4a8ae4 },    // Dark blue-gray + Blue
   farm: { base: 0x1a2018, accent: 0x4ae44a },      // Dark green-brown + Bright green
   kitchen: { base: 0x201a1a, accent: 0xe4d4a4 },   // Dark warm gray + Warm yellow
+  fastfood: { base: 0x4a2a2a, accent: 0xe44a4a },  // Dark red-brown + Bright red
+  restaurant: { base: 0x3a2a3a, accent: 0xe44ae4 }, // Dark purple-brown + Bright magenta
 } as const;
 
 // UI Colors
@@ -56,14 +58,14 @@ export const ROOM_SPECS = {
   },
   apartment: {
     width: 3,
-    cost: 5000,
+    cost: 2000,
     minFloor: 1,
     maxFloor: 100,
     color: ROOM_COLORS.apartment.base,
     accentColor: ROOM_COLORS.apartment.accent,
     income: 100, // Rent per day
     expenses: 10, // Maintenance per day
-    capacity: 2, // Residents
+    capacity: 4, // Residents
   },
   office: {
     width: 4,
@@ -74,11 +76,11 @@ export const ROOM_SPECS = {
     accentColor: ROOM_COLORS.office.accent,
     income: 200, // Per employed resident per day
     expenses: 20,
-    jobs: 4, // Number of jobs
+    jobs: 6, // Number of jobs
   },
   farm: {
     width: 4,
-    cost: 15000,
+    cost: 3000,
     minFloor: 1,
     maxFloor: 100,
     color: ROOM_COLORS.farm.base,
@@ -89,7 +91,7 @@ export const ROOM_SPECS = {
   },
   kitchen: {
     width: 3,
-    cost: 10000,
+    cost: 2500,
     minFloor: 1,
     maxFloor: 100,
     color: ROOM_COLORS.kitchen.base,
@@ -97,6 +99,30 @@ export const ROOM_SPECS = {
     income: 0,
     expenses: 30,
     foodProcessing: 20, // Converts raw food to meals per day
+  },
+  fastfood: {
+    width: 4,
+    cost: 5000,
+    minFloor: 1,
+    maxFloor: 100,
+    color: ROOM_COLORS.fastfood.base,
+    accentColor: ROOM_COLORS.fastfood.accent,
+    income: 500, // Base income per day (scaled by evaluation score)
+    expenses: 50,
+    capacity: 20, // Diners
+    foodConsumption: 30, // Processed food consumed per day
+  },
+  restaurant: {
+    width: 5,
+    cost: 10000,
+    minFloor: 1,
+    maxFloor: 100,
+    color: ROOM_COLORS.restaurant.base,
+    accentColor: ROOM_COLORS.restaurant.accent,
+    income: 800, // Base income per day (scaled by evaluation score)
+    expenses: 100,
+    capacity: 15, // Diners
+    foodConsumption: 20, // Processed food consumed per day
   },
 } as const;
 
