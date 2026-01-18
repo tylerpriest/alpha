@@ -134,3 +134,15 @@ Complete systems covering the entire workflow:
 - [Brief History of Ralph](https://www.humanlayer.dev/blog/brief-history-of-ralph) - HumanLayer
 - [Paddo.dev Ralph Wiggum Guide](https://paddo.dev/blog/ralph-wiggum-autonomous-loops/)
 - [Awesome Claude Code](https://github.com/hesreallyhim/awesome-claude-code) - 20.3k stars
+
+
+[https://github.com/snarktank/ralph](https://github.com/snarktank/ralph)
+[https://github.com/mikeyobrien/ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator)
+
+[https://github.com/subsy/ralph-tui](https://github.com/subsy/ralph-tui)
+[https://github.com/frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code)
+[https://github.com/ClaytonFarr/ralph-playbook](https://github.com/ClaytonFarr/ralph-playbook)
+
+[https://github.com/Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)
+[https://github.com/github/spec-kit](https://github.com/github/spec-kit)
+[https://github.com/automazeio/ccpm](https://github.com/automazeio/ccpm)
