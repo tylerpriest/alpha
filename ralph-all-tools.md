@@ -30,9 +30,12 @@
 | Tool | Stars | Forks | Type | Key Feature |
 |------|-------|-------|------|-------------|
 | [github/spec-kit](https://github.com/github/spec-kit) | 62.3k | 5.4k | Framework | 4-stage gated workflow |
+| [bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | 30.7k | 4.1k | Framework | 21 agents, multi-phase |
 | [eyaltoledano/claude-task-master](https://github.com/eyaltoledano/claude-task-master) | 24.9k | 2.4k | MCP/CLI | PRD→Tasks, multi-IDE |
 | [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) | 17.1k | 1.2k | Framework | Lightweight, fast |
+| [ruvnet/claude-flow](https://github.com/ruvnet/claude-flow) | 12.5k | 1.5k | Framework | 54+ agents, swarm orchestration |
 | [automazeio/ccpm](https://github.com/automazeio/ccpm) | 6k | 633 | Framework | PRD→Epic→Task→Issue |
+| [clawdbot/clawdbot](https://github.com/clawdbot/clawdbot) | 5.3k | 830 | Assistant | Multi-channel, voice, A2UI |
 | [asklokesh/loki-mode](https://github.com/asklokesh/claudeskill-loki-mode) | 515 | 103 | Skill | 37 agents, full startup |
 | [alinaqi/claude-bootstrap](https://github.com/alinaqi/claude-bootstrap) | 351 | 28 | Framework | TDD-first, security |
 | [anombyte93/prd-taskmaster](https://github.com/anombyte93/prd-taskmaster) | 44 | 8 | Skill | 12+ discovery questions |
@@ -90,8 +93,11 @@
 
 **Spec Frameworks**
 - [spec-kit](https://github.com/github/spec-kit) — GitHub's official
+- [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) — 21 agents, multi-phase
 - [OpenSpec](https://github.com/Fission-AI/OpenSpec) — Brownfield-first
 - [claude-task-master](https://github.com/eyaltoledano/claude-task-master) — PRD→Tasks
+- [claude-flow](https://github.com/ruvnet/claude-flow) — Swarm orchestration
+- [clawdbot](https://github.com/clawdbot/clawdbot) — Multi-channel assistant
 
 **Loop Implementations**
 - [ralph-tui](https://github.com/subsy/ralph-tui) — Best visibility
