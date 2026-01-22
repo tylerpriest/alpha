@@ -148,6 +148,72 @@ go install github.com/steveyegge/gastown/cmd/gt@latest
 
 ---
 
+## 🧹 Tech Debt Cleanup
+
+*For: old specs vs new specs, multiple devs, changing direction, double-built features, components that should be shared*
+
+### Dead Code / Unused Dependencies
+
+| Tool | Stars | Forks | Language | Key Feature |
+|------|-------|-------|----------|-------------|
+| [webpro-nl/knip](https://github.com/webpro-nl/knip) | 10k | 343 | JS/TS | Unused deps, exports, files, duplicates |
+| [jendrikseipp/vulture](https://github.com/jendrikseipp/vulture) | 4.3k | 177 | Python | 60-100% confidence scoring |
+| [naver/scavenger](https://github.com/naver/scavenger) | 458 | 50 | Java | Runtime dead code analysis |
+| [albertas/deadcode](https://github.com/albertas/deadcode) | — | — | Python | CLI, auto-fix |
+| [line/tsr](https://github.com/line/tsr) | — | — | TS | Tree-shaking for source files |
+
+### Duplicate / Conflicting Code
+
+| Tool | Stars | Forks | Type | Key Feature |
+|------|-------|-------|------|-------------|
+| [alinaqi/claude-bootstrap](https://github.com/alinaqi/claude-bootstrap) | 351 | 28 | Framework | `/audit-duplicates`, CODE_INDEX.md |
+| [yusufkaraaslan/Skill_Seekers](https://github.com/yusufkaraaslan/Skill_Seekers) | 7.2k | 718 | Tool | Docs vs code conflict detection |
+| [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) | 17.1k | 1.2k | Framework | Spec vs reality tracking |
+| [CodeScene](https://codescene.com) | — | — | SaaS | 6x more accurate than SonarQube |
+| [SonarQube](https://www.sonarsource.com/products/sonarqube/) | — | — | SaaS | 30+ languages, code smells |
+
+### Refactoring / Consolidation
+
+| Tool | Stars | Forks | Type | Key Feature |
+|------|-------|-------|------|-------------|
+| [ruvnet/claude-flow](https://github.com/ruvnet/claude-flow) | 12.5k | 1.5k | Framework | `implement, test, fix, optimize` |
+| [github/spec-kit](https://github.com/github/spec-kit) | 62.3k | 5.4k | Framework | `/speckit.plan` for refactor roadmap |
+| [kamilstanuch/codebase-digest](https://github.com/kamilstanuch/codebase-digest) | 347 | 28 | Tool | 60+ analysis prompts |
+
+### Common Tech Debt Scenarios
+
+| Problem | Tool | Approach |
+|---------|------|----------|
+| Old specs + new specs conflict | [OpenSpec](https://github.com/Fission-AI/OpenSpec) | `specs/` = truth, `changes/` = proposals |
+| 3 devs built same thing | [claude-bootstrap](https://github.com/alinaqi/claude-bootstrap) | `/audit-duplicates` finds semantic dupes |
+| Dead code from pivots | [Knip](https://github.com/webpro-nl/knip) (JS/TS) or [Vulture](https://github.com/jendrikseipp/vulture) (Python) | Static analysis with confidence % |
+| Shared components not extracted | [Skill_Seekers](https://github.com/yusufkaraaslan/Skill_Seekers) | Detects duplicate purpose across files |
+| No single source of truth | [Beads](https://github.com/steveyegge/beads) | Git-backed task graph |
+
+### Workflow for Messy Codebase
+
+```bash
+# 1. Index what exists
+/update-code-index                    # claude-bootstrap
+
+# 2. Find duplicates & dead code
+/audit-duplicates                     # claude-bootstrap
+npx knip                              # JS/TS projects
+vulture .                             # Python projects
+
+# 3. Reconcile specs vs reality
+openspec init                         # Set up spec tracking
+/openspec:proposal "consolidation"    # Document what should change
+
+# 4. Create cleanup plan
+/speckit.plan                         # Generate refactor roadmap
+
+# 5. Execute with Ralph loop
+ralph-tui run --prd ./cleanup.json    # Autonomous cleanup
+```
+
+---
+
 ## Quick Reference
 
 | I want to... | Best Tool |
@@ -160,6 +226,9 @@ go install github.com/steveyegge/gastown/cmd/gt@latest
 | Browser testing | [Playwright MCP](https://github.com/microsoft/playwright-mcp) |
 | DevTools debugging | [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) |
 | Find duplicates | [claude-bootstrap](https://github.com/alinaqi/claude-bootstrap) |
+| Dead code (JS/TS) | [Knip](https://github.com/webpro-nl/knip) |
+| Dead code (Python) | [Vulture](https://github.com/jendrikseipp/vulture) |
+| Specs vs code conflicts | [Skill_Seekers](https://github.com/yusufkaraaslan/Skill_Seekers) |
 | Multi-channel assistant | [clawdbot](https://github.com/clawdbot/clawdbot) |
 
 ---
@@ -191,3 +260,10 @@ go install github.com/steveyegge/gastown/cmd/gt@latest
 - [claude-bootstrap](https://github.com/alinaqi/claude-bootstrap)
 - [Skill_Seekers](https://github.com/yusufkaraaslan/Skill_Seekers)
 - [codebase-digest](https://github.com/kamilstanuch/codebase-digest)
+
+**Tech Debt / Dead Code**
+- [knip](https://github.com/webpro-nl/knip) — JS/TS unused deps/exports/files
+- [vulture](https://github.com/jendrikseipp/vulture) — Python dead code
+- [scavenger](https://github.com/naver/scavenger) — Java runtime analysis
+- [CodeScene](https://codescene.com) — AI refactoring, code health
+- [SonarQube](https://www.sonarsource.com/products/sonarqube/) — 30+ languages
